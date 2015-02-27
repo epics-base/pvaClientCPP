@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+  <title>EPICS easyPVA</title>
+  <link rel="stylesheet" type="text/css"
+  href="http://epics-pvdata.sourceforge.net/base.css" />
+  <link rel="stylesheet" type="text/css"
+  href="http://epics-pvdata.sourceforge.net/epicsv4.css" />
+  <style type="text/css">
+/*<![CDATA[*/
+     .about { margin-left: 3em; margin-right: 3em; font-size: .83em}
+     table { margin-left: auto; margin-right: auto }
+     .diagram { text-align: center; margin: 2.5em 0 }
+     body { margin-right: 10% }
+/*]]>*/</style>
+
+ <!-- Script that generates the Table of Contents -->
+  <script type="text/javascript" src="http://epics-pvdata.sourceforge.net/script/tocgen.js"></script>
+
+</head>
+
+<body>
+
+<div class="head">
+<h1>EPICS easyPVA</h1>
+<!-- Maturity: Working Draft or Request for Comments, or Recommendation, and date.  -->
+<h2 class="nocount">EPICS V4 Working Group, Working Draft,
+19-Feb-2015</h2>
+<dl>
+  <dt>This version:</dt>
+    <dd><a
+      href="easyPVA.html">easyPVA.html
+    </a> </dd>
+  <dt>Latest version:</dt>
+    <dd>none</dd>
+  <dt>Previous version:</dt>
+    <dd>none</dd>
+  <dt>Editors:</dt>
+    <dd>Marty Kraimer, BNL</dd>
+    <dd>Matej Sekoranja, Cosylab</dd>
+</dl>
+
+<h2 class="nocount">Abstract</h2>
+
+<p>EasyPVA (Easy PVAccess) is a software library that provides to an EPICS client programmer, a friendly
+client side programming interface to the data of an EPICS based control system. It is intended 
+for such uses as rapid development of ad hoc programs by controls engineers, or to provide 
+scientists a way to directly develop analytical applications.</p>
+
+<p>Specifically, easyPVA provides an easy interface for pvAccess, which is the
+software support for high speed controls network communications used in EPICS version 4.
+PvAccess provides a callback based interface, which can be hard to use.
+EasyPVA provides an interface that does not require callbacks even for monitors.
+</p>
+<p>
+EasyChannel provides many "convenience" methods to directly get and put 
+scalar and scalarArray data types.
+Additional methods provide access to the full features of pvAccess.
+</p>
+<p>
+EasyMultiChannel provides access to data from multiple channels as long
+as each channel has a top level field named <b>value</b>.
+EasyMultiChannel provides two ways to access data from multiple channels:
+The first is as an NTMultiChannel. The second is as a double array.
+The double array can be used if the value field of every channel is a numeric scalar.
+There is code for NTMultiChannel that helps with access to more complicated data types.
+</p>
+<p>EasyPVA will become part of pvAccess when it is ready. </p>
+
+  <!-- last para of Abstract is boilerplate reference to EPICS -->
+      <p>For more information about EPICS generally, please refer to the home page of the <a
+       href="http://www.aps.anl.gov/epics/">Experimental Physics and Industrial
+      Control System</a>.</p>
+
+
+
+<h2 class="nocount">Status of this Document and of the EasyPVA Software</h2>
+
+<p>Under development</p>
+
+</div> <!-- head -->
+
+<div id="toc">
+  <h2 class="nocount">Table of Contents</h2>
+</div>
+
+<!-- Place what you would like in the Table of Contents, inside the contents div -->
+<div id="contents" class="contents">	  
+<hr />
+
+<h2>Introduction</h2>
+
+<p>EasyPVA is a synchronous API for accessing PVData via PVAccess. It provides
+an interface to many of the features provided by pvData and pvAccess.</p>
+
+<p>The EasyPVA API has the following features:</p>
+<ol>
+  <li>Makes common requests easy to program</li>
+  <li>Provides full access to the pvAccess API for more demanding
+  applications</li>
+  <li>Allows efficient client side programs.</li>
+</ol>
+
+<p>The following describes the CPP version of EasyPVA.</p>
+
+<p>This is the overview for EasyPVACPP. JavaDoc documentation is available at <a
+href="./html/index.html">doxygenDoc</a></p>
+
+
+<h3>Initialization</h3>
+
+<p>A client obtains the interface to EasyPVA via the call:</p>
+<pre>EasyPVA easy = EasyPVAFactory.get();</pre>
+
+<p>The client can make this call many times, but an instance of the EastPVA interface object is
+only created in the first call. This first call also
+starts the PVAccess client factory.</p>
+
+<h3>EasyPVA Overview</h3>
+
+<p>EasyPVA creates interfaces to one of the following:</p>
+<dl>
+  <dt>EasyChannel</dt>
+    <dd>This creates an interface for accessing a single channel.<br />
+     There are two methods for creating an EasyChannel,
+     with the difference being that the second
+     specifiers the name of the provider.
+     The other assumes that the provider is "pva" (pvAccess).
+    </dd>
+  <dt>EasyMultiChannel</dt>
+    <dd>This creates an interface for accessing a set of channels.<br />
+     There are multiple methods for creating an EasyMultiChannel.
+     The provider can be supplied or use a default of "pva".
+     A union for the UnionArray for accessing the value fields of each channel
+     can be provided or a default of variant union will be used.
+    </dd>
+</dl>
+
+
+<p>There are additional methods that allows the client to:</p>
+<ol>
+  <li>Control how error messages are handled.</li>
+  <li>Control when get/put commands are sent the channel or channels.</li>
+</ol>
+
+<h3>EasyChannel Overview</h3>
+
+<p>This interface creates Easy support for each PVAccess::Channel create
+method:</p>
+<dl>
+  <dt>EasyField</dt>
+    <dd>This gets the introspection interface from a channel. The
+      implementation provides full access to the features of
+    Channel::getField.</dd>
+  <dt>EasyProcess</dt>
+    <dd>This is used to process a channel. The implementation provides full
+      access to the features of ChannelProcess.</dd>
+  <dt>EasyGet</dt>
+    <dd>This is used to get values from a channel. The implementation allows
+      full access to all the features of ChannelGet. By default it asks for the
+      fields value, alarm, and timeStamp. If the channel has a value field then
+      EasyGet provides convenience methods for a scalar value and for an array
+      value. </dd>
+  <dt>EasyPut</dt>
+    <dd>This is used to get the current value of a channel and to put values to
+      a channel. The implementation allows full access to all the features of
+      ChannelPut. By default it asks for the field value, alarm, and timeStamp.
+      If the channel has a value field then EasyPut provides convenience
+      methods for a scalar value and for an array value. </dd>
+  <dt>EasyRPC</dt>
+    <dd>This is an interface to ChannelRPC.
+     The implementation allows full access to all the features of ChannelRPC.
+    </dd>
+  <dt>EasyPutGet</dt>
+    <dd>This is an interface to ChannelPutGet. Details TBD.</dd>
+  <dt>EasyMonitor</dt>
+    <dd>This is an interface to Monitor.
+     The implementation allows full access to all the features of pvAccess Monitor.
+    </dd>
+  <dt>EasyArray</dt>
+    <dd>This is an interface to ChannelArray. Details TBD.</dd>
+  <dt>EasyProcess</dt>
+    <dd>This is an interface to ChannelProcess. Details TBD.</dd>
+</dl>
+
+<h3>EasyMultiChannel Overview</h3>
+<p>This interface creates Easy support for accessing a set of channels.
+The only requirement of the channels is that each must have a top level field named value.
+</p>
+<dl>
+  <dt>EasyMultiGet</dt>
+    <dd>This is used to get values from a a set of channels.
+      The result can either be an NTMultiChannel structure or a <b>double[]</b> array.
+      The createGet method determines the result type.
+     </dd>
+  <dt>EasyMultiPut</dt>
+    <dd>This is used to get and put values from/to a set of channels.
+      The data supplied can either be an NTMultiChannel structure or a <b>double[]</b> array.
+      The createPut method determines the type.
+     </dd>
+  <dt>EasyMonitor</dt>
+     <dd>This is used to monitor values from a set of channels.
+      Each event can either be an NTMultiChannel structure or a <b>double[]</b> array.
+      The createMonitor method determines the data type.
+     </dd>
+</dl>
+
+<h2>shell</h2>
+<p>Directory <b>shell</b> has the following files:</p>
+<dl>
+  <dt>exampleDatabaseEasyPVA.zip</dt>
+     <dd>
+       When unzipped this is used to create an example IOC database.
+      The database has the record used by the examples are tests that come with easyPVAJava.
+      It uses pvDatabaseCPP to build the database.
+      After unzipping the file:
+<pre>
+cd configure
+cp ExampleRELEASE.local RELEASE.local
+edit RELEASE.local
+cd ..
+make
+cd iocBoot/exampleDatabase
+../../bin/&lt;arch:&gt;/exampleDatabase st.cmd
+</pre>
+     You now have a running database.
+     </dd>
+  <dt>source</dt>
+     <dd>
+      This file creates the <b>CLASSPATH</b> required
+      to run the examples and tests.
+     You have to edit it for your environment.
+     </dd>
+  <dt>rpcServiceExample</dt>
+     <dd>
+       This starts the RPCServiceExample.
+       This is required by ExampleEasyRPC.
+     </dd>
+  <dt>exampleGet</dt>
+     <dd>
+       This runs ExampleGet.
+     </dd>
+  <dt>exampleGetDouble</dt>
+     <dd>
+       This runs ExampleGetDouble
+     </dd>
+  <dt>doublePut</dt>
+     <dd>
+       This runs DoublePut.
+     </dd>
+  <dt>doubleArrayPut</dt>
+     <dd>
+       This runs DoubleArrayPut
+     </dd>
+  <dt>exampleMonitor</dt>
+     <dd>
+       This runs ExampleMonitor
+     </dd>
+  <dt>exampleMonitorCallback</dt>
+     <dd>
+       This runs ExampleMonitorCallback
+     </dd>
+  <dt>exampleMultiMonitor</dt>
+     <dd>
+       This runs ExampleMultiMonitor.
+       It and polls every few seconds for monitor events.
+      It gets data as NTMultiChannel.
+     </dd>
+  <dt>exampleMultiMonitorDouble</dt>
+     <dd>
+       This runs ExampleMultiMonitorDouble.
+       It has an event listener for new events.
+      It gets data as an array of doubles.
+     </dd>
+</dl>
+<h3>Examples</h3>
+<p>These are examples in package <b>org.epics.pvaccess.easyPVA.example</b>
+See the source code for each example.
+In order to run the examples exampleDatabaseEasyPVA must be running.
+</p>
+<p>There is a shell command to run each example,</p>
+<h3>Tests</h3>
+<p>A test directory has a number of tests for easyPVAJava.
+In order to run the tests both exampleDatabaseEasyPVA and rpcServiceExample
+must be running.
+For now these tests are being run as eclipse unit tests.
+The tests also provide examples of using EasyPVA.
+</p>
+
+</div> <!-- class="contents" -->
+</body>
+</html>
