@@ -28,7 +28,7 @@
 <h1>EPICS easyPVA</h1>
 <!-- Maturity: Working Draft or Request for Comments, or Recommendation, and date.  -->
 <h2 class="nocount">EPICS V4 Working Group, Working Draft,
-19-Feb-2015</h2>
+02-Mar-2015</h2>
 <dl>
   <dt>This version:</dt>
     <dd><a
@@ -104,20 +104,20 @@ an interface to many of the features provided by pvData and pvAccess.</p>
   <li>Allows efficient client side programs.</li>
 </ol>
 
-<p>The following describes the CPP version of EasyPVA.</p>
-
-<p>This is the overview for EasyPVACPP. JavaDoc documentation is available at <a
+<p>This document briefly describes the CPP version of EasyPVA.
+Doxygen documentation is available at <a
 href="./html/index.html">doxygenDoc</a></p>
 
 
 <h3>Initialization</h3>
 
 <p>A client obtains the interface to EasyPVA via the call:</p>
-<pre>EasyPVA easy = EasyPVAFactory.get();</pre>
+<pre>EasyPVAPtr easyPVA = EasyPVAFactorys-&gt;create();</pre>
 
-<p>The client can make this call many times, but an instance of the EastPVA interface object is
-only created in the first call. This first call also
-starts the PVAccess client factory.</p>
+<p>The client can call this an arbitrary number of times.
+On the first call the PVAccess client factory is started.
+When the last EasyPVA is destroyed the PVAccess client factory is stopped.
+</p>
 
 <h3>EasyPVA Overview</h3>
 
@@ -138,13 +138,6 @@ starts the PVAccess client factory.</p>
      can be provided or a default of variant union will be used.
     </dd>
 </dl>
-
-
-<p>There are additional methods that allows the client to:</p>
-<ol>
-  <li>Control how error messages are handled.</li>
-  <li>Control when get/put commands are sent the channel or channels.</li>
-</ol>
 
 <h3>EasyChannel Overview</h3>
 
@@ -208,15 +201,17 @@ The only requirement of the channels is that each must have a top level field na
      </dd>
 </dl>
 
-<h2>shell</h2>
-<p>Directory <b>shell</b> has the following files:</p>
-<dl>
-  <dt>exampleDatabaseEasyPVA.zip</dt>
-     <dd>
-       When unzipped this is used to create an example IOC database.
-      The database has the record used by the examples are tests that come with easyPVAJava.
-      It uses pvDatabaseCPP to build the database.
-      After unzipping the file:
+<h2>example source code</h2>
+<h3>Example Database</h3>
+<p>The examples require that an example pvAccess server is runnimg.
+This distribution has a file <b>exampleDatabaseEasyPVA.zip</b>.
+When unzipped this is used to create an example IOC database.
+The database has the record used by the examples are tests that come with easyPVAJava.
+It uses pvDatabaseCPP to build the database.
+</p>
+<p>
+After unzipping the file:
+</p>
 <pre>
 cd configure
 cp ExampleRELEASE.local RELEASE.local
@@ -226,68 +221,16 @@ make
 cd iocBoot/exampleDatabase
 ../../bin/&lt;arch:&gt;/exampleDatabase st.cmd
 </pre>
-     You now have a running database.
-     </dd>
-  <dt>source</dt>
-     <dd>
-      This file creates the <b>CLASSPATH</b> required
-      to run the examples and tests.
-     You have to edit it for your environment.
-     </dd>
-  <dt>rpcServiceExample</dt>
-     <dd>
-       This starts the RPCServiceExample.
-       This is required by ExampleEasyRPC.
-     </dd>
-  <dt>exampleGet</dt>
-     <dd>
-       This runs ExampleGet.
-     </dd>
-  <dt>exampleGetDouble</dt>
-     <dd>
-       This runs ExampleGetDouble
-     </dd>
-  <dt>doublePut</dt>
-     <dd>
-       This runs DoublePut.
-     </dd>
-  <dt>doubleArrayPut</dt>
-     <dd>
-       This runs DoubleArrayPut
-     </dd>
-  <dt>exampleMonitor</dt>
-     <dd>
-       This runs ExampleMonitor
-     </dd>
-  <dt>exampleMonitorCallback</dt>
-     <dd>
-       This runs ExampleMonitorCallback
-     </dd>
-  <dt>exampleMultiMonitor</dt>
-     <dd>
-       This runs ExampleMultiMonitor.
-       It and polls every few seconds for monitor events.
-      It gets data as NTMultiChannel.
-     </dd>
-  <dt>exampleMultiMonitorDouble</dt>
-     <dd>
-       This runs ExampleMultiMonitorDouble.
-       It has an event listener for new events.
-      It gets data as an array of doubles.
-     </dd>
-</dl>
 <h3>Examples</h3>
-<p>These are examples in package <b>org.epics.pvaccess.easyPVA.example</b>
+<p>These are examples in directory <b>example/src</b>.
+An example of how to run them is:</p>
+<pre>
+mrk&gt; pwd
+/home/hg/easyPVACPP/example
+mrk&gt; bin/linux-x86_64/exampleEasyGet 
+</pre>
+<p>
 See the source code for each example.
-In order to run the examples exampleDatabaseEasyPVA must be running.
-</p>
-<p>There is a shell command to run each example,</p>
-<h3>Tests</h3>
-<p>A test directory has a number of tests for easyPVAJava.
-In order to run the tests both exampleDatabaseEasyPVA and rpcServiceExample
-must be running.
-For now these tests are being run as eclipse unit tests.
-The tests also provide examples of using EasyPVA.
 </p>
 
 </div> <!-- class="contents" -->

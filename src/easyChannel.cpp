@@ -143,19 +143,23 @@ EasyChannelImpl::~EasyChannelImpl()
 void EasyChannelImpl::channelCreated(const Status& status, Channel::shared_pointer const & channel)
 {
     if(isDestroyed) throw std::runtime_error("easyChannel was destroyed");
-    channelConnectStatus = status;
-    this->channel = channel;
+    if(status.isOK()) {
+        this->channel = channel;
+        return;
+    }
+    cout << "EasyChannelImpl::channelCreated status " << status.getMessage() << " why??\n";
 }
 
 void EasyChannelImpl::channelStateChange(
     Channel::shared_pointer const & channel,
     Channel::ConnectionState connectionState)
 {
-    if(isDestroyed) throw std::runtime_error("easyChannel was destroyed");
+    if(isDestroyed) return;
     bool waitingForConnect = false;
     if(connectState==connectActive) waitingForConnect = true;
     if(connectionState!=Channel::CONNECTED) {
-         string mess(channelName + " connection state " + Channel::ConnectionStateNames[connectionState]);
+         string mess(channelName +
+             " connection state " + Channel::ConnectionStateNames[connectionState]);
          message(mess,errorMessage);
          channelConnectStatus = Status(Status::STATUSTYPE_ERROR,mess);
          connectState = notConnected;
@@ -220,10 +224,14 @@ void EasyChannelImpl::issueConnect()
     }
     channelRequester = ChannelRequester::shared_pointer(new ChannelRequesterImpl(this));
 
+    channelConnectStatus = Status(Status::STATUSTYPE_ERROR,"createChannel failed");
     connectState = connectActive;
     ChannelProviderRegistry::shared_pointer reg = getChannelProviderRegistry();
     ChannelProvider::shared_pointer provider = reg->getProvider(providerName);
     channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
+    if(!channel) {
+         throw std::runtime_error(channelConnectStatus.getMessage());
+    }
 }
 
 Status EasyChannelImpl::waitConnect(double timeout)
@@ -268,7 +276,7 @@ EasyProcessPtr EasyChannelImpl::createProcess(PVStructurePtr const &  pvRequest)
 
 EasyGetPtr EasyChannelImpl::createGet()
 {
-    return EasyChannelImpl::createGet("value,alarm.timeStamp");
+    return EasyChannelImpl::createGet("value,alarm,timeStamp");
 }
 
 EasyGetPtr EasyChannelImpl::createGet(string const & request)

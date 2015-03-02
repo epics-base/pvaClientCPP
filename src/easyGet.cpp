@@ -101,6 +101,7 @@ public:
         return shared_from_this();
     }
 private:
+    void checkGetState();
     enum GetConnectState {connectIdle,connectActive,connected};
 
     EasyPVAPtr easyPVA;
@@ -176,6 +177,12 @@ EasyGetImpl::~EasyGetImpl()
     destroy();
 }
 
+void EasyGetImpl::checkGetState()
+{
+    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(connectState==connectIdle) connect();
+    if(getState==getIdle) get();
+}
 
 // from ChannelGetRequester
 string EasyGetImpl::getRequesterName()
@@ -257,7 +264,6 @@ void EasyGetImpl::issueConnect()
         throw std::runtime_error(ss.str());
     }
     getRequester = ChannelGetRequester::shared_pointer(new ChannelGetRequesterImpl(this));
-
     connectState = connectActive;
     channelGet = channel->createChannelGet(getRequester,pvRequest);
 }
@@ -335,206 +341,206 @@ void EasyGetImpl::setPVStructure(epics::pvData::PVStructurePtr const & pvStructu
 
 Alarm EasyGetImpl::getAlarm()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getAlarm();
 }
 
 TimeStamp EasyGetImpl::getTimeStamp()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getTimeStamp();
 }
 
 bool EasyGetImpl::hasValue()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->hasValue();
 }
 
 bool EasyGetImpl::isValueScalar()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->isValueScalar();
 }
 
 bool EasyGetImpl::isValueScalarArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->isValueScalarArray();
 }
 
 PVFieldPtr EasyGetImpl::getValue()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getValue();
 }
 
 PVScalarPtr EasyGetImpl::getScalarValue()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getScalarValue();
 }
 
 std::tr1::shared_ptr<PVArray> EasyGetImpl::getArrayValue()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getArrayValue();
 }
 
 std::tr1::shared_ptr<PVScalarArray> EasyGetImpl::getScalarArrayValue()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getScalarArrayValue();
 }
 
 bool EasyGetImpl::getBoolean()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getBoolean();
 }
 
 int8 EasyGetImpl::getByte()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getByte();
 }
 
 int16 EasyGetImpl::getShort()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getShort();
 }
 
 int32 EasyGetImpl::getInt()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getInt();
 }
 
 int64 EasyGetImpl::getLong()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getLong();
 }
 
 uint8 EasyGetImpl::getUByte()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getUByte();
 }
 
 uint16 EasyGetImpl::getUShort()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getUShort();
 }
 
 uint32 EasyGetImpl::getUInt()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getUInt();
 }
 
 uint64 EasyGetImpl::getULong()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getULong();
 }
 
 float EasyGetImpl::getFloat()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getFloat();
 }
 
 double EasyGetImpl::getDouble()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
-    return easyPVStructure->isValueScalar();
+    checkGetState();
+    return easyPVStructure->getDouble();
 }
 
 std::string EasyGetImpl::getString()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getString();
 }
 
 
 shared_vector<boolean>  EasyGetImpl::getBooleanArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getBooleanArray();
 }
 
 shared_vector<int8>  EasyGetImpl::getByteArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getByteArray();
 }
 
 shared_vector<int16>  EasyGetImpl::getShortArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getShortArray();
 }
 
 shared_vector<int32>  EasyGetImpl::getIntArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getIntArray();
 }
 
 shared_vector<int64>  EasyGetImpl::getLongArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getLongArray();
 }
 
 shared_vector<uint8>  EasyGetImpl::getUByteArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getUByteArray();
 }
 
 shared_vector<uint16>  EasyGetImpl::getUShortArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getUShortArray();
 }
 
 shared_vector<uint32>  EasyGetImpl::getUIntArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getUIntArray();
 }
 
 shared_vector<uint64>  EasyGetImpl::getULongArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getULongArray();
 }
 
 shared_vector<float>  EasyGetImpl::getFloatArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getFloatArray();
 }
 
 shared_vector<double>  EasyGetImpl::getDoubleArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getDoubleArray();
 }
 
 shared_vector<std::string>  EasyGetImpl::getStringArray()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getStringArray();
 }
 
 PVStructurePtr EasyGetImpl::getPVStructure()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    checkGetState();
     return easyPVStructure->getPVStructure();
 }
 

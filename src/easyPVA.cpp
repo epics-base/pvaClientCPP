@@ -11,6 +11,7 @@
  #define epicsExportSharedSymbols
 #include <pv/easyPVA.h>
 #include <pv/createRequest.h>
+#include <pv/clientFactory.h>
 
 using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
@@ -24,9 +25,46 @@ static const string easyPVAName = "easyPVA";
 static const string defaultProvider = "pva";
 static UnionConstPtr variantUnion = fieldCreate->createVariantUnion();
 
+namespace easyPVAPvt {
+
+static size_t numberEasyPVA = 0;
+static bool firstTime = true;
+static Mutex mutex;
+
+class StartStopClientFactory {
+
+public:
+    static void EasyPVABeingConstructed()
+    {
+        bool saveFirst = false;
+        { 
+             Lock xx(mutex);
+             ++numberEasyPVA;
+             saveFirst = firstTime;
+             firstTime = false;
+        }
+        if(saveFirst) ClientFactory::start();
+    }
+
+    static void EasyPVABeingDestroyed() {
+        size_t numLeft = 0;
+        {
+             Lock xx(mutex);
+             --numberEasyPVA;
+              numLeft = numberEasyPVA;
+        }
+        if(numLeft<=0) ClientFactory::stop();
+    }
+};
+}
+
+using namespace epics::easyPVA::easyPVAPvt;
+
+
 EasyPVAPtr EasyPVA::create()
 {
     EasyPVAPtr xx(new EasyPVA());
+    StartStopClientFactory::EasyPVABeingConstructed();
     return xx;
 }
 
@@ -45,7 +83,9 @@ EasyPVA::EasyPVA()
 {
 }
 
-EasyPVA::~EasyPVA() {destroy();}
+EasyPVA::~EasyPVA() {
+    destroy();
+}
 
 void EasyPVA::destroy()
 {
@@ -61,8 +101,8 @@ void EasyPVA::destroy()
         channelList.erase(channelIter);
         (*channelIter)->destroy();
     }
-    std::list<EasyMultiChannelPtr>::iterator multiChannelIter;
 #ifdef NOTDONE
+    std::list<EasyMultiChannelPtr>::iterator multiChannelIter;
     while(true) {
         multiChannelIter = multiChannelList.begin();
         if(multiChannelIter==multiChannelList.end()) break;
@@ -70,7 +110,7 @@ void EasyPVA::destroy()
         (*multiChannelIter)->destroy();
     }
 #endif
-
+    StartStopClientFactory::EasyPVABeingDestroyed();
 }
 
 string EasyPVA:: getRequesterName()
