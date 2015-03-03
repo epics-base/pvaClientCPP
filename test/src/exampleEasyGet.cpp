@@ -31,17 +31,16 @@ static void exampleDouble(EasyPVAPtr const &easyPVA)
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
-    cout << "long way\n";
-    EasyChannelPtr easyChannel = easyPVA->createChannel("exampleDouble");
-    easyChannel->issueConnect();
-    Status status = easyChannel->waitConnect(2.0);
-    if(!status.isOK()) {cout << " connect failed\n"; return;}
-    EasyGetPtr easyGet = easyChannel->createGet();
-    easyGet->issueConnect();
-    status = easyGet->waitConnect();
-    if(!status.isOK()) {cout << " createGet failed\n"; return;}
-    value = easyGet->getDouble();
-    cout << "as double " << value << endl;
+    try {
+        cout << "long way\n";
+        EasyChannelPtr easyChannel = easyPVA->createChannel("exampleDouble");
+        easyChannel->connect(2.0);
+        EasyGetPtr easyGet = easyChannel->createGet();
+        value = easyGet->getDouble();
+        cout << "as double " << value << endl;
+    } catch (std::runtime_error e) {
+        cout << "exception " << e.what() << endl;
+    }
 }
 
 static void exampleDoubleArray(EasyPVAPtr const &easyPVA)

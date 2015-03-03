@@ -74,6 +74,10 @@ typedef std::tr1::shared_ptr<EasyMultiPut> EasyMultiPutPtr;
 class EasyMultiMonitor;
 typedef std::tr1::shared_ptr<EasyMultiMonitor> EasyMultiMonitorPtr;
 
+// following are private to easyPVA
+class EasyChannelCache;
+typedef std::tr1::shared_ptr<EasyChannelCache> EasyChannelCachePtr;
+
 /**
  * @brief EasyPVA is an easy to use interface to pvAccess.
  *
@@ -89,7 +93,7 @@ public:
     /**
      * Destructor
      */
-    ~EasyPVA();
+    virtual ~EasyPVA();
     /**
      * @brief Create an instance of EasyPVA
      * @return shared_ptr to new instance.
@@ -119,8 +123,27 @@ public:
      * @return The interface to the EasyPVStructure.
      */
     EasyPVStructurePtr createEasyPVStructure();
+     /**
+     * @brief get a cached channel or create and connect to a new channel.
+     * The provider is pva. The timeout is 5 seconds.
+     * If connection can not be made an exception is thrown.
+     * @param channelName The channelName.
+     * @return The interface.
+     */
+    EasyChannelPtr channel(std::string const & channelName)
+    { return channel(channelName,"pva", 5.0); }
     /**
-     * @brief Create an EasyChannel. The provider is pvAccess.
+     * @brief get a cached channel or create and connect to a new channel.
+     * If connection can not be made an exception is thrown.
+     * @param channelName The channelName.
+     * @return The interface.
+     */
+    EasyChannelPtr channel(
+        std::string const & channelName,
+        std::string const &providerName,
+        double timeOut);
+    /**
+     * @brief Create an EasyChannel. The provider is pva.
      * @param channelName The channelName.
      * @return The interface.
      */
@@ -179,11 +202,12 @@ public:
     }
 private:
     EasyPVA();
-    epics::pvData::PVStructurePtr createRequest(std::string const &request);
+    EasyChannelCachePtr easyChannelCache;
 
+    epics::pvData::PVStructurePtr createRequest(std::string const &request);
     std::list<EasyChannelPtr> channelList;
     std::list<EasyMultiChannelPtr> multiChannelList;
-    epics::pvData::RequesterPtr requester;
+    epics::pvData::Requester::weak_pointer requester;
     bool isDestroyed;
     epics::pvData::Mutex mutex;
 };
@@ -197,6 +221,7 @@ class epicsShareClass EasyChannel
 {
 public:
     POINTER_DEFINITIONS(EasyChannel);
+    virtual ~EasyChannel() { }
     /**
      * @brief Destroy the pvAccess connection.
      */
@@ -251,6 +276,19 @@ public:
      * @return The interface.
      */
     virtual EasyProcessPtr createProcess(epics::pvData::PVStructurePtr const &  pvRequest) = 0;
+    /**
+     * @brief Call the next method with request =  "field(value,alarm,timeStamp)" 
+     * @return The interface.
+     */
+    virtual EasyGetPtr get() = 0;
+    /**
+     * @brief get a cached EasyGet or create and connect to a new EasyGet.
+     * Then call it's get method.
+     * If connection can not be made an exception is thrown.
+     * @param request The request as described in package org.epics.pvdata.copy
+     * @return The interface.
+     */
+    virtual EasyGetPtr get(std::string const & request) = 0;
     /**
      * @brief Call the next method with request =  "field(value,alarm,timeStamp)" 
      * @return The interface.

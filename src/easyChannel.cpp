@@ -10,6 +10,7 @@
  */
 #define epicsExportSharedSymbols
 
+#include <map>
 #include <sstream>
 #include <pv/event.h>
 #include <pv/lock.h>
@@ -24,6 +25,41 @@ using namespace std;
 
 namespace epics { namespace easyPVA {
 
+class EasyGetCache;
+typedef std::tr1::shared_ptr<EasyGetCache> EasyGetCachePtr;
+
+class EasyGetCache
+{
+public:
+    EasyGetCache(){}
+    ~EasyGetCache();
+    void destroy() {
+       easyGetMap.clear();
+    }
+    EasyGetPtr getGet(string const & request);
+    void addGet(string const & request,EasyGetPtr const & easyGet);
+private:
+    map<string,EasyGetPtr> easyGetMap;
+};
+
+EasyGetCache::~EasyGetCache()
+{
+    destroy();
+}
+
+EasyGetPtr EasyGetCache::getGet(string const & request)
+{
+    map<string,EasyGetPtr>::iterator iter = easyGetMap.find(request);
+    if(iter!=easyGetMap.end()) return iter->second;
+    return EasyGetPtr();
+}
+
+void EasyGetCache::addGet(string const & request,EasyGetPtr const & easyGet)
+{
+     easyGetMap.insert(std::pair<string,EasyGetPtr>(
+         request,easyGet));
+}
+
 class epicsShareClass EasyChannelImpl :
     public EasyChannel,
     public std::tr1::enable_shared_from_this<EasyChannelImpl>
@@ -33,7 +69,7 @@ public:
         EasyPVAPtr const &pva,
         string const & channelName,
         string const & providerName);
-    ~EasyChannelImpl();
+    virtual ~EasyChannelImpl();
     // from EasyChannel
     void channelCreated(const Status& status, Channel::shared_pointer const & channel);
     void channelStateChange(
@@ -54,6 +90,8 @@ public:
     virtual EasyProcessPtr createProcess();
     virtual EasyProcessPtr createProcess(string const & request);
     virtual EasyProcessPtr createProcess(PVStructurePtr const &  pvRequest);
+    virtual EasyGetPtr get() {return get("value,alarm,timeStamp");}
+    virtual EasyGetPtr get(string const & request);
     virtual EasyGetPtr createGet();
     virtual EasyGetPtr createGet(string const & request);
     virtual EasyGetPtr createGet(PVStructurePtr const &  pvRequest);
@@ -79,13 +117,14 @@ public:
     }
 private:
     enum ConnectState {connectIdle,connectActive,notConnected,connected};
-
-    EasyPVAPtr easyPVA;
+    
+    EasyPVA::weak_pointer easyPVA;
     string channelName;
     string providerName;
     ConnectState connectState;
     bool isDestroyed;
     CreateRequest::shared_pointer createRequest;
+    EasyGetCachePtr easyGetCache;
 
     Status channelConnectStatus;
     Mutex mutex;
@@ -132,7 +171,8 @@ EasyChannelImpl::EasyChannelImpl(
   providerName(providerName),
   connectState(connectIdle),
   isDestroyed(false),
-  createRequest(CreateRequest::create())
+  createRequest(CreateRequest::create()),
+  easyGetCache(new EasyGetCache())
 {}
 
 EasyChannelImpl::~EasyChannelImpl()
@@ -177,7 +217,9 @@ tr1::shared_ptr<Channel> EasyChannelImpl::getChannel()
 
 string EasyChannelImpl::getRequesterName()
 {
-    return easyPVA->getRequesterName();
+    EasyPVAPtr yyy = easyPVA.lock();
+    if(!yyy) throw std::runtime_error("EasyPVA was destroyed");
+    return yyy->getRequesterName();
 }
 
 void EasyChannelImpl::message(
@@ -185,7 +227,9 @@ void EasyChannelImpl::message(
     MessageType messageType)
 {
     if(isDestroyed) throw std::runtime_error("easyChannel was destroyed");
-    easyPVA->message(message, messageType);
+    EasyPVAPtr yyy = easyPVA.lock();
+    if(!yyy) throw std::runtime_error("EasyPVA was destroyed");
+    yyy->message(message, messageType);
 }
 
 void EasyChannelImpl::destroy()
@@ -197,6 +241,7 @@ void EasyChannelImpl::destroy()
     }
     if(channel) channel->destroy();
     channel.reset();
+    easyGetCache.reset();
 }
 
 string EasyChannelImpl::getChannelName()
@@ -274,6 +319,17 @@ EasyProcessPtr EasyChannelImpl::createProcess(PVStructurePtr const &  pvRequest)
     throw std::runtime_error("EasyChannel::createProcess not implemented");
 }
 
+EasyGetPtr EasyChannelImpl::get(string const & request)
+{
+    EasyGetPtr easyGet = easyGetCache->getGet(request);
+    if(easyGet) return easyGet;
+    easyGet = createGet(request);
+    easyGet->connect();
+    easyGet->get();
+    easyGetCache->addGet(request,easyGet);
+    return easyGet;
+}
+
 EasyGetPtr EasyChannelImpl::createGet()
 {
     return EasyChannelImpl::createGet("value,alarm,timeStamp");
@@ -295,7 +351,9 @@ EasyGetPtr EasyChannelImpl::createGet(PVStructurePtr const &  pvRequest)
 {
     if(connectState!=connected) connect(5.0);
     if(connectState!=connected) throw std::runtime_error("EasyChannel::creatGet not connected");
-    return EasyGetFactory::createEasyGet(easyPVA,getPtrSelf(),channel,pvRequest);
+    EasyPVAPtr yyy = easyPVA.lock();
+    if(!yyy) throw std::runtime_error("EasyPVA was destroyed");
+    return EasyGetFactory::createEasyGet(yyy,getPtrSelf(),channel,pvRequest);
 }
 
 EasyPutPtr EasyChannelImpl::createPut()

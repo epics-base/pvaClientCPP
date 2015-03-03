@@ -104,8 +104,8 @@ private:
     void checkGetState();
     enum GetConnectState {connectIdle,connectActive,connected};
 
-    EasyPVAPtr easyPVA;
-    EasyChannelPtr easyChannel;
+    EasyPVA::weak_pointer easyPVA;
+    EasyChannel::weak_pointer easyChannel;
     Channel::shared_pointer channel;
     ChannelGetRequester::shared_pointer getRequester;
     PVStructurePtr pvRequest;
@@ -129,28 +129,28 @@ private:
 };
 
 namespace easyGet {
-class ChannelGetRequesterImpl : public ChannelGetRequester
-{
-    EasyGetImpl * easyGet;
-public:
-    ChannelGetRequesterImpl(EasyGetImpl * easyGet)
-    : easyGet(easyGet) {}
-    virtual string getRequesterName()
-    {return easyGet->getRequesterName();}
-    virtual void message(string const & message,MessageType messageType)
-    {easyGet->message(message,messageType);}
-    virtual void channelGetConnect(
-        const Status& status,
-        ChannelGet::shared_pointer const & channelGet,
-        StructureConstPtr const & structure)
-    {easyGet->channelGetConnect(status,channelGet,structure);}
-    virtual void getDone(
-        const Status& status,
-        ChannelGet::shared_pointer const & channelGet,
-        PVStructurePtr const & pvStructure,
-        BitSetPtr const & bitSet)
-    {easyGet->getDone(status,channelGet,pvStructure,bitSet);}
-};
+    class ChannelGetRequesterImpl : public ChannelGetRequester
+    {
+        EasyGetImpl * easyGet;
+    public:
+        ChannelGetRequesterImpl(EasyGetImpl * easyGet)
+        : easyGet(easyGet) {}
+        virtual string getRequesterName()
+        {return easyGet->getRequesterName();}
+        virtual void message(string const & message,MessageType messageType)
+        {easyGet->message(message,messageType);}
+        virtual void channelGetConnect(
+            const Status& status,
+            ChannelGet::shared_pointer const & channelGet,
+            StructureConstPtr const & structure)
+        {easyGet->channelGetConnect(status,channelGet,structure);}
+        virtual void getDone(
+            const Status& status,
+            ChannelGet::shared_pointer const & channelGet,
+            PVStructurePtr const & pvStructure,
+            BitSetPtr const & bitSet)
+        {easyGet->getDone(status,channelGet,pvStructure,bitSet);}
+    };
 } // namespace easyGet
 
 using namespace epics::easyPVA::easyGet;
@@ -187,13 +187,17 @@ void EasyGetImpl::checkGetState()
 // from ChannelGetRequester
 string EasyGetImpl::getRequesterName()
 {
-     return easyPVA->getRequesterName();
+     EasyPVAPtr yyy = easyPVA.lock();
+     if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+     return yyy->getRequesterName();
 }
 
 void EasyGetImpl::message(string const & message,MessageType messageType)
 {
     if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
-    easyPVA->message(message, messageType);
+    EasyPVAPtr yyy = easyPVA.lock();
+    if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+    yyy->message(message, messageType);
 }
 
 void EasyGetImpl::channelGetConnect(

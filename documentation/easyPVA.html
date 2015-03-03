@@ -107,7 +107,53 @@ an interface to many of the features provided by pvData and pvAccess.</p>
 <p>This document briefly describes the CPP version of EasyPVA.
 Doxygen documentation is available at <a
 href="./html/index.html">doxygenDoc</a></p>
+<h3>EasyPVA Interfaces</h3>
+<h4>Simple</h4>
+<p>The following</p>
+<pre>
+EasyPVAPtr easyPVA = EasyPVA::create();
+double value = easyPVA-&gt;channel("exampleDouble")-&gt;get()-&gt;getDouble();
+cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
+</pre>
+produces:
+<pre>
+as double 5
+</pre>
+<p>This is an example of the simplest way to use EasyPVA.
+An important feature is that,
+when the simple interface is used,
+EasyPva caches Channels, ChannelGets, etc.
+This if the above code is replaced by:</p>
+<pre>
+EasyPVAPtr easyPVA = EasyPVA::create();
+double value = easyPVA-&gt;channel("exampleDouble")-&gt;get()-&gt;getDouble();
+cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
+value = easyPVA-&gt;channel("exampleDouble")-&gt;get()-&gt;getDouble();
+cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
+</pre>
+The second call will reuse the channel and channelGet created by the first call.
+<p>But if any problems occur using the simple interface an exception is thrown.</p>
 
+<h4>More Complex But No Exceptions.</h4>
+<p>The following</p>
+<pre>
+EasyPVAPtr easyPVA = EasyPVA::create();
+EasyChannelPtr easyChannel = easyPVA-&gt;createChannel("exampleDouble");
+easyChannel-&gt;issueConnect();
+Status status = easyChannel-&gt;waitConnect(2.0);
+if(!status.isOK()) {cout &lt;&lt; " connect failed\n"; return;}
+EasyGetPtr easyGet = easyChannel-&gt;createGet();
+easyGet-&gt;issueConnect();
+status = easyGet-&gt;waitConnect();
+if(!status.isOK()) {cout &lt;&lt; " createGet failed\n"; return;}
+value = easyGet-&gt;getDouble();
+cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
+</pre>
+also produces:
+<pre>
+as double 5
+</pre>
+<p>The main feature of this over the simple way is that no exceptions will be thrown.</p>
 
 <h3>Initialization</h3>
 
@@ -232,6 +278,8 @@ mrk&gt; bin/linux-x86_64/exampleEasyGet
 <p>
 See the source code for each example.
 </p>
+
+
 
 </div> <!-- class="contents" -->
 </body>

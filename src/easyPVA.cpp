@@ -8,7 +8,9 @@
  * @author mrk
  * @date 2015.02
  */
- #define epicsExportSharedSymbols
+
+#define epicsExportSharedSymbols
+#include <map>
 #include <pv/easyPVA.h>
 #include <pv/createRequest.h>
 #include <pv/clientFactory.h>
@@ -27,35 +29,71 @@ static UnionConstPtr variantUnion = fieldCreate->createVariantUnion();
 
 namespace easyPVAPvt {
 
-static size_t numberEasyPVA = 0;
-static bool firstTime = true;
-static Mutex mutex;
-
-class StartStopClientFactory {
-
-public:
-    static void EasyPVABeingConstructed()
-    {
-        bool saveFirst = false;
-        { 
-             Lock xx(mutex);
-             ++numberEasyPVA;
-             saveFirst = firstTime;
-             firstTime = false;
-        }
-        if(saveFirst) ClientFactory::start();
-    }
-
-    static void EasyPVABeingDestroyed() {
-        size_t numLeft = 0;
+    static size_t numberEasyPVA = 0;
+    static bool firstTime = true;
+    static Mutex mutex;
+    
+    class StartStopClientFactory {
+    public:
+        static void EasyPVABeingConstructed()
         {
-             Lock xx(mutex);
-             --numberEasyPVA;
-              numLeft = numberEasyPVA;
+            bool saveFirst = false;
+            { 
+                 Lock xx(mutex);
+                 ++numberEasyPVA;
+                 saveFirst = firstTime;
+                 firstTime = false;
+            }
+            if(saveFirst) ClientFactory::start();
         }
-        if(numLeft<=0) ClientFactory::stop();
+    
+        static void EasyPVABeingDestroyed() {
+            size_t numLeft = 0;
+            {
+                 Lock xx(mutex);
+                 --numberEasyPVA;
+                  numLeft = numberEasyPVA;
+            }
+            if(numLeft<=0) ClientFactory::stop();
+        }
+    };
+
+} // namespace easyPVAPvt
+
+class EasyChannelCache
+{
+public:
+    EasyChannelCache(){}
+    ~EasyChannelCache(){
+         destroy();
+     }
+    void destroy() {
+       easyChannelMap.clear();
     }
+    EasyChannelPtr getChannel(string const & channelName);
+    void addChannel(EasyChannelPtr const & easyChannel);
+    void removeChannel(string const & channelName);
+private:
+    map<string,EasyChannelPtr> easyChannelMap;
 };
+   
+EasyChannelPtr EasyChannelCache::getChannel(string const & channelName)
+{
+    map<string,EasyChannelPtr>::iterator iter = easyChannelMap.find(channelName);
+    if(iter!=easyChannelMap.end()) return iter->second;
+    return EasyChannelPtr();
+}
+
+void EasyChannelCache::addChannel(EasyChannelPtr const & easyChannel)
+{
+     easyChannelMap.insert(std::pair<string,EasyChannelPtr>(
+         easyChannel->getChannelName(),easyChannel));
+}
+
+void EasyChannelCache::removeChannel(string const & channelName)
+{
+    map<string,EasyChannelPtr>::iterator iter = easyChannelMap.find(channelName);
+    if(iter!=easyChannelMap.end()) easyChannelMap.erase(iter);
 }
 
 using namespace epics::easyPVA::easyPVAPvt;
@@ -79,7 +117,8 @@ PVStructurePtr EasyPVA::createRequest(string const &request)
 }
 
 EasyPVA::EasyPVA()
-: isDestroyed(false)
+:   easyChannelCache(new EasyChannelCache()),
+    isDestroyed(false)
 {
 }
 
@@ -94,22 +133,9 @@ void EasyPVA::destroy()
         if(isDestroyed) return;
         isDestroyed = true;
     }
-    std::list<EasyChannelPtr>::iterator channelIter;
-    while(true) {
-        channelIter = channelList.begin();
-        if(channelIter==channelList.end()) break;
-        channelList.erase(channelIter);
-        (*channelIter)->destroy();
-    }
-#ifdef NOTDONE
-    std::list<EasyMultiChannelPtr>::iterator multiChannelIter;
-    while(true) {
-        multiChannelIter = multiChannelList.begin();
-        if(multiChannelIter==multiChannelList.end()) break;
-        multiChannelList.erase(multiChannelIter);
-        (*multiChannelIter)->destroy();
-    }
-#endif
+    easyChannelCache.reset();
+    channelList.clear();
+    multiChannelList.clear();
     StartStopClientFactory::EasyPVABeingDestroyed();
 }
 
@@ -129,6 +155,19 @@ void  EasyPVA::message(
 EasyPVStructurePtr EasyPVA::createEasyPVStructure()
 {
     return EasyPVStructureFactory::createEasyPVStructure();
+}
+
+EasyChannelPtr EasyPVA::channel(
+        std::string const & channelName,
+        std::string const & providerName,
+        double timeOut)
+{
+    EasyChannelPtr easyChannel = easyChannelCache->getChannel(channelName);
+    if(easyChannel) return easyChannel;
+    easyChannel = createChannel(channelName,providerName);
+    easyChannel->connect(timeOut);
+    easyChannelCache->addChannel(easyChannel);
+    return easyChannel;
 }
 
 EasyChannelPtr EasyPVA::createChannel(string const & channelName)
