@@ -26,7 +26,7 @@ static void exampleDouble(EasyPVAPtr const &easyPVA)
     double value;
     try {
         cout << "short way\n";
-        value =  easyPVA->channel("exampleDouble")->get()->getDouble();
+        value =  easyPVA->channel("exampleDouble")->get()->getData()->getDouble();
         cout << "as double " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
@@ -40,17 +40,18 @@ static void exampleDouble(EasyPVAPtr const &easyPVA)
     easyGet->issueConnect();
     status = easyGet->waitConnect();
     if(!status.isOK()) {cout << " createGet failed\n"; return;}
-    value = easyGet->getDouble();
+    EasyGetDataPtr easyData = easyGet->getData();
+    value = easyData->getDouble();
     cout << "as double " << value << endl;
 }
 
 static void exampleDoubleArray(EasyPVAPtr const &easyPVA)
 {
     cout << "example double array\n";
-    shared_vector<double> value;
+    shared_vector<const double> value;
     try {
         cout << "short way\n";
-        value =  easyPVA->createChannel("exampleDoubleArray")->createGet()->getDoubleArray();
+        value =  easyPVA->channel("exampleDoubleArray")->get()->getData()->getDoubleArray();
         cout << "as doubleArray " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
@@ -60,7 +61,8 @@ static void exampleDoubleArray(EasyPVAPtr const &easyPVA)
         EasyChannelPtr easyChannel = easyPVA->createChannel("exampleDoubleArray");
         easyChannel->connect(2.0);
         EasyGetPtr easyGet = easyChannel->createGet();
-        value = easyGet->getDoubleArray();
+        EasyGetDataPtr easyData = easyGet->getData();
+        value = easyData->getDoubleArray();
         cout << "as doubleArray " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
@@ -73,7 +75,8 @@ static void examplePowerSupply(EasyPVAPtr const &easyPVA)
     PVStructurePtr pvStructure;
     try {
         cout << "short way\n";
-        pvStructure =  easyPVA->createChannel("examplePowerSupply")->createGet("field()")->getPVStructure();
+        pvStructure =  easyPVA->channel("examplePowerSupply")->
+            get("field()")->getData()->getPVStructure();
         cout << pvStructure << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;

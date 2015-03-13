@@ -8,11 +8,15 @@ LIBRARY += easyPVA
 INC += easyPVA.h
 
 LIBSRCS += easyPVA.cpp
-LIBSRCS += easyPVStructure.cpp
+LIBSRCS += easyPutData.cpp
+LIBSRCS += easyGetData.cpp
+LIBSRCS += easyMonitorData.cpp
 LIBSRCS += easyChannel.cpp
+LIBSRCS += easyProcess.cpp
 LIBSRCS += easyGet.cpp
-#LIBSRCS += easyPut.cpp
-#LIBSRCS += easyMonitor.cpp
+LIBSRCS += easyPut.cpp
+LIBSRCS += easyMonitor.cpp
+LIBSRCS += easyPutGet.cpp
 #LIBSRCS += easyRPC.cpp
 
 easyPVA_LIBS += pvAccess pvData Com

@@ -28,7 +28,7 @@
 <h1>EPICS easyPVA</h1>
 <!-- Maturity: Working Draft or Request for Comments, or Recommendation, and date.  -->
 <h2 class="nocount">EPICS V4 Working Group, Working Draft,
-02-Mar-2015</h2>
+13-Mar-2015</h2>
 <dl>
   <dt>This version:</dt>
     <dd><a
@@ -68,8 +68,6 @@ The first is as an NTMultiChannel. The second is as a double array.
 The double array can be used if the value field of every channel is a numeric scalar.
 There is code for NTMultiChannel that helps with access to more complicated data types.
 </p>
-<p>EasyPVA will become part of pvAccess when it is ready. </p>
-
   <!-- last para of Abstract is boilerplate reference to EPICS -->
       <p>For more information about EPICS generally, please refer to the home page of the <a
        href="http://www.aps.anl.gov/epics/">Experimental Physics and Industrial
@@ -96,159 +94,35 @@ There is code for NTMultiChannel that helps with access to more complicated data
 <p>EasyPVA is a synchronous API for accessing PVData via PVAccess. It provides
 an interface to many of the features provided by pvData and pvAccess.</p>
 
-<p>The EasyPVA API has the following features:</p>
-<ol>
-  <li>Makes common requests easy to program</li>
-  <li>Provides full access to the pvAccess API for more demanding
-  applications</li>
-  <li>Allows efficient client side programs.</li>
-</ol>
-
-<p>This document briefly describes the CPP version of EasyPVA.
-Doxygen documentation is available at <a
-href="./html/index.html">doxygenDoc</a></p>
-<h3>EasyPVA Interfaces</h3>
-<h4>Simple</h4>
-<p>The following</p>
-<pre>
-EasyPVAPtr easyPVA = EasyPVA::create();
-double value = easyPVA-&gt;channel("exampleDouble")-&gt;get()-&gt;getDouble();
-cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
-</pre>
-produces:
-<pre>
-as double 5
-</pre>
-<p>This is an example of the simplest way to use EasyPVA.
-An important feature is that,
-when the simple interface is used,
-EasyPva caches Channels, ChannelGets, etc.
-This if the above code is replaced by:</p>
-<pre>
-EasyPVAPtr easyPVA = EasyPVA::create();
-double value = easyPVA-&gt;channel("exampleDouble")-&gt;get()-&gt;getDouble();
-cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
-value = easyPVA-&gt;channel("exampleDouble")-&gt;get()-&gt;getDouble();
-cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
-</pre>
-The second call will reuse the channel and channelGet created by the first call.
-<p>But if any problems occur using the simple interface an exception is thrown.</p>
-
-<h4>More Complex But No Exceptions.</h4>
-<p>The following</p>
-<pre>
-EasyPVAPtr easyPVA = EasyPVA::create();
-EasyChannelPtr easyChannel = easyPVA-&gt;createChannel("exampleDouble");
-easyChannel-&gt;issueConnect();
-Status status = easyChannel-&gt;waitConnect(2.0);
-if(!status.isOK()) {cout &lt;&lt; " connect failed\n"; return;}
-EasyGetPtr easyGet = easyChannel-&gt;createGet();
-easyGet-&gt;issueConnect();
-status = easyGet-&gt;waitConnect();
-if(!status.isOK()) {cout &lt;&lt; " createGet failed\n"; return;}
-value = easyGet-&gt;getDouble();
-cout &lt;&lt; "as double " &lt;&lt; value &lt;&lt; endl;
-</pre>
-also produces:
-<pre>
-as double 5
-</pre>
-<p>The main feature of this over the simple way is that no exceptions will be thrown.</p>
-
-<h3>Initialization</h3>
-
-<p>A client obtains the interface to EasyPVA via the call:</p>
-<pre>EasyPVAPtr easyPVA = EasyPVAFactorys-&gt;create();</pre>
-
-<p>The client can call this an arbitrary number of times.
-On the first call the PVAccess client factory is started.
-When the last EasyPVA is destroyed the PVAccess client factory is stopped.
+</p>This document describes the layout of the source files in this project.</p>
+<p>
+A user overview is available via
+<a
+href="./overiew.html">overview.html
+</a>
 </p>
-
-<h3>EasyPVA Overview</h3>
-
-<p>EasyPVA creates interfaces to one of the following:</p>
-<dl>
-  <dt>EasyChannel</dt>
-    <dd>This creates an interface for accessing a single channel.<br />
-     There are two methods for creating an EasyChannel,
-     with the difference being that the second
-     specifiers the name of the provider.
-     The other assumes that the provider is "pva" (pvAccess).
-    </dd>
-  <dt>EasyMultiChannel</dt>
-    <dd>This creates an interface for accessing a set of channels.<br />
-     There are multiple methods for creating an EasyMultiChannel.
-     The provider can be supplied or use a default of "pva".
-     A union for the UnionArray for accessing the value fields of each channel
-     can be provided or a default of variant union will be used.
-    </dd>
-</dl>
-
-<h3>EasyChannel Overview</h3>
-
-<p>This interface creates Easy support for each PVAccess::Channel create
-method:</p>
-<dl>
-  <dt>EasyField</dt>
-    <dd>This gets the introspection interface from a channel. The
-      implementation provides full access to the features of
-    Channel::getField.</dd>
-  <dt>EasyProcess</dt>
-    <dd>This is used to process a channel. The implementation provides full
-      access to the features of ChannelProcess.</dd>
-  <dt>EasyGet</dt>
-    <dd>This is used to get values from a channel. The implementation allows
-      full access to all the features of ChannelGet. By default it asks for the
-      fields value, alarm, and timeStamp. If the channel has a value field then
-      EasyGet provides convenience methods for a scalar value and for an array
-      value. </dd>
-  <dt>EasyPut</dt>
-    <dd>This is used to get the current value of a channel and to put values to
-      a channel. The implementation allows full access to all the features of
-      ChannelPut. By default it asks for the field value, alarm, and timeStamp.
-      If the channel has a value field then EasyPut provides convenience
-      methods for a scalar value and for an array value. </dd>
-  <dt>EasyRPC</dt>
-    <dd>This is an interface to ChannelRPC.
-     The implementation allows full access to all the features of ChannelRPC.
-    </dd>
-  <dt>EasyPutGet</dt>
-    <dd>This is an interface to ChannelPutGet. Details TBD.</dd>
-  <dt>EasyMonitor</dt>
-    <dd>This is an interface to Monitor.
-     The implementation allows full access to all the features of pvAccess Monitor.
-    </dd>
-  <dt>EasyArray</dt>
-    <dd>This is an interface to ChannelArray. Details TBD.</dd>
-  <dt>EasyProcess</dt>
-    <dd>This is an interface to ChannelProcess. Details TBD.</dd>
-</dl>
-
-<h3>EasyMultiChannel Overview</h3>
-<p>This interface creates Easy support for accessing a set of channels.
-The only requirement of the channels is that each must have a top level field named value.
+<p>
+Doxygen documentation is available at
+<a
+href="./html/index.html">doxygenDoc
+</a>
 </p>
-<dl>
-  <dt>EasyMultiGet</dt>
-    <dd>This is used to get values from a a set of channels.
-      The result can either be an NTMultiChannel structure or a <b>double[]</b> array.
-      The createGet method determines the result type.
-     </dd>
-  <dt>EasyMultiPut</dt>
-    <dd>This is used to get and put values from/to a set of channels.
-      The data supplied can either be an NTMultiChannel structure or a <b>double[]</b> array.
-      The createPut method determines the type.
-     </dd>
-  <dt>EasyMonitor</dt>
-     <dd>This is used to monitor values from a set of channels.
-      Each event can either be an NTMultiChannel structure or a <b>double[]</b> array.
-      The createMonitor method determines the data type.
-     </dd>
-</dl>
+<h2>Building</h2>
+<p>After obtaining the source:</p>
+<pre>
+cd configure
+cp ExampleRELEASE.local RELEASE.local
+</pre>
+<p>Edit <b>RELEASE.local</b> so that all path names are correct for you environment.
+</p>
+<p>
+Then:</p>
+<pre>
+cd ..
+make
+</pre>
 
-<h2>example source code</h2>
-<h3>Example Database</h3>
+<h2>Example and Test Database</h2>
 <p>The examples require that an example pvAccess server is runnimg.
 This distribution has a file <b>exampleDatabaseEasyPVA.zip</b>.
 When unzipped this is used to create an example IOC database.
@@ -267,8 +141,14 @@ make
 cd iocBoot/exampleDatabase
 ../../bin/&lt;arch:&gt;/exampleDatabase st.cmd
 </pre>
-<h3>Examples</h3>
-<p>These are examples in directory <b>example/src</b>.
+<h2>Testing</h2>
+<p>The tests will fail unless the example database is running.</p>
+<p>Once it is running:</p>
+<pre>
+make runtests
+</pre>
+<h2>Examples</h2>
+<p>Examples are in directory <b>example/src</b>.
 An example of how to run them is:</p>
 <pre>
 mrk&gt; pwd
@@ -278,8 +158,6 @@ mrk&gt; bin/linux-x86_64/exampleEasyGet
 <p>
 See the source code for each example.
 </p>
-
-
 
 </div> <!-- class="contents" -->
 </body>

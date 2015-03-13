@@ -98,7 +98,6 @@ void EasyChannelCache::removeChannel(string const & channelName)
 
 using namespace epics::easyPVA::easyPVAPvt;
 
-
 EasyPVAPtr EasyPVA::create()
 {
     EasyPVAPtr xx(new EasyPVA());
@@ -152,11 +151,6 @@ void  EasyPVA::message(
     cout << getMessageTypeName(messageType) << " " << message << endl;
 }
 
-EasyPVStructurePtr EasyPVA::createEasyPVStructure()
-{
-    return EasyPVStructureFactory::createEasyPVStructure();
-}
-
 EasyChannelPtr EasyPVA::channel(
         std::string const & channelName,
         std::string const & providerName,
@@ -172,12 +166,12 @@ EasyChannelPtr EasyPVA::channel(
 
 EasyChannelPtr EasyPVA::createChannel(string const & channelName)
 {
-     return EasyChannelFactory::createEasyChannel(getPtrSelf(),channelName);
+     return EasyChannel::create(getPtrSelf(),channelName);
 }
 
 EasyChannelPtr EasyPVA::createChannel(string const & channelName, string const & providerName)
 {
-     return EasyChannelFactory::createEasyChannel(getPtrSelf(),channelName,providerName);
+     return EasyChannel::create(getPtrSelf(),channelName,providerName);
 }
 
 }}
