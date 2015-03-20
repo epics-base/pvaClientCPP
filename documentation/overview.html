@@ -121,11 +121,11 @@ This is useful if the client wants to connect to multiple channels in parallel.
 <h3>EasyChannel</h3>
 <p>This provides methods for connecting to a channel and for creating instances of
 EasyField, EasyProcess, ..., EasyRPC.</p>
-<p>Connection must be made before any crete  method is called or
+<p>Connection must be made before any create  method is called or
 an exception is raised.
 The following is a synchronous connection request:</p>
 <pre>
-easyChannel-&gt;connect(5.0); // BLOCKS 
+easyChannel-&gt;connect(5.0); // BLOCKS AND THROWS IF NO CONNECT
 </pre>
 <p>This blocks until then connection is made or until timout occurs.
 An exception is raised if the connection request fails.
@@ -134,7 +134,7 @@ An exception is raised if the connection request fails.
 <pre>
 easyChannel-&gt;issueConnect(); // DOES NOT BLOCK
 .....
-Status status =easyChannel-&gt;waitConnect(5.0);  // BLOCKS
+Status status =easyChannel-&gt;waitConnect(5.0);  // BLOCKS DOES NOT THROW
 if(!status.isOK()) {
    // failure do something
 }
@@ -189,36 +189,36 @@ void easyData-&gt;putDouble(5.0);
 <p>This provides methods to connect to channelGet and to issue get request.
 To connect via a single synchronous call:</p>
 <pre>
-eastGet-&gt;connect();  // BLOCKS
+eastGet-&gt;connect();  // BLOCKS AND CAN THROW
 </pre>
 <p>This can also be done in two steps:</p>
 <pre>
 easyGet-&gt;issueConnect(); // DOES NOT BLOCK
 ...
-Status status = easyGet-&gt;waitConnect(); // BLOCKS
+Status status = easyGet-&gt;waitConnect(); // BLOCKS AND DOES NOT HROW
 </pre>
 <p>Once connected gets are issued via either:</p>
 <pre>
-void easyGet-&gt;get();
+void easyGet-&gt;get(); // BLOCKS AND CAN THROW
 </pre>
 or
 <pre>
 easyGet-&gt;issueGet(); // DOES NOT BLOCK
 ...
-Status status = easyGet-&gt;waitGet(); // BLOCKS
+Status status = easyGet-&gt;waitGet(); // BLOCKS AND DOES NOT THROW
 </pre>
 <h3>EasyPut</h3>
 <p>This is similar to easyGet except that it wraps channelPut instead of channelGet.
 </p>
 <p>Once connected puts are issued via either:</p>
 <pre>
-void easyPut-&gt;put();
+void easyPut-&gt;put(); // BLOCKS AND CAN THROW
 </pre>
 or
 <pre>
 easyPut-&gt;issuePut(); // DOES NOT BLOCK
 ...
-Status status = easyPut-&gt;waitPut(); // BLOCKS
+Status status = easyPut-&gt;waitPut(); // BLOCKS AND DOES NOT THROW
 </pre>
 <h3>EasyMonitor</h3>
 <p>Connecting is similar to easyGet and easyPut.
@@ -287,7 +287,26 @@ It has methods:</p>
 <p>Look at javaDoc for details.</p>
 
 <h2>EasyMultiChannel - Wrapper For Multiple Channels</h2>
-<p>TBD</p>
+<h3>EasyMultiChannel</h3>
+<p>This provides methods for connecting to multiple channels.
+For now clients has no reason to use this directly.
+Instead they will use it via EasyMultiDouble or EasyNTMultiChannel.
+</p>
+<h3>EasyMultiDouble</h3>
+<p>This provides support for gets and puts to the value field of multiple channels.
+Each channel must have a value field that is a numeric scalar.
+The client always sees that data as a PVDoubleArray.
+All channels must connect.
+If any problems occur an exception is thrown.
+</p>
+<h3>EasyNTMultiChannel</h3>
+<p>This provides support for gets and puts to the value field of multiple channels.
+Each channel must have a value field.
+The client always sees that data as a NTMultiChannel, which is one
+of the types provided by normativeTypesCPP.
+All channels must connect.
+If any problems occur an exception is thrown.
+</p>
 
 </div> <!-- class="contents" -->
 </body>

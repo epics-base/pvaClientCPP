@@ -58,7 +58,7 @@ void EasyMonitorData::checkValue()
 
 void EasyMonitorData::setMessagePrefix(std::string const & value)
 {
-    messagePrefix = value;
+    messagePrefix = value + " ";
 }
 
 StructureConstPtr EasyMonitorData::getStructure()
@@ -191,7 +191,7 @@ double EasyMonitorData::getDouble()
         return pvDouble->get();
     }
     if(!ScalarTypeFunc::isNumeric(scalarType)) {
-        throw std::runtime_error(notCompatibleScalar);
+        throw std::runtime_error(messagePrefix + notCompatibleScalar);
     }
     return convert->toDouble(pvScalar);
 }

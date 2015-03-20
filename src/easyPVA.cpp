@@ -174,5 +174,18 @@ EasyChannelPtr EasyPVA::createChannel(string const & channelName, string const &
      return EasyChannel::create(getPtrSelf(),channelName,providerName);
 }
 
+EasyMultiChannelPtr EasyPVA::createMultiChannel(
+    epics::pvData::PVStringArrayPtr const & channelNames)
+{
+    return createMultiChannel(channelNames,"pva");
+}
+
+EasyMultiChannelPtr EasyPVA::createMultiChannel(
+    epics::pvData::PVStringArrayPtr const & channelNames,
+    std::string const & providerName)
+{
+    return EasyMultiChannel::create(getPtrSelf(),channelNames,providerName);
+}
+
 }}
 

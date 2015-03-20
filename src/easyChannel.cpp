@@ -164,12 +164,6 @@ void EasyChannel::channelStateChange(
     if(waitingForConnect) waitForConnect.signal();
 }
 
-tr1::shared_ptr<Channel> EasyChannel::getChannel()
-{
-    if(isDestroyed) throw std::runtime_error("easyChannel was destroyed");
-    return channel;
-}
-
 string EasyChannel::getRequesterName()
 {
     EasyPVAPtr yyy = easyPVA.lock();
@@ -206,6 +200,12 @@ string EasyChannel::getChannelName()
     return channelName;
 }
 
+Channel::shared_pointer EasyChannel::getChannel()
+{
+    if(isDestroyed) throw std::runtime_error("easyChannel was destroyed");
+    return channel;
+}
+
 void EasyChannel::connect(double timeout)
 {
     if(isDestroyed) throw std::runtime_error("easyChannel was destroyed");
@@ -225,7 +225,9 @@ void EasyChannel::issueConnect()
     }
     channelRequester = ChannelRequester::shared_pointer(new ChannelRequesterImpl(this));
 
-    channelConnectStatus = Status(Status::STATUSTYPE_ERROR,"createChannel failed");
+    channelConnectStatus = Status(
+           Status::STATUSTYPE_ERROR,
+           getChannelName() + " createChannel failed");
     connectState = connectActive;
     ChannelProviderRegistry::shared_pointer reg = getChannelProviderRegistry();
     ChannelProvider::shared_pointer provider = reg->getProvider(providerName);

@@ -33,6 +33,21 @@ exampleEasyMonitor_LIBS += pvAccess
 exampleEasyMonitor_LIBS += pvData
 exampleEasyMonitor_LIBS += Com
 
+PROD_HOST += exampleEasyMultiDouble
+exampleEasyMultiDouble_SRCS += exampleEasyMultiDouble.cpp
+exampleEasyMultiDouble_LIBS += easyPVA
+exampleEasyMultiDouble_LIBS += pvAccess
+exampleEasyMultiDouble_LIBS += pvData
+exampleEasyMultiDouble_LIBS += Com
+
+PROD_HOST += exampleEasyNTMultiChannel
+exampleEasyNTMultiChannel_SRCS += exampleEasyNTMultiChannel.cpp
+exampleEasyNTMultiChannel_LIBS += easyPVA
+exampleEasyNTMultiChannel_LIBS += pvAccess
+exampleEasyNTMultiChannel_LIBS += nt
+exampleEasyNTMultiChannel_LIBS += pvData
+exampleEasyNTMultiChannel_LIBS += Com
+
 #===========================
 
 include $(TOP)/configure/RULES

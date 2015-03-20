@@ -28,8 +28,18 @@ testEasyPutGet_SRCS = testEasyPutGet
 testHarness_SRCS += testEasyPutGet.cpp 
 TESTS += testEasyPutGet
 
+TESTPROD_HOST += testEasyMultiDouble
+testEasyMultiDouble_SRCS = testEasyMultiDouble
+testHarness_SRCS += testEasyMultiDouble.cpp 
+TESTS += testEasyMultiDouble
 
-PROD_LIBS += easyPVA pvAccess pvData Com
+TESTPROD_HOST += testEasyNTMultiChannel
+testEasyNTMultiChannel_SRCS = testEasyNTMultiChannel
+testHarness_SRCS += testEasyNTMultiChannel.cpp 
+TESTS += testEasyNTMultiChannel
+
+
+PROD_LIBS += easyPVA pvAccess pvData nt Com
 
 testHarness_SRCS += easyAllTests.c
 

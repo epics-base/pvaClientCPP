@@ -86,7 +86,7 @@ void EasyPutData::postPut(size_t fieldNumber)
 
 void EasyPutData::setMessagePrefix(std::string const & value)
 {
-    messagePrefix = value;
+    messagePrefix = value + " ";
 }
 
 StructureConstPtr EasyPutData::getStructure()
@@ -221,7 +221,7 @@ void EasyPutData::putDouble(double value)
          pvDouble->put(value);
     }
     if(!ScalarTypeFunc::isNumeric(scalarType)) {
-        throw std::runtime_error(notCompatibleScalar);
+        throw std::runtime_error(messagePrefix + notCompatibleScalar);
     }
     convert->fromDouble(pvScalar,value);
 }

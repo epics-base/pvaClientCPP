@@ -55,7 +55,7 @@ void EasyGetData::checkValue()
 
 void EasyGetData::setMessagePrefix(std::string const & value)
 {
-    messagePrefix = value;
+    messagePrefix = value + " ";
 }
 
 StructureConstPtr EasyGetData::getStructure()
@@ -165,7 +165,7 @@ double EasyGetData::getDouble()
         return pvDouble->get();
     }
     if(!ScalarTypeFunc::isNumeric(scalarType)) {
-        throw std::runtime_error(notCompatibleScalar);
+        throw std::runtime_error(messagePrefix + notCompatibleScalar);
     }
     return convert->toDouble(pvScalar);
 }

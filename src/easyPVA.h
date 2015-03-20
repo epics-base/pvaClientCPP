@@ -32,6 +32,7 @@
 #include <pv/standardField.h>
 #include <pv/standardPVField.h>
 #include <pv/createRequest.h>
+#include <pv/nt.h>
 
 #ifdef easyPVAEpicsExportSharedSymbols
 #   define epicsExportSharedSymbols
@@ -72,16 +73,13 @@ typedef std::tr1::shared_ptr<EasyArray> EasyArrayPtr;
 class EasyRPC;
 typedef std::tr1::shared_ptr<EasyRPC> EasyRPCPtr;
 
-class EasyMultiData;
-typedef std::tr1::shared_ptr<EasyMultiData> EasyMultiDataPtr;
+typedef epics::pvData::shared_vector<const EasyChannelPtr> EasyChannelArray;
+typedef std::tr1::shared_ptr<EasyChannelArray> EasyChannelArrayPtr;
+typedef std::tr1::weak_ptr<EasyChannelArray> EasyChannelArrayWPtr;
+
 class EasyMultiChannel;
 typedef std::tr1::shared_ptr<EasyMultiChannel> EasyMultiChannelPtr;
-class EasyMultiGet;
-typedef std::tr1::shared_ptr<EasyMultiGet> EasyMultiGetPtr;
-class EasyMultiPut;
-typedef std::tr1::shared_ptr<EasyMultiPut> EasyMultiPutPtr;
-class EasyMultiMonitor;
-typedef std::tr1::shared_ptr<EasyMultiMonitor> EasyMultiMonitorPtr;
+class EasyMultiChannelGet;
 
 // following are private to easyPVA
 class EasyChannelCache;
@@ -165,7 +163,8 @@ public:
      * @param channelName The channelName array.
      * @return The interface.
      */
-    EasyMultiChannelPtr createMultiChannel(epics::pvData::StringArray const & channelName);
+    EasyMultiChannelPtr createMultiChannel(
+        epics::pvData::PVStringArrayPtr const & channelNames);
     /**
      * @brief Create an EasyMultiChannel with the specified provider.
      * @param channelName The channelName array.
@@ -173,19 +172,8 @@ public:
      * @return The interface.
      */
     EasyMultiChannelPtr createMultiChannel(
-            epics::pvData::StringArray const & channelName,
-            std::string const & providerName);
-    /**
-     * @brief Create an EasyMultiChannel with the specified provider.
-     * @param channelName The channelName.
-     * @param providerName The provider.
-     * @param union The union interface for the value field of each channel.
-     * @return The interface.
-     */
-    EasyMultiChannelPtr createMultiChannel(
-            epics::pvData::StringArray const & channelName,
-            std::string const & providerName,
-            epics::pvData::UnionConstPtr const & u);
+        epics::pvData::PVStringArrayPtr const & channelNames,
+        std::string const & providerName);
     /**
      * @brief Set a requester.
      * The default is for EasyPVA to handle messages by printing to System.out.
@@ -235,11 +223,12 @@ public:
      * @brief Create a EasyChannel.
      * @param easyPVA Interface to EasyPVA
      * @param channelName The name of the channel.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface.
      */
     static EasyChannelPtr create(
         EasyPVAPtr const &easyPVA,
-         std::string const & channelName) {return create(easyPVA,channelName,"pva");}
+        std::string const & channelName)
+        {return create(easyPVA,channelName,"pva");}
     /**
      * @brief Create a EasyChannel.
      * @param channelName The name of the channel.
@@ -261,12 +250,17 @@ public:
      */
     std::string getChannelName();
     /**
+     * @brief Get the the channel to which EasyChannel is connected.
+     * @return The channel interface.
+     */
+    epics::pvAccess::Channel::shared_pointer getChannel();
+    /**
      * @brief Connect to the channel.
      * This calls issueConnect and waitConnect.
      * An exception is thrown if connect fails.
      * @param timeout The time to wait for connecting to the channel.
      */
-    void connect(double timeout);
+    void connect(double timeout=5.0);
     /**
      * @brief Issue a connect request and return immediately.
      */
@@ -479,7 +473,6 @@ private:
     void channelStateChange(
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvAccess::Channel::ConnectionState connectionState);
-    std::tr1::shared_ptr<epics::pvAccess::Channel> getChannel();
     std::string getRequesterName();
     void message(
         std::string const & message,
@@ -916,7 +909,7 @@ private:
     epics::pvData::PVTimeStamp pvTimeStamp;
 };
 
-class ChannelProcessRequesterImpl; // private to ChannelProcess.
+class ChannelProcessRequesterImpl; // private to EasyProcess
 /**
  * @brief An easy to use alternative to ChannelProcess.
  *
@@ -1016,7 +1009,7 @@ private:
     friend class ChannelProcessRequesterImpl;
 };
 
-class ChannelGetRequesterImpl; // private to ChannelGet.
+class ChannelGetRequesterImpl; // private to EasyGet
 /**
  * @brief An easy to use alternative to ChannelGet.
  *
@@ -1125,7 +1118,7 @@ private:
     friend class ChannelGetRequesterImpl;
 };
 
-class ChannelPutRequesterImpl; // private to ChannelPut.
+class ChannelPutRequesterImpl; // private to EasyPut
 /**
  * @brief An easy to use alternative to ChannelPut.
  *
@@ -1251,7 +1244,7 @@ private :
     friend class ChannelPutRequesterImpl;
 };
 
-class ChannelPutGetRequesterImpl; // private to ChannelPutGet.
+class ChannelPutGetRequesterImpl; // private to EasyPutGet
 /**
  * @brief An easy to use alternative to ChannelPutGet.
  *
@@ -1558,13 +1551,107 @@ private:
     friend class ChannelMonitorRequester;
 };
 
+/**
+ * @brief Provides access to multiple channels.
+ *
+ * @author mrk
+ */
+class epicsShareClass EasyMultiChannel :
+    public std::tr1::enable_shared_from_this<EasyMultiChannel>
+{
+public:
+    POINTER_DEFINITIONS(EasyMultiChannel);
+    /**
+     * @brief Create a EasyMultiChannel.
+     * @param channelNames The name. of the channel..
+     * @param providerName The name of the provider.
+     * @param u The union interface for each channel.
+     * @return The interface to the EasyPVAStructure.
+     */
+    static EasyMultiChannelPtr create(
+         EasyPVAPtr const &easyPVA,
+         epics::pvData::PVStringArrayPtr const & channelNames,
+         std::string const & providerName = "pva");
+    ~EasyMultiChannel();
+    /**
+     * @brief Destroy the pvAccess connection.
+     */
+    void destroy();
+    /**
+     * @brief Get the channelNames.
+     * @return The names.
+     */
+    epics::pvData::PVStringArrayPtr getChannelNames();
+    /**
+     * @brief Connect to the channel.
+     * This calls issueConnect and waitConnect.
+     * An exception is thrown if connect fails.
+     * @param timeout The time to wait for connecting to the channel.
+     * @param maxNotConnected Maximum number of channels that do not connect.
+     * @return status of request
+     */
+    epics::pvData::Status connect(
+       double timeout=5,
+       size_t maxNotConnected=0);
+    /**
+     * Are all channels connected?
+     * @return if all are connected.
+     */
+    bool allConnected();
+    /**
+     * Has a connection state change occured?
+     * @return (true, false) if (at least one, no) channel has changed state.
+     */
+    bool connectionChange();
+    /**
+     * Get the connection state of each channel.
+     * @return The state of each channel.
+     */
+    epics::pvData::PVBooleanArrayPtr getIsConnected();
+    /**
+     * Get the easyChannelArray.
+     * @return The weak shared pointer.
+     */
+    EasyChannelArrayWPtr getEasyChannelArray();
+    /**
+     * Get easyPVA.
+     * @return The weak shared pointer.
+     */
+    EasyPVA::weak_pointer getEasyPVA();
+    /**
+     * Get the shared pointer to self.
+     * @return The shared pointer.
+     */
+    EasyMultiChannelPtr getPtrSelf()
+    {
+        return shared_from_this();
+    }
+private:
+    EasyMultiChannel(
+        EasyPVAPtr const &pva,
+        epics::pvData::PVStringArrayPtr const & channelName,
+        std::string const & providerName);
+
+    EasyPVA::weak_pointer easyPVA;
+    epics::pvData::PVStringArrayPtr channelName;
+    std::string providerName;
+    size_t numChannel;
+    epics::pvData::Mutex mutex;
+
+    size_t numConnected;
+    EasyChannelArrayPtr easyChannelArray;
+    epics::pvData::PVBooleanArrayPtr isConnected;
+    bool isDestroyed;
+};
+
+
 }}
 
 #endif  /* EASYPVA_H */
 
 /** @page Overview Documentation
  *
- * <a href = "easyPVA.html">easyPVA.html</a>
+ * <a href = "overview.html">overview.html</a>
  *
  */
 

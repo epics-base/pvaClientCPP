@@ -14,6 +14,8 @@ int testEasyPutData(void);
 int testEasyMonitorData(void);
 int testEasyPutGetMonitor(void);
 int testEasyPutGet(void);
+int testEasyMultiDouble(void);
+int testEasyNTMultiChannel(void);
 
 void easyAllTests(void)
 {
@@ -23,5 +25,7 @@ void easyAllTests(void)
     runTest(testEasyMonitorData);
     runTest(testEasyPutMonitor);
     runTest(testEasyPut);
+    runTest(testEasyMultiDouble);
+    runTest(testEasyNTMultiChannel);
 }
 

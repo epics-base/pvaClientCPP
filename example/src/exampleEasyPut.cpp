@@ -1,4 +1,4 @@
-/*exampleEasyProcess.cpp */
+/*exampleEasyPut.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -22,7 +22,7 @@ using namespace epics::easyPVA;
 
 static void examplePut(EasyPVAPtr const &easyPVA)
 {
-    cout << "example process\n";
+    cout << "example put\n";
     EasyChannelPtr channel = easyPVA->channel("exampleDouble");
     EasyPutPtr put = channel->put();
     EasyPutDataPtr putData = put->getData();
