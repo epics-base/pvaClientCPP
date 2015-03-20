@@ -54,10 +54,10 @@ static void testGood(EasyPVAPtr const &easyPVA)
          EasyNTMultiChannelPtr easy = EasyNTMultiChannel::create(
              easyPVA,pvNames,structure);
          NTMultiChannelPtr nt = easy->get();
-         cout << "initial\n" << nt->getPVStructure() << endl;
          for(size_t numtimes=0; numtimes<3; ++numtimes) {
              PVUnionArrayPtr pvValue = nt->getPVStructure()->
                  getSubField<PVUnionArray>("value");
+             cout << "initial\n" << nt->getPVStructure() << endl;
              shared_vector<PVUnionPtr> valueVector = pvValue->reuse();
              for(size_t i=0; i<num; ++i)
              {
@@ -111,8 +111,8 @@ static void testGood(EasyPVAPtr const &easyPVA)
              pvValue->replace(freeze(valueVector));
              easy->put(nt);
              nt = easy->get();
-             cout << "after put\n" << nt->getPVStructure() << endl;
          }
+         cout << "final\n" << nt->getPVStructure() << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
         isOk = false;

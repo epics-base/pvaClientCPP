@@ -84,7 +84,6 @@ private:
     epics::pvData::PVDataCreatePtr pvDataCreate;
     std::vector<EasyGetPtr> easyGet;
     std::vector<EasyPutPtr> easyPut;
-    epics::pvData::shared_vector<epics::pvData::PVUnionPtr> valueVector;
     epics::pvData::shared_vector<epics::pvData::int32> severity;
     epics::pvData::shared_vector<epics::pvData::int32> status;
     epics::pvData::shared_vector<std::string> message;

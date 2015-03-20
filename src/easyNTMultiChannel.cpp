@@ -155,8 +155,7 @@ NTMultiChannelPtr EasyNTMultiChannel::get()
         userTag.resize(numChannel);
         userTagExists = true;
     }
-    valueVector.resize(numChannel);
-    
+    shared_vector<PVUnionPtr> valueVector(numChannel);
     for(size_t i=0; i<numChannel; ++i)
     {
         easyGet[i]->issueGet();
@@ -177,7 +176,7 @@ NTMultiChannelPtr EasyNTMultiChannel::get()
         UnionConstPtr u = pvUnionArray->getUnionArray()->getUnion();
         if(u->isVariant()) {
               PVUnionPtr pvUnion = pvDataCreate->createPVVariantUnion();
-              pvUnion->set(pvField);
+              pvUnion->set(pvDataCreate->createPVField(pvField));
               valueVector[i] = pvUnion;
         } else {
               PVUnionPtr pvUnion = pvDataCreate->createPVUnion(u);
@@ -242,10 +241,16 @@ void EasyNTMultiChannel::put(NTMultiChannelPtr const &value)
         try {
             PVFieldPtr pvFrom = valueVector[i]->get();
             PVFieldPtr pvTo = easyPut[i]->getData()->getValue();
-            pvTo->copy(*pvFrom);
+            Type typeFrom = pvFrom->getField()->getType();
+            Type typeTo = pvTo->getField()->getType();
+            if(typeFrom==typeTo) {
+                  if(typeFrom==scalar || typeFrom==scalarArray) {
+                      pvTo->copy(*pvFrom);
+                  }
+            }
             easyPut[i]->issuePut();
         } catch (std::exception e) {
-            string message = channelNames[i] + e.what();
+            string message = channelNames[i] + " " + e.what();
             throw std::runtime_error(message);
         }
     }
