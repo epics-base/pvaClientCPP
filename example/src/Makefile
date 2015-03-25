@@ -48,6 +48,22 @@ exampleEasyNTMultiChannel_LIBS += nt
 exampleEasyNTMultiChannel_LIBS += pvData
 exampleEasyNTMultiChannel_LIBS += Com
 
+PROD_HOST += helloWorldRPC
+helloWorldRPC_SRCS += helloWorldRPC.cpp
+helloWorldRPC_LIBS += easyPVA
+helloWorldRPC_LIBS += pvAccess
+helloWorldRPC_LIBS += nt
+helloWorldRPC_LIBS += pvData
+helloWorldRPC_LIBS += Com
+
+PROD_HOST += helloWorldPutGet
+helloWorldPutGet_SRCS += helloWorldPutGet.cpp
+helloWorldPutGet_LIBS += easyPVA
+helloWorldPutGet_LIBS += pvAccess
+helloWorldPutGet_LIBS += nt
+helloWorldPutGet_LIBS += pvData
+helloWorldPutGet_LIBS += Com
+
 #===========================
 
 include $(TOP)/configure/RULES

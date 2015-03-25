@@ -84,6 +84,16 @@ EasyProcessPtr process = channel-&gt;createProcess();
 process-&gt;process();
 
 </pre>
+<p><b>easyPVACPP</b> includes a number of examples.</p>
+<p>easyPVA does <b>not</b> provide support for:</p>
+<dl>
+   <dt>ChannelArray</dt>
+     <dd>TBD</dd>
+   <dt>ChannelRPC</dt>
+     <dd>pvAccess itself already provides an easy to use synchronous interface.
+       The examples include helloWorldRPC, which is an example of using channelRP.
+     </dd>
+</dl>
 
 <h2>EasyPVA</h2>
 <p>An instance of EasyPVA is obtained via the call:</p>
@@ -94,10 +104,9 @@ EasyPVAPtr easyPVA = EasyPVA::create();
 <p>EasyPVA has methods to create instances of <b>EasyChannel</b>.
 The client can specify the provider name or use the default provider.
 The client can manage it's own channels or can let easyPVA cache channels.
-An example of using the cache method is:</p>
+An example of using the cached method is:</p>
 <pre>
-string channelName("exampleDouble");
-EasyChannelPtr easyChannel = easyPVA-&gt;channel(channelName);
+EasyChannelPtr easyChannel = easyPVA-&gt;channel("exampleDouble");
 </pre>
 <p>This will attempt to connect to channel exampleDouble.
 Since the client did not specify a timeout an exception wll be thrown if
@@ -109,8 +118,7 @@ returned to the client.
 </p>
 <p>An example of using a non cached method is:</p>
 <pre>
-string channelName("exampleDouble");
-EasyChannelPtr easyChannel = easyPVA-&gt;createChannel(channelName);
+EasyChannelPtr easyChannel = easyPVA-&gt;createChannel("exampleDouble");
 </pre>
 <p>This will create an EasyChannel and return it to the client.
 The client must itself connect.
@@ -120,7 +128,7 @@ This is useful if the client wants to connect to multiple channels in parallel.
 <h2>EasyChannel - Wrapper For Single Channel</h2>
 <h3>EasyChannel</h3>
 <p>This provides methods for connecting to a channel and for creating instances of
-EasyField, EasyProcess, ..., EasyRPC.</p>
+EasyField, EasyProcess, ..., EasyPutGet.</p>
 <p>Connection must be made before any create  method is called or
 an exception is raised.
 The following is a synchronous connection request:</p>
@@ -289,20 +297,20 @@ It has methods:</p>
 <h2>EasyMultiChannel - Wrapper For Multiple Channels</h2>
 <h3>EasyMultiChannel</h3>
 <p>This provides methods for connecting to multiple channels.
-For now clients has no reason to use this directly.
-Instead they will use it via EasyMultiDouble or EasyNTMultiChannel.
+A client can either use EasyMultiChannel directly or use EasyMultiDouble or EasyNTMultiChannel.
+But both impose restrictions on what can be accessed.
 </p>
 <h3>EasyMultiDouble</h3>
 <p>This provides support for gets and puts to the value field of multiple channels.
 Each channel must have a value field that is a numeric scalar.
-The client always sees that data as a PVDoubleArray.
+The client always sees the data as a PVDoubleArray.
 All channels must connect.
 If any problems occur an exception is thrown.
 </p>
 <h3>EasyNTMultiChannel</h3>
 <p>This provides support for gets and puts to the value field of multiple channels.
 Each channel must have a value field.
-The client always sees that data as a NTMultiChannel, which is one
+The client always sees the data as a NTMultiChannel, which is one
 of the types provided by normativeTypesCPP.
 All channels must connect.
 If any problems occur an exception is thrown.

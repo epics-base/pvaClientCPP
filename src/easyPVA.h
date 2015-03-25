@@ -1565,7 +1565,6 @@ public:
      * @brief Create a EasyMultiChannel.
      * @param channelNames The name. of the channel..
      * @param providerName The name of the provider.
-     * @param u The union interface for each channel.
      * @return The interface to the EasyPVAStructure.
      */
     static EasyMultiChannelPtr create(

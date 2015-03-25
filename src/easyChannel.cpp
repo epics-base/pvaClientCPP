@@ -231,6 +231,9 @@ void EasyChannel::issueConnect()
     connectState = connectActive;
     ChannelProviderRegistry::shared_pointer reg = getChannelProviderRegistry();
     ChannelProvider::shared_pointer provider = reg->getProvider(providerName);
+    if(!provider) {
+        throw std::runtime_error(getChannelName() + " provider " + providerName + " not registered");
+    }
     channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
     if(!channel) {
          throw std::runtime_error(channelConnectStatus.getMessage());

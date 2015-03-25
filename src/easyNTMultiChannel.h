@@ -24,7 +24,9 @@ class EasyNTMultiChannel;
 typedef std::tr1::shared_ptr<EasyNTMultiChannel> EasyNTMultiChannelPtr;
 
 /**
- * @brief Support for multiple channels where each channel has a value field that is a scalar double.
+ * @brief Support for multiple channels where each channel has a value field that
+ * is a scalar, scalarArray, or enumerated structure.
+ * The data is provided via normativeType NTMultiChannel.
  * If any problems arise an exception is thrown.
  *
  * @author mrk

@@ -14,10 +14,12 @@
 #include <pv/easyPVA.h>
 #include <pv/createRequest.h>
 #include <pv/clientFactory.h>
+#include <pv/caProvider.h>
 
 using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
+using namespace epics::pvAccess::ca;
 using namespace std;
 
 namespace epics { namespace easyPVA { 
@@ -44,7 +46,10 @@ namespace easyPVAPvt {
                  saveFirst = firstTime;
                  firstTime = false;
             }
-            if(saveFirst) ClientFactory::start();
+            if(saveFirst) {
+                ClientFactory::start();
+                CAClientFactory::start();
+            }
         }
     
         static void EasyPVABeingDestroyed() {
@@ -54,7 +59,10 @@ namespace easyPVAPvt {
                  --numberEasyPVA;
                   numLeft = numberEasyPVA;
             }
-            if(numLeft<=0) ClientFactory::stop();
+            if(numLeft<=0) {
+                ClientFactory::stop();
+                CAClientFactory::stop();
+            }
         }
     };
 
