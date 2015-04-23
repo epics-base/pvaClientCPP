@@ -741,17 +741,23 @@ public:
      */
     void putString(std::string const & value);
     /**
-     * Copy the sub-array to the value field.
+     * Copy the array to the value field.
      * If the value field is not a double array field an exception is thrown.
      * @param value The place where data is copied.
      */
     void putDoubleArray(epics::pvData::shared_vector<const double> const & value);
     /**
-     * Copy the sub-array to the value field.
-     * If the value field is not a double array field an exception is thrown.
-     * @param value The place where data is copied.
+     * Copy array to the value field.
+     * If the value field is not a string array field an exception is thrown.
+     * @param value data source
      */
     void putStringArray(epics::pvData::shared_vector<const std::string> const & value);
+    /**
+     * Copy array to the value field.
+     * If the value field is not a scalarArray field an exception is thrown.
+     * @param value data source
+     */
+    void putStringArray(std::vector<std::string> const & value);
 private:
     EasyPutData(epics::pvData::StructureConstPtr const &structure);
     void checkValue();

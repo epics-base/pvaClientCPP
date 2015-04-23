@@ -39,10 +39,10 @@ public:
 typedef std::tr1::shared_ptr<PVArray> PVArrayPtr;
 static ConvertPtr convert = getConvert();
 static string noValue("no value field");
-static string noScalar("value is not a scalar");
+static string notScalar("value is not a scalar");
 static string notCompatibleScalar("value is not a compatible scalar");
-static string noArray("value is not an array");
-static string noScalarArray("value is not a scalarArray");
+static string notArray("value is not an array");
+static string notScalarArray("value is not a scalarArray");
 static string notDoubleArray("value is not a doubleArray");
 static string notStringArray("value is not a stringArray");
 
@@ -146,7 +146,7 @@ PVScalarPtr  EasyPutData::getScalarValue()
     checkValue();
     PVScalarPtr pv = pvStructure->getSubField<PVScalar>("value");
     if(!pv) {
-        throw std::runtime_error(messagePrefix + noScalar);
+        throw std::runtime_error(messagePrefix + notScalar);
     }
     return pv;
 }
@@ -156,7 +156,7 @@ PVArrayPtr  EasyPutData::getArrayValue()
     checkValue();
     PVArrayPtr pv = pvStructure->getSubField<PVArray>("value");
     if(!pv) {
-        throw std::runtime_error(messagePrefix + noArray);
+        throw std::runtime_error(messagePrefix + notArray);
     }
     return pv;
 }
@@ -166,7 +166,7 @@ PVScalarArrayPtr  EasyPutData::getScalarArrayValue()
     checkValue();
     PVScalarArrayPtr pv = pvStructure->getSubField<PVScalarArray>("value");
     if(!pv) {
-        throw std::runtime_error(messagePrefix + noScalarArray);
+        throw std::runtime_error(messagePrefix + notScalarArray);
     }
     return pv;
 }
@@ -252,6 +252,16 @@ void EasyPutData::putStringArray(shared_vector<const std::string> const & value)
         throw std::runtime_error(messagePrefix + notStringArray);
     }
     pv->replace(value);
+}
+
+void EasyPutData::putStringArray(std::vector<std::string> const & value)
+{
+    checkValue();
+    PVScalarArrayPtr pv = pvStructure->getSubField<PVScalarArray>("value");
+    if(!pv) {
+        throw std::runtime_error(messagePrefix + notScalarArray);
+    }
+    convert->fromStringArray(pv,0,value.size(),value,0);
 }
 
 }}
