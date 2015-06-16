@@ -68,7 +68,7 @@ make runtests
 ###########################################
 # Create distribution
 
-tar --exclude=test* -czf easyPVA.CB-dist.tar.gz bin lib include dbd
+tar --exclude=test* -czf easyPVA.CB-dist.tar.gz lib include
 
 ###########################################
 # Publish documentation
