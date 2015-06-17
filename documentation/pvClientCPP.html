@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
-  <title>EPICS easyPVA</title>
+  <title>EPICS pva</title>
   <link rel="stylesheet" type="text/css"
   href="http://epics-pvdata.sourceforge.net/base.css" />
   <link rel="stylesheet" type="text/css"
@@ -25,54 +25,48 @@
 <body>
 
 <div class="head">
-<h1>EPICS easyPVA</h1>
+<h1>EPICS pvaClientCPP</h1>
 <!-- Maturity: Working Draft or Request for Comments, or Recommendation, and date.  -->
 <h2 class="nocount">EPICS V4 Working Group, Working Draft,
-25-Mar-2015</h2>
+29-May-2015</h2>
 <dl>
   <dt>This version:</dt>
     <dd><a
-      href="easyPVA.html">easyPVA.html
+      href="pvaClientCPP.html">pvaClientCPP.html
     </a> </dd>
   <dt>Latest version:</dt>
+    <dd>Still under revision</dd>
+  <dt>Previous version:</dt>
     <dd><a
       href="easyPVA_20150609.html">easyPVA_20150609.html</a>
     </dd>
-  <dt>Previous version:</dt>
-    <dd><a
-      href="easyPVA_20150325.html">easyPVA_20150325.html</a>
-    </dd>
   <dt>Editors:</dt>
     <dd>Marty Kraimer, BNL</dd>
-    <dd>Matej Sekoranja, Cosylab</dd>
 </dl>
 
 <h2 class="nocount">Abstract</h2>
-<p><b>NO LONGER SUPPPORTED:</b>
-The functionality has been moved to pvAccessCPP and EasyPva renamed to Pva.
-</p>
 
-<p>EasyPVA (Easy PVAccess) is a software library that provides to an EPICS client programmer, a friendly
+<p>pvaClient is a software library that provides to an EPICS client programmer, a friendly
 client side programming interface to the data of an EPICS based control system. It is intended 
 for such uses as rapid development of ad hoc programs by controls engineers, or to provide 
 scientists a way to directly develop analytical applications.</p>
 
-<p>Specifically, easyPVA provides an easy interface for pvAccess, which is the
+<p>Specifically, pvaClient provides a synchronous interface for pvAccess, which is the
 software support for high speed controls network communications used in EPICS version 4.
-PvAccess provides a callback based interface, which can be hard to use.
-EasyPVA provides an interface that does not require callbacks even for monitors.
+pvAccess provides a callback based interface, which can be hard to use.
+pvaClient provides an interface that does not require callbacks even for monitors.
 </p>
-<p>
-EasyChannel provides many "convenience" methods to directly get and put 
+p>
+pvaClientChannel provides many "convenience" methods to directly get and put 
 scalar and scalarArray data types.
 Additional methods provide access to the full features of pvAccess.
 </p>
 <p>
-EasyMultiChannel provides access to data from multiple channels.
-It can be used directly by a client or via EasyMultiDouble or EasyNTMultiChannel.
-EasyMultiDouble allows the client to get and put data to multiple channels.
+pvaClientMultiChannel provides access to data from multiple channels.
+It can be used directly by a client or via pvaClientMultiDouble or pvaClientNTMultiChannel.
+pvaClientMultiDouble allows the client to get and put data to multiple channels.
 But each channel must have a value field that is a numeric scalar.
-EasyNTMultiChannel allows the client to get and put data to multiple channels.
+pvaClientNTMultiChannel allows the client to get and put data to multiple channels.
 Each channel must have a value field.
 The data for the channels is presented via normative type NTMultiChannel.
 </p>
@@ -83,9 +77,9 @@ The data for the channels is presented via normative type NTMultiChannel.
 
 
 
-<h2 class="nocount">Status of this Document and of the EasyPVA Software</h2>
+<h2 class="nocount">Status of this Document and of the pvaClient Software</h2>
 
-<p>EasyPVACPP is ready for use.</p>
+<p>pvaClientCPP is ready for use.</p>
 
 </div> <!-- head -->
 
@@ -99,14 +93,14 @@ The data for the channels is presented via normative type NTMultiChannel.
 
 <h2>Introduction</h2>
 
-<p>EasyPVA is a synchronous API for accessing PVData via PVAccess. It provides
+<p>pvaClient is a synchronous API for accessing PVData via PVAccess. It provides
 an interface to many of the features provided by pvData and pvAccess.</p>
 
 <p>This document describes the layout of the source files in this project.</p>
 <p>
 A user overview is available via
 <a
-href="./overview.html">overview.html
+href="./pvaClientOverview.html">pvaClientOverview.html
 </a>
 </p>
 <p>
@@ -115,27 +109,10 @@ Doxygen documentation is available at
 href="./html/index.html">doxygenDoc
 </a>
 </p>
-<h2>Building</h2>
-<p>After obtaining the source:</p>
-<pre>
-cd configure
-cp ExampleRELEASE.local RELEASE.local
-</pre>
-<p>Edit <b>RELEASE.local</b> so that all path names are correct for you environment.
-</p>
-<p>
-Then:</p>
-<pre>
-cd ..
-make
-</pre>
-
-<h2>Example and Test Database</h2>
+<h2>Example Database</h2>
 <p>The examples and tests require that an example pvAccess server is runnimg.
-This distribution has a file <b>exampleDatabaseEasyPVA.zip</b>.
+This distribution has a file <b>exampleDatabasePvaClient.zip</b>.
 When unzipped this is used to create an example IOC database.
-The database has the record used by the examples are tests that come with easyPVAJava.
-It uses pvDatabaseCPP to build the database.
 </p>
 <p>
 After unzipping the file:
@@ -156,17 +133,17 @@ cd iocBoot/exampleDatabase
 make runtests
 </pre>
 <h2>Examples</h2>
-<p>Examples are in directory <b>example/src</b>.
+<p>Examples are in directory <b>pvaExample/src</b>.
 An example of how to run them is:</p>
 <pre>
 mrk&gt; pwd
-/home/hg/easyPVACPP/example
-mrk&gt; bin/linux-x86_64/exampleEasyGet 
+/home/epicsv4/pvAccessCPP/pvaExample
+mrk&gt; bin/linux-x86_64/examplepvaClientGet 
 </pre>
 <p>The following is a brief description of each example.
 In order to understand each example it
-helps to also bee loooking at the source for the example.</p>
-<h2>exampleEasyGet</h2>
+helps to also look at the source for the example.</p>
+<h2>examplePvaClientGet</h2>
 <p>This has a number of examples:</p>
 <dl>
    <dt>exampleDouble</dt>
@@ -193,7 +170,7 @@ helps to also bee loooking at the source for the example.</p>
         have a value field.
      </dd>
 </dl>
-<h2>exampleEasyMonitor</h2>
+<h2>examplePvaClientMonitor</h2>
 <p>This is an example of creating a monitor on a channel.
 It monitors a channel that models a powerSupply, i. e. it is not a "standard" record.
 It does not have a value field.
@@ -202,21 +179,21 @@ It does not have a value field.
 <pre>
 pvput -r "power.value,voltage.value" examplePowerSupply 6 6
 </pre>
-<h2>exampleEasyPut</h2>
+<h2>examplePvaClientPut</h2>
 <p>This example gets and puts to channel exampleDouble.</p>
-<h2>exampleEasyProcess</h2>
+<h2>examplePvaClientProcess</h2>
 <p>This example makes a process request to channel exampleDouble.</p>
 <h2>helloWorldPutGet</h2>
 <p>This is an example of issuing a channelPutGet.</p>
-<h2>exampleEasyMultiDouble</h2>
+<h2>examplePvaClientMultiDouble</h2>
 <p>This is an example of issuing gets and puts to multiple channels where each
 channel has a numeric scalar value field.</p>
-<h2>exampleEasyNTMultiChannel</h2>
+<h2>examplePvaClientNTMultiChannel</h2>
 <p>This is an example of using NDMultiChannel to obtain data from multiple channels.
 </p>
 <h2>helloWorldRPC</h2>
 <p>This is an example of issuing a channelRPC request.
-It does <b>not</b> use easyPVA.</p>
+It does <b>not</b> use pva.</p>
 </div> <!-- class="contents" -->
 </body>
 </html>

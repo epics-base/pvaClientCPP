@@ -1,4 +1,4 @@
-# easyPVA C++ implementation
+# pvaClient C++ implementation
 # Jenkins @ Cloudbees build script
 #
 # Jenkins invokes scripts with the "-ex" option. So the build is considered a failure
@@ -68,11 +68,11 @@ make runtests
 ###########################################
 # Create distribution
 
-tar --exclude=test* -czf easyPVA.CB-dist.tar.gz lib include
+tar --exclude=test* -czf pvaClient.CB-dist.tar.gz lib include
 
 ###########################################
 # Publish documentation
 
 if [ "${BUILD_DOCS}" ]; then
-    rsync -aqP --delete -e ssh documentation epics-jenkins@web.sourceforge.net:/home/project-web/epics-pvdata/htdocs/docbuild/easyPVACPP/tip
+    rsync -aqP --delete -e ssh documentation epics-jenkins@web.sourceforge.net:/home/project-web/epics-pvdata/htdocs/docbuild/pvaClientCPP/tip
 fi
