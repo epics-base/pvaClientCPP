@@ -1,4 +1,4 @@
-/*helloWorldPutGet.cpp */
+/*examplePvaClientProcess.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -20,20 +20,16 @@ using namespace epics::pvAccess;
 using namespace epics::pvaClient;
 
 
-static void example(PvaClientPtr const &pva)
+static void exampleProcess(PvaClientPtr const &pva)
 {
-    cout << "helloWorldPutGet\n";
+    cout << "example process\n";
+    PvaClientChannelPtr channel = pva->channel("exampleDouble");
+    PvaClientProcessPtr process = channel->createProcess();
     try {
-        PvaClientChannelPtr channel = pva->channel("exampleHello");
-        PvaClientPutGetPtr putGet = channel->createPutGet();
-        putGet->connect();
-        PvaClientPutDataPtr putData = putGet->getPutData();
-        PVStructurePtr arg = putData->getPVStructure();
-        PVStringPtr pvValue = arg->getSubField<PVString>("argument.value");
-        pvValue->put("World");
-        putGet->putGet();
-        PvaClientGetDataPtr getData = putGet->getGetData();
-        cout << getData->getPVStructure() << endl;
+        process->process();
+        cout <<  channel->get("field()")->getData()->showChanged(cout) << endl;
+        process->process();
+        cout <<  channel->get("field()")->getData()->showChanged(cout) << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
@@ -43,6 +39,6 @@ static void example(PvaClientPtr const &pva)
 int main(int argc,char *argv[])
 {
     PvaClientPtr pva = PvaClient::create();
-    example(pva);
+    exampleProcess(pva);
     return 0;
 }

@@ -3,54 +3,54 @@
 TOP = ..
 include $(TOP)/configure/CONFIG
 
-TESTPROD_HOST += testEasyPutData
-testEasyPutData_SRCS = testEasyPutData 
-testHarness_SRCS += testEasyPutData.cpp 
-TESTS += testEasyPutData
+TESTPROD_HOST += pvaClientTestPutData
+pvaClientTestPutData_SRCS = pvaClientTestPutData 
+testHarness_SRCS += pvaClientTestPutData.cpp 
+TESTS += pvaClientTestPutData
 
-TESTPROD_HOST += testEasyGetData
-testEasyGetData_SRCS = testEasyGetData 
-testHarness_SRCS += testEasyGetData.cpp 
-TESTS += testEasyGetData
+TESTPROD_HOST += pvaClientTestGetData
+pvaClientTestGetData_SRCS = pvaClientTestGetData 
+testHarness_SRCS += pvaClientTestGetData.cpp 
+TESTS += pvaClientTestGetData
 
-TESTPROD_HOST += testEasyMonitorData
-testEasyMonitorData_SRCS = testEasyMonitorData 
-testHarness_SRCS += testEasyMonitorData.cpp 
-TESTS += testEasyMonitorData
+TESTPROD_HOST += pvaClientTestMonitorData
+pvaClientTestMonitorData_SRCS = pvaClientTestMonitorData 
+testHarness_SRCS += pvaClientTestMonitorData.cpp 
+TESTS += pvaClientTestMonitorData
 
-TESTPROD_HOST += testEasyPutGetMonitor
-testEasyPutGetMonitor_SRCS = testEasyPutGetMonitor 
-testHarness_SRCS += testEasyPutGetMonitor.cpp 
-TESTS += testEasyPutGetMonitor
+TESTPROD_HOST += pvaClientTestPutGetMonitor
+pvaClientTestPutGetMonitor_SRCS = pvaClientTestPutGetMonitor 
+testHarness_SRCS += pvaClientTestPutGetMonitor.cpp 
+TESTS += pvaClientTestPutGetMonitor
 
-TESTPROD_HOST += testEasyPutGet
-testEasyPutGet_SRCS = testEasyPutGet
-testHarness_SRCS += testEasyPutGet.cpp 
-TESTS += testEasyPutGet
+TESTPROD_HOST += pvaClientTestPutGet
+pvaClientTestPutGet_SRCS = pvaClientTestPutGet
+testHarness_SRCS += pvaClientTestPutGet.cpp 
+TESTS += pvaClientTestPutGet
 
-TESTPROD_HOST += testEasyMultiDouble
-testEasyMultiDouble_SRCS = testEasyMultiDouble
-testHarness_SRCS += testEasyMultiDouble.cpp 
-TESTS += testEasyMultiDouble
+TESTPROD_HOST += pvaClientTestMultiDouble
+pvaClientTestMultiDouble_SRCS = pvaClientTestMultiDouble
+testHarness_SRCS += pvaClientTestMultiDouble.cpp 
+TESTS += pvaClientTestMultiDouble
 
-TESTPROD_HOST += testEasyNTMultiChannel
-testEasyNTMultiChannel_SRCS = testEasyNTMultiChannel
-testHarness_SRCS += testEasyNTMultiChannel.cpp 
-TESTS += testEasyNTMultiChannel
+TESTPROD_HOST += pvaClientTestNTMultiChannel
+pvaClientTestNTMultiChannel_SRCS = pvaClientTestNTMultiChannel
+testHarness_SRCS += pvaClientTestNTMultiChannel.cpp 
+TESTS += pvaClientTestNTMultiChannel
 
 
-PROD_LIBS += easyPVA pvAccess pvData nt Com
+PROD_LIBS += pvaClient pvAccess pvData nt Com
 
-testHarness_SRCS += easyAllTests.c
+testHarness_SRCS += pvaClientAllTests.c
 
 PROD_vxWorks = vxTestHarness
 vxTestHarness_SRCS += $(testHarness_SRCS)
-TESTSPEC_vxWorks = vxTestHarness.$(MUNCH_SUFFIX); easyAllTests
+TESTSPEC_vxWorks = vxTestHarness.$(MUNCH_SUFFIX); pvaClientAllTests
 
 PROD_RTEMS += rtemsTestHarness
 rtemsTestHarness_SRCS += rtemsTestHarness.c rtemsConfig.c
 rtemsTestHarness_SRCS += $(testHarness_SRCS)
-TESTSPEC_RTEMS = rtemsTestHarness.$(MUNCH_SUFFIX); easyAllTests
+TESTSPEC_RTEMS = rtemsTestHarness.$(MUNCH_SUFFIX); pvaClientAllTests
 
 TESTSCRIPTS_HOST += $(TESTS:%=%.t)
 
