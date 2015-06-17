@@ -1,4 +1,4 @@
-/* easyGet.cpp */
+/* pvaClientGet.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,46 +12,46 @@
 
 #include <sstream>
 #include <pv/event.h>
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace std;
 
-namespace epics { namespace easyPVA {
+namespace epics { namespace pvaClient {
 
 
 class ChannelGetRequesterImpl : public ChannelGetRequester
 {
-    EasyGet * easyGet;
+    PvaClientGet * pvaClientGet;
 public:
-    ChannelGetRequesterImpl(EasyGet * easyGet)
-    : easyGet(easyGet) {}
+    ChannelGetRequesterImpl(PvaClientGet * pvaClientGet)
+    : pvaClientGet(pvaClientGet) {}
     string getRequesterName()
-    {return easyGet->getRequesterName();}
+    {return pvaClientGet->getRequesterName();}
     void message(string const & message,MessageType messageType)
-    {easyGet->message(message,messageType);}
+    {pvaClientGet->message(message,messageType);}
     void channelGetConnect(
         const Status& status,
         ChannelGet::shared_pointer const & channelGet,
         StructureConstPtr const & structure)
-    {easyGet->channelGetConnect(status,channelGet,structure);}
+    {pvaClientGet->channelGetConnect(status,channelGet,structure);}
     void getDone(
         const Status& status,
         ChannelGet::shared_pointer const & channelGet,
         PVStructurePtr const & pvStructure,
         BitSetPtr const & bitSet)
-    {easyGet->getDone(status,channelGet,pvStructure,bitSet);}
+    {pvaClientGet->getDone(status,channelGet,pvStructure,bitSet);}
 };
 
-EasyGet::EasyGet(
-        EasyPVAPtr const &pva,
-        EasyChannelPtr const & easyChannel,
+PvaClientGet::PvaClientGet(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
-: easyPVA(pva),
-  easyChannel(easyChannel),
+: pvaClient(pvaClient),
+  pvaClientChannel(pvaClientChannel),
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
@@ -60,67 +60,67 @@ EasyGet::EasyGet(
 {
 }
 
-EasyGet::~EasyGet()
+PvaClientGet::~PvaClientGet()
 {
     destroy();
 }
 
-void EasyGet::checkGetState()
+void PvaClientGet::checkGetState()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState==connectIdle) connect();
     if(getState==getIdle) get();
 }
 
 // from ChannelGetRequester
-string EasyGet::getRequesterName()
+string PvaClientGet::getRequesterName()
 {
-     EasyPVAPtr yyy = easyPVA.lock();
-     if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+     PvaClientPtr yyy = pvaClient.lock();
+     if(!yyy) throw std::runtime_error("pvaClient was destroyed");
      return yyy->getRequesterName();
 }
 
-void EasyGet::message(string const & message,MessageType messageType)
+void PvaClientGet::message(string const & message,MessageType messageType)
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
-    EasyPVAPtr yyy = easyPVA.lock();
-    if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
+    PvaClientPtr yyy = pvaClient.lock();
+    if(!yyy) throw std::runtime_error("pvaClient was destroyed");
     yyy->message(message, messageType);
 }
 
-void EasyGet::channelGetConnect(
+void PvaClientGet::channelGetConnect(
     const Status& status,
     ChannelGet::shared_pointer const & channelGet,
     StructureConstPtr const & structure)
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     channelGetConnectStatus = status;
     this->channelGet = channelGet;
     if(status.isOK()) {
-        easyData = EasyGetData::create(structure);
-        easyData->setMessagePrefix(channel->getChannelName());
+        pvaClientData = PvaClientGetData::create(structure);
+        pvaClientData->setMessagePrefix(channel->getChannelName());
     }
     waitForConnect.signal();
     
 }
 
-void EasyGet::getDone(
+void PvaClientGet::getDone(
     const Status& status,
     ChannelGet::shared_pointer const & channelGet,
     PVStructurePtr const & pvStructure,
     BitSetPtr const & bitSet)
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     channelGetStatus = status;
     if(status.isOK()) {
-        easyData->setData(pvStructure,bitSet);
+        pvaClientData->setData(pvStructure,bitSet);
     }
     waitForGet.signal();
 }
 
 
-// from EasyGet
-void EasyGet::destroy()
+// from PvaClientGet
+void PvaClientGet::destroy()
 {
     {
         Lock xx(mutex);
@@ -131,23 +131,23 @@ void EasyGet::destroy()
     channelGet.reset();
 }
 
-void EasyGet::connect()
+void PvaClientGet::connect()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
     stringstream ss;
-    ss << "channel " << channel->getChannelName() << " EasyGet::connect " << status.getMessage();
+    ss << "channel " << channel->getChannelName() << " PvaClientGet::connect " << status.getMessage();
     throw std::runtime_error(ss.str());
 }
 
-void EasyGet::issueConnect()
+void PvaClientGet::issueConnect()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState!=connectIdle) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " easyGet already connected ";
+        ss << "channel " << channel->getChannelName() << " pvaClientGet already connected ";
         throw std::runtime_error(ss.str());
     }
     getRequester = ChannelGetRequester::shared_pointer(new ChannelGetRequesterImpl(this));
@@ -155,12 +155,12 @@ void EasyGet::issueConnect()
     channelGet = channel->createChannelGet(getRequester,pvRequest);
 }
 
-Status EasyGet::waitConnect()
+Status PvaClientGet::waitConnect()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState!=connectActive) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " easyGet illegal connect state ";
+        ss << "channel " << channel->getChannelName() << " pvaClientGet illegal connect state ";
         throw std::runtime_error(ss.str());
     }
     waitForConnect.wait();
@@ -172,36 +172,36 @@ Status EasyGet::waitConnect()
     return Status(Status::STATUSTYPE_ERROR,channelGetConnectStatus.getMessage());
 }
 
-void EasyGet::get()
+void PvaClientGet::get()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     issueGet();
     Status status = waitGet();
     if(status.isOK()) return;
     stringstream ss;
-    ss << "channel " << channel->getChannelName() << " EasyGet::get " << status.getMessage();
+    ss << "channel " << channel->getChannelName() << " PvaClientGet::get " << status.getMessage();
     throw std::runtime_error(ss.str());
 }
 
-void EasyGet::issueGet()
+void PvaClientGet::issueGet()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState==connectIdle) connect();
     if(getState!=getIdle) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyGet::issueGet get aleady active ";
+        ss << "channel " << channel->getChannelName() << " PvaClientGet::issueGet get aleady active ";
         throw std::runtime_error(ss.str());
     }
     getState = getActive;
     channelGet->get();
 }
 
-Status EasyGet::waitGet()
+Status PvaClientGet::waitGet()
 {
-    if(isDestroyed) throw std::runtime_error("easyGet was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(getState!=getActive){
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyGet::waitGet llegal get state";
+        ss << "channel " << channel->getChannelName() << " PvaClientGet::waitGet llegal get state";
         throw std::runtime_error(ss.str());
     }
     waitForGet.wait();
@@ -211,19 +211,19 @@ Status EasyGet::waitGet()
     }
     return Status(Status::STATUSTYPE_ERROR,channelGetStatus.getMessage());
 }
-EasyGetDataPtr EasyGet::getData()
+PvaClientGetDataPtr PvaClientGet::getData()
 {
     checkGetState();
-    return easyData;
+    return pvaClientData;
 }
 
-EasyGetPtr EasyGet::create(
-        EasyPVAPtr const &pva,
-        EasyChannelPtr const & easyChannel,
+PvaClientGetPtr PvaClientGet::create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 {
-    EasyGetPtr epv(new EasyGet(pva,easyChannel,channel,pvRequest));
+    PvaClientGetPtr epv(new PvaClientGet(pvaClient,pvaClientChannel,channel,pvRequest));
     return epv;
 }
 

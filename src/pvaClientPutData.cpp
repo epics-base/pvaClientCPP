@@ -1,4 +1,4 @@
-/* easyPutData.cpp */
+/* pvaClientPutData.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -13,7 +13,7 @@
 #include <typeinfo>
 
 #include <sstream>
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 #include <pv/createRequest.h>
 #include <pv/convert.h>
 
@@ -23,14 +23,14 @@ using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace std;
 
-namespace epics { namespace easyPVA {
+namespace epics { namespace pvaClient {
 
-class EasyPostHandlerPvt: public PostHandler
+class PvaClientPostHandlerPvt: public PostHandler
 {
-    EasyPutData * easyData;
+    PvaClientPutData * easyData;
     size_t fieldNumber;
 public:
-    EasyPostHandlerPvt(EasyPutData *easyData,size_t fieldNumber)
+    PvaClientPostHandlerPvt(PvaClientPutData *easyData,size_t fieldNumber)
     : easyData(easyData),fieldNumber(fieldNumber){}
     void postPut() { easyData->postPut(fieldNumber);}
 };
@@ -46,13 +46,13 @@ static string notScalarArray("value is not a scalarArray");
 static string notDoubleArray("value is not a doubleArray");
 static string notStringArray("value is not a stringArray");
 
-EasyPutDataPtr EasyPutData::create(StructureConstPtr const & structure)
+PvaClientPutDataPtr PvaClientPutData::create(StructureConstPtr const & structure)
 {
-    EasyPutDataPtr epv(new EasyPutData(structure));
+    PvaClientPutDataPtr epv(new PvaClientPutData(structure));
     return epv;
 }
 
-EasyPutData::EasyPutData(StructureConstPtr const & structure)
+PvaClientPutData::PvaClientPutData(StructureConstPtr const & structure)
 : structure(structure),
   pvStructure(getPVDataCreate()->createPVStructure(structure)),
   bitSet(BitSetPtr(new BitSet(pvStructure->getNumberFields())))
@@ -62,7 +62,7 @@ EasyPutData::EasyPutData(StructureConstPtr const & structure)
     PVFieldPtr pvField;
     for(size_t i =0; i<nfields; ++i)
     {
-        postHandler[i] = PostHandlerPtr(new EasyPostHandlerPvt(this, i));
+        postHandler[i] = PostHandlerPtr(new PvaClientPostHandlerPvt(this, i));
         if(i==0) {
             pvField = pvStructure;
         } else {
@@ -73,32 +73,32 @@ EasyPutData::EasyPutData(StructureConstPtr const & structure)
     pvValue = pvStructure->getSubField("value");
 }
 
-void EasyPutData::checkValue()
+void PvaClientPutData::checkValue()
 {
     if(pvValue) return;
     throw std::runtime_error(messagePrefix + noValue);
 }
 
-void EasyPutData::postPut(size_t fieldNumber)
+void PvaClientPutData::postPut(size_t fieldNumber)
 {
     bitSet->set(fieldNumber);
 }
 
-void EasyPutData::setMessagePrefix(std::string const & value)
+void PvaClientPutData::setMessagePrefix(std::string const & value)
 {
     messagePrefix = value + " ";
 }
 
-StructureConstPtr EasyPutData::getStructure()
+StructureConstPtr PvaClientPutData::getStructure()
 {return structure;}
 
-PVStructurePtr EasyPutData::getPVStructure()
+PVStructurePtr PvaClientPutData::getPVStructure()
 {return pvStructure;}
 
-BitSetPtr EasyPutData::getBitSet()
+BitSetPtr PvaClientPutData::getBitSet()
 {return bitSet;}
 
-std::ostream & EasyPutData::showChanged(std::ostream & out)
+std::ostream & PvaClientPutData::showChanged(std::ostream & out)
 {
     size_t nextSet = bitSet->nextSetBit(0);
     PVFieldPtr pvField;
@@ -115,33 +115,33 @@ std::ostream & EasyPutData::showChanged(std::ostream & out)
     return out;
 }
 
-bool EasyPutData::hasValue()
+bool PvaClientPutData::hasValue()
 {
     if(!pvValue) return false;
     return true;
 }
 
-bool EasyPutData::isValueScalar()
+bool PvaClientPutData::isValueScalar()
 {
     if(!pvValue) return false;
     if(pvValue->getField()->getType()==scalar) return true;
     return false;
 }
 
-bool EasyPutData::isValueScalarArray()
+bool PvaClientPutData::isValueScalarArray()
 {
     if(!pvValue) return false;
     if(pvValue->getField()->getType()==scalarArray) return true;
     return false;
 }
 
-PVFieldPtr  EasyPutData::getValue()
+PVFieldPtr  PvaClientPutData::getValue()
 {
    checkValue();
    return pvValue;
 }
 
-PVScalarPtr  EasyPutData::getScalarValue()
+PVScalarPtr  PvaClientPutData::getScalarValue()
 {
     checkValue();
     PVScalarPtr pv = pvStructure->getSubField<PVScalar>("value");
@@ -151,7 +151,7 @@ PVScalarPtr  EasyPutData::getScalarValue()
     return pv;
 }
 
-PVArrayPtr  EasyPutData::getArrayValue()
+PVArrayPtr  PvaClientPutData::getArrayValue()
 {
     checkValue();
     PVArrayPtr pv = pvStructure->getSubField<PVArray>("value");
@@ -161,7 +161,7 @@ PVArrayPtr  EasyPutData::getArrayValue()
     return pv;
 }
 
-PVScalarArrayPtr  EasyPutData::getScalarArrayValue()
+PVScalarArrayPtr  PvaClientPutData::getScalarArrayValue()
 {
     checkValue();
     PVScalarArrayPtr pv = pvStructure->getSubField<PVScalarArray>("value");
@@ -171,7 +171,7 @@ PVScalarArrayPtr  EasyPutData::getScalarArrayValue()
     return pv;
 }
 
-double EasyPutData::getDouble()
+double PvaClientPutData::getDouble()
 {
     PVScalarPtr pvScalar = getScalarValue();
     ScalarType scalarType = pvScalar->getScalar()->getScalarType();
@@ -185,13 +185,13 @@ double EasyPutData::getDouble()
     return convert->toDouble(pvScalar);
 }
 
-string EasyPutData::getString()
+string PvaClientPutData::getString()
 {
     PVScalarPtr pvScalar = getScalarValue();
     return convert->toString(pvScalar);
 }
 
-shared_vector<const double> EasyPutData::getDoubleArray()
+shared_vector<const double> PvaClientPutData::getDoubleArray()
 {
     checkValue();
     PVDoubleArrayPtr pv = pvStructure->getSubField<PVDoubleArray>("value");
@@ -201,7 +201,7 @@ shared_vector<const double> EasyPutData::getDoubleArray()
     return pv->view();   
 }
 
-shared_vector<const string> EasyPutData::getStringArray()
+shared_vector<const string> PvaClientPutData::getStringArray()
 {
     checkValue();
     PVStringArrayPtr pv = pvStructure->getSubField<PVStringArray>("value");
@@ -212,13 +212,14 @@ shared_vector<const string> EasyPutData::getStringArray()
 
 }
 
-void EasyPutData::putDouble(double value)
+void PvaClientPutData::putDouble(double value)
 {
     PVScalarPtr pvScalar = getScalarValue();
     ScalarType scalarType = pvScalar->getScalar()->getScalarType();
     if(scalarType==pvDouble) {
         PVDoublePtr pvDouble = static_pointer_cast<PVDouble>(pvScalar);
          pvDouble->put(value);
+         return;
     }
     if(!ScalarTypeFunc::isNumeric(scalarType)) {
         throw std::runtime_error(messagePrefix + notCompatibleScalar);
@@ -226,7 +227,7 @@ void EasyPutData::putDouble(double value)
     convert->fromDouble(pvScalar,value);
 }
 
-void EasyPutData::putString(std::string const & value)
+void PvaClientPutData::putString(std::string const & value)
 {
     PVScalarPtr pvScalar = getScalarValue();
     convert->fromString(pvScalar,value);
@@ -234,7 +235,7 @@ void EasyPutData::putString(std::string const & value)
 
 
 
-void EasyPutData::putDoubleArray(shared_vector<const double> const & value)
+void PvaClientPutData::putDoubleArray(shared_vector<const double> const & value)
 {
     checkValue();
     PVDoubleArrayPtr pv = pvStructure->getSubField<PVDoubleArray>("value");
@@ -244,7 +245,7 @@ void EasyPutData::putDoubleArray(shared_vector<const double> const & value)
     pv->replace(value);
 }
 
-void EasyPutData::putStringArray(shared_vector<const std::string> const & value)
+void PvaClientPutData::putStringArray(shared_vector<const std::string> const & value)
 {
     checkValue();
     PVStringArrayPtr pv = pvStructure->getSubField<PVStringArray>("value");
@@ -254,7 +255,7 @@ void EasyPutData::putStringArray(shared_vector<const std::string> const & value)
     pv->replace(value);
 }
 
-void EasyPutData::putStringArray(std::vector<std::string> const & value)
+void PvaClientPutData::putStringArray(std::vector<std::string> const & value)
 {
     checkValue();
     PVScalarArrayPtr pv = pvStructure->getSubField<PVScalarArray>("value");

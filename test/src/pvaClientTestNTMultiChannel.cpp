@@ -1,4 +1,4 @@
-/*testEasyNTMultiChannel.cpp */
+/*pvaClientTestNTMultiChannel.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,25 +12,25 @@
 
 #include <iostream>
 
-#include <pv/easyNTMultiChannel.h>
+#include <pv/pvaClientNTMultiChannel.h>
 #include <epicsUnitTest.h>
 #include <testMain.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 using namespace epics::nt;
 using std::tr1::static_pointer_cast;
 
 
-static void testGood(EasyPVAPtr const &easyPVA)
+static void testGood(PvaClientPtr const &pvaClient)
 {
     PVDataCreatePtr pvDataCreate(getPVDataCreate());
     bool isOk = true;
     cout << "\nstarting testGood\n";
     try {
-        EasyPVAPtr easyPVA(EasyPVA::create());
+        PvaClientPtr pvaClient(PvaClient::create());
         size_t num = 5;
         shared_vector<string> channelNames(num);
         channelNames[0] = "exampleDouble";
@@ -51,9 +51,9 @@ static void testGood(EasyPVAPtr const &easyPVA)
             addNanoseconds() ->
             addUserTag() ->
             createStructure();
-         EasyNTMultiChannelPtr easy = EasyNTMultiChannel::create(
-             easyPVA,pvNames,structure);
-         NTMultiChannelPtr nt = easy->get();
+         PvaClientNTMultiChannelPtr multi = PvaClientNTMultiChannel::create(
+             pvaClient,pvNames,structure);
+         NTMultiChannelPtr nt = multi->get();
          for(size_t numtimes=0; numtimes<3; ++numtimes) {
              PVUnionArrayPtr pvValue = nt->getPVStructure()->
                  getSubField<PVUnionArray>("value");
@@ -109,8 +109,8 @@ static void testGood(EasyPVAPtr const &easyPVA)
                  }
              }
              pvValue->replace(freeze(valueVector));
-             easy->put(nt);
-             nt = easy->get();
+             multi->put(nt);
+             nt = multi->get();
          }
          cout << "final\n" << nt->getPVStructure() << endl;
     } catch (std::runtime_error e) {
@@ -121,12 +121,12 @@ static void testGood(EasyPVAPtr const &easyPVA)
 }
 
 
-MAIN(testEasyNTMultiChannel)
+MAIN(pvaClientTestNTMultiChannel)
 {
-    cout << "\nstarting testEasyNTMultiChannel\n";
+    cout << "\nstarting pvaClientTestNTMultiChannel\n";
     testPlan(1);
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    testGood(easyPVA);
+    PvaClientPtr pvaClient = PvaClient::create();
+    testGood(pvaClient);
     cout << "done\n";
     return 0;
 }

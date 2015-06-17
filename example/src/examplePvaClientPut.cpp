@@ -1,4 +1,4 @@
-/*exampleEasyPut.cpp */
+/*examplePvaClientPut.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,20 +12,20 @@
 
 #include <iostream>
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void examplePut(EasyPVAPtr const &easyPVA)
+static void examplePut(PvaClientPtr const &pva)
 {
     cout << "example put\n";
-    EasyChannelPtr channel = easyPVA->channel("exampleDouble");
-    EasyPutPtr put = channel->put();
-    EasyPutDataPtr putData = put->getData();
+    PvaClientChannelPtr channel = pva->channel("exampleDouble");
+    PvaClientPutPtr put = channel->put();
+    PvaClientPutDataPtr putData = put->getData();
     try {
         putData->putDouble(3.0); put->put();
         cout <<  channel->get("field()")->getData()->showChanged(cout) << endl;
@@ -39,7 +39,7 @@ static void examplePut(EasyPVAPtr const &easyPVA)
 
 int main(int argc,char *argv[])
 {
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    examplePut(easyPVA);
+    PvaClientPtr pva = PvaClient::create();
+    examplePut(pva);
     return 0;
 }

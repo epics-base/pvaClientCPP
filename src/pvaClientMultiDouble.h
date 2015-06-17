@@ -1,4 +1,4 @@
-/* easyMultiDouble.h */
+/* pvaClientMultiDouble.h */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -8,20 +8,20 @@
  * @author mrk
  * @date 2015.02
  */
-#ifndef EASYMULTIDOUBLE_H
-#define EASYMULTIDOUBLE_H
+#ifndef PVACLIENTMULTIDOUBLE_H
+#define PVACLIENTMULTIDOUBLE_H
 
 #ifdef epicsExportSharedSymbols
-#   define easyPVAEpicsExportSharedSymbols
+#   define pvaClientEpicsExportSharedSymbols
 #   undef epicsExportSharedSymbols
 #endif
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
-namespace epics { namespace easyPVA { 
+namespace epics { namespace pvaClient { 
 
-class EasyMultiDouble;
-typedef std::tr1::shared_ptr<EasyMultiDouble> EasyMultiDoublePtr;
+class PvaClientMultiDouble;
+typedef std::tr1::shared_ptr<PvaClientMultiDouble> PvaClientMultiDoublePtr;
 
 /**
  * @brief Support for multiple channels where each channel has a value field that is a scalar double.
@@ -29,27 +29,27 @@ typedef std::tr1::shared_ptr<EasyMultiDouble> EasyMultiDoublePtr;
  *
  * @author mrk
  */
-class epicsShareClass EasyMultiDouble 
+class epicsShareClass PvaClientMultiDouble 
 {
 public:
-    POINTER_DEFINITIONS(EasyMultiDouble);
+    POINTER_DEFINITIONS(PvaClientMultiDouble);
     /**
-     * @brief Create a EasyMultiDouble.
-     * @param &easyPVA Interface to EasyPVA
+     * @brief Create a PvaClientMultiDouble.
+     * @param &pvaClient Interface to PvaClient
      * @param channelName PVStringArray of channelNames.
      * @param timeout The timeout in seconds for connecting.
      * @param providerName The name of the channelProvider for each channel.
-     * @return The interface to EasyMultiDouble.
+     * @return The interface to PvaClientMultiDouble.
      */
-    static EasyMultiDoublePtr create(
-        EasyPVAPtr const & easyPVA,
+    static PvaClientMultiDoublePtr create(
+        PvaClientPtr const & pvaClient,
         epics::pvData::PVStringArrayPtr const & channelName,
         double timeout = 5.0,
         std::string const & providerName = "pva");
     /**
      * @brief destructor
      */
-    ~EasyMultiDouble();
+    ~PvaClientMultiDouble();
     /** 
      * @brief destroy any resources used.
      */
@@ -64,18 +64,18 @@ public:
      * @param value The data.
      */
     void put(epics::pvData::shared_vector<double> const &value);
-    EasyMultiChannelPtr getEasyMultiChannel();
+    PvaClientMultiChannelPtr getPvaClientMultiChannel();
 private:
-    EasyMultiDouble(
-        EasyMultiChannelPtr const & channelName);
+    PvaClientMultiDouble(
+        PvaClientMultiChannelPtr const & channelName);
     void createGet();
     void createPut();
 
-    EasyMultiChannelPtr easyMultiChannel;
-    std::vector<EasyGetPtr> easyGet;
-    std::vector<EasyPutPtr> easyPut;
+    PvaClientMultiChannelPtr pvaClientMultiChannel;
+    std::vector<PvaClientGetPtr> pvaClientGet;
+    std::vector<PvaClientPutPtr> pvaClientPut;
 };
 
 }}
 
-#endif // EASYMULTIDOUBLE_H
+#endif // PVACLIENTMULTIDOUBLE_H

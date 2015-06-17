@@ -1,4 +1,4 @@
-/* easyPVA.h */
+/* pvaClient.h */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -8,11 +8,11 @@
  * @author mrk
  * @date 2015.02
  */
-#ifndef EASYPVA_H
-#define EASYPVA_H
+#ifndef PVACLIENT_H
+#define PVACLIENT_H
 
 #ifdef epicsExportSharedSymbols
-#   define easyPVAEpicsExportSharedSymbols
+#   define pvaClientEpicsExportSharedSymbols
 #   undef epicsExportSharedSymbols
 #endif
 
@@ -34,78 +34,78 @@
 #include <pv/createRequest.h>
 #include <pv/nt.h>
 
-#ifdef easyPVAEpicsExportSharedSymbols
+#ifdef pvaClientEpicsExportSharedSymbols
 #   define epicsExportSharedSymbols
-#	undef easyPVAEpicsExportSharedSymbols
+#	undef pvaClientEpicsExportSharedSymbols
 #endif
 
 #include <shareLib.h>
 
 
-namespace epics { namespace easyPVA { 
+namespace epics { namespace pvaClient { 
 
-class EasyPVA;
-typedef std::tr1::shared_ptr<EasyPVA> EasyPVAPtr;
-class EasyGetData;
-typedef std::tr1::shared_ptr<EasyGetData> EasyGetDataPtr;
-class EasyPutData;
-typedef std::tr1::shared_ptr<EasyPutData> EasyPutDataPtr;
-class EasyMonitorData;
-typedef std::tr1::shared_ptr<EasyMonitorData> EasyMonitorDataPtr;
-class EasyChannel;
-typedef std::tr1::shared_ptr<EasyChannel> EasyChannelPtr;
-class EasyField;
-typedef std::tr1::shared_ptr<EasyField> EasyFieldPtr;
-class EasyProcess;
-typedef std::tr1::shared_ptr<EasyProcess> EasyProcessPtr;
-class EasyGet;
-typedef std::tr1::shared_ptr<EasyGet> EasyGetPtr;
-class EasyPut;
-typedef std::tr1::shared_ptr<EasyPut> EasyPutPtr;
-class EasyPutGet;
-typedef std::tr1::shared_ptr<EasyPutGet> EasyPutGetPtr;
-class EasyMonitor;
-typedef std::tr1::shared_ptr<EasyMonitor> EasyMonitorPtr;
-class EasyMonitorRequester;
-typedef std::tr1::shared_ptr<EasyMonitorRequester> EasyMonitorRequesterPtr;
-class EasyArray;
-typedef std::tr1::shared_ptr<EasyArray> EasyArrayPtr;
-class EasyRPC;
-typedef std::tr1::shared_ptr<EasyRPC> EasyRPCPtr;
+class PvaClient;
+typedef std::tr1::shared_ptr<PvaClient> PvaClientPtr;
+class PvaClientGetData;
+typedef std::tr1::shared_ptr<PvaClientGetData> PvaClientGetDataPtr;
+class PvaClientPutData;
+typedef std::tr1::shared_ptr<PvaClientPutData> PvaClientPutDataPtr;
+class PvaClientMonitorData;
+typedef std::tr1::shared_ptr<PvaClientMonitorData> PvaClientMonitorDataPtr;
+class PvaClientChannel;
+typedef std::tr1::shared_ptr<PvaClientChannel> PvaClientChannelPtr;
+class PvaClientField;
+typedef std::tr1::shared_ptr<PvaClientField> PvaClientFieldPtr;
+class PvaClientProcess;
+typedef std::tr1::shared_ptr<PvaClientProcess> PvaClientProcessPtr;
+class PvaClientGet;
+typedef std::tr1::shared_ptr<PvaClientGet> PvaClientGetPtr;
+class PvaClientPut;
+typedef std::tr1::shared_ptr<PvaClientPut> PvaClientPutPtr;
+class PvaClientPutGet;
+typedef std::tr1::shared_ptr<PvaClientPutGet> PvaClientPutGetPtr;
+class PvaClientMonitor;
+typedef std::tr1::shared_ptr<PvaClientMonitor> PvaClientMonitorPtr;
+class PvaClientMonitorRequester;
+typedef std::tr1::shared_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterPtr;
+class PvaClientArray;
+typedef std::tr1::shared_ptr<PvaClientArray> PvaClientArrayPtr;
+class PvaClientRPC;
+typedef std::tr1::shared_ptr<PvaClientRPC> PvaClientRPCPtr;
 
-typedef epics::pvData::shared_vector<const EasyChannelPtr> EasyChannelArray;
-typedef std::tr1::shared_ptr<EasyChannelArray> EasyChannelArrayPtr;
-typedef std::tr1::weak_ptr<EasyChannelArray> EasyChannelArrayWPtr;
+typedef epics::pvData::shared_vector<const PvaClientChannelPtr> PvaClientChannelArray;
+typedef std::tr1::shared_ptr<PvaClientChannelArray> PvaClientChannelArrayPtr;
+typedef std::tr1::weak_ptr<PvaClientChannelArray> PvaClientChannelArrayWPtr;
 
-class EasyMultiChannel;
-typedef std::tr1::shared_ptr<EasyMultiChannel> EasyMultiChannelPtr;
-class EasyMultiChannelGet;
+class PvaClientMultiChannel;
+typedef std::tr1::shared_ptr<PvaClientMultiChannel> PvaClientMultiChannelPtr;
+class PvaClientMultiChannelGet;
 
-// following are private to easyPVA
-class EasyChannelCache;
-typedef std::tr1::shared_ptr<EasyChannelCache> EasyChannelCachePtr;
+// following are private to pvaClient
+class PvaClientChannelCache;
+typedef std::tr1::shared_ptr<PvaClientChannelCache> PvaClientChannelCachePtr;
 
 /**
- * @brief EasyPVA is an easy to use interface to pvAccess.
+ * @brief PvaClient is a synchronous interface to pvAccess plus convenience methods.
  *
  * @author mrk
  */
-class epicsShareClass EasyPVA :
+class epicsShareClass PvaClient :
      public epics::pvData::Requester,
-     public std::tr1::enable_shared_from_this<EasyPVA>
+     public std::tr1::enable_shared_from_this<PvaClient>
 {
 public:
-    POINTER_DEFINITIONS(EasyPVA);
+    POINTER_DEFINITIONS(PvaClient);
 
     /**
      * Destructor
      */
-    ~EasyPVA();
+    ~PvaClient();
     /**
-     * @brief Create an instance of EasyPVA
+     * @brief Create an instance of PvaClient
      * @return shared_ptr to new instance.
      */
-    static EasyPVAPtr create();
+    static PvaClientPtr create();
     /** @brief get the requester name.
      * @return The name.
      */
@@ -126,12 +126,12 @@ public:
     void destroy();
     /**
      * @brief get a cached channel or create and connect to a new channel.
-     * The provider is pva. The timeout is 5 seconds.
+     * The provider is pvaClient. The timeout is 5 seconds.
      * If connection can not be made an exception is thrown.
      * @param channelName The channelName.
      * @return The interface.
      */
-    EasyChannelPtr channel(std::string const & channelName)
+    PvaClientChannelPtr channel(std::string const & channelName)
     { return channel(channelName,"pva", 5.0); }
     /**
      * @brief get a cached channel or create and connect to a new channel.
@@ -139,118 +139,118 @@ public:
      * @param channelName The channelName.
      * @return The interface.
      */
-    EasyChannelPtr channel(
+    PvaClientChannelPtr channel(
         std::string const & channelName,
         std::string const &providerName,
         double timeOut);
     /**
-     * @brief Create an EasyChannel. The provider is pva.
+     * @brief Create an PvaClientChannel. The provider is pvaClient.
      * @param channelName The channelName.
      * @return The interface.
      */
-    EasyChannelPtr createChannel(std::string const & channelName);
+    PvaClientChannelPtr createChannel(std::string const & channelName);
     /**
-     * @brief Create an EasyChannel with the specified provider.
+     * @brief Create an PvaClientChannel with the specified provider.
      * @param channelName The channelName.
      * @param providerName The provider.
      * @return The interface or null if the provider does not exist.
      */
-    EasyChannelPtr createChannel(
+    PvaClientChannelPtr createChannel(
        std::string const & channelName,
        std::string const & providerName);
     /**
-     * @brief Create an EasyMultiChannel. The provider is pvAccess.
+     * @brief Create an PvaClientMultiChannel. The provider is pvAccess.
      * @param channelName The channelName array.
      * @return The interface.
      */
-    EasyMultiChannelPtr createMultiChannel(
+    PvaClientMultiChannelPtr createMultiChannel(
         epics::pvData::PVStringArrayPtr const & channelNames);
     /**
-     * @brief Create an EasyMultiChannel with the specified provider.
+     * @brief Create an PvaClientMultiChannel with the specified provider.
      * @param channelName The channelName array.
      * @param providerName The provider.
      * @return The interface.
      */
-    EasyMultiChannelPtr createMultiChannel(
+    PvaClientMultiChannelPtr createMultiChannel(
         epics::pvData::PVStringArrayPtr const & channelNames,
         std::string const & providerName);
     /**
      * @brief Set a requester.
-     * The default is for EasyPVA to handle messages by printing to System.out.
+     * The default is for PvaClient to handle messages by printing to System.out.
      * @param requester The requester.
      */
     void setRequester(epics::pvData::RequesterPtr const & requester);
     /**
-     * @brief Clear the requester. EasyPVA will handle messages.
+     * @brief Clear the requester. PvaClient will handle messages.
      */
     void clearRequester();
     /**
      * @brief get shared pointer to this
      */
-    EasyPVAPtr getPtrSelf()
+    PvaClientPtr getPtrSelf()
     {
         return shared_from_this();
     }
 private:
-    EasyPVA();
-    EasyChannelCachePtr easyChannelCache;
+    PvaClient();
+    PvaClientChannelCachePtr pvaClientChannelCache;
 
     epics::pvData::PVStructurePtr createRequest(std::string const &request);
-    std::list<EasyChannelPtr> channelList;
-    std::list<EasyMultiChannelPtr> multiChannelList;
+    std::list<PvaClientChannelPtr> channelList;
+    std::list<PvaClientMultiChannelPtr> multiChannelList;
     epics::pvData::Requester::weak_pointer requester;
     bool isDestroyed;
     epics::pvData::Mutex mutex;
 };
 
-// folowing private to EasyChannel
-class EasyGetCache;
-typedef std::tr1::shared_ptr<EasyGetCache> EasyGetCachePtr;
-class EasyPutCache;
-typedef std::tr1::shared_ptr<EasyPutCache> EasyPutCachePtr;
+// folowing private to PvaClientChannel
+class PvaClientGetCache;
+typedef std::tr1::shared_ptr<PvaClientGetCache> PvaClientGetCachePtr;
+class PvaClientPutCache;
+typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
 class ChannelRequesterImpl;
 /**
  * @brief An easy to use alternative to directly calling the Channel methods of pvAccess.
  *
  * @author mrk
  */
-class epicsShareClass EasyChannel :
-    public std::tr1::enable_shared_from_this<EasyChannel>
+class epicsShareClass PvaClientChannel :
+    public std::tr1::enable_shared_from_this<PvaClientChannel>
 {
 public:
-    POINTER_DEFINITIONS(EasyChannel);
+    POINTER_DEFINITIONS(PvaClientChannel);
     /**
-     * @brief Create a EasyChannel.
-     * @param easyPVA Interface to EasyPVA
+     * @brief Create a PvaClientChannel.
+     * @param pvaClient Interface to PvaClient
      * @param channelName The name of the channel.
      * @return The interface.
      */
-    static EasyChannelPtr create(
-        EasyPVAPtr const &easyPVA,
+    static PvaClientChannelPtr create(
+        PvaClientPtr const &pvaClient,
         std::string const & channelName)
-        {return create(easyPVA,channelName,"pva");}
+        {return create(pvaClient,channelName,"pva");}
     /**
-     * @brief Create a EasyChannel.
+     * @brief Create a PvaClientChannel.
      * @param channelName The name of the channel.
      * @param providerName The name of the provider.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface to the PvaClientStructure.
      */
-    static EasyChannelPtr create(
-         EasyPVAPtr const &easyPVA,
+    static PvaClientChannelPtr create(
+         PvaClientPtr const &pvaClient,
          std::string const & channelName,
          std::string const & providerName);
-    ~EasyChannel();
+    ~PvaClientChannel();
     /**
      * @brief Destroy the pvAccess connection.
      */
     void destroy();
     /**
-     * @brief Get the name of the channel to which EasyChannel is connected.
+     * @brief Get the name of the channel to which PvaClientChannel is connected.
      * @return The channel name.
      */
     std::string getChannelName();
     /**
-     * @brief Get the the channel to which EasyChannel is connected.
+     * @brief Get the the channel to which PvaClientChannel is connected.
      * @return The channel interface.
      */
     epics::pvAccess::Channel::shared_pointer getChannel();
@@ -275,196 +275,196 @@ public:
      * @brief Calls the next method with subField = "";
      * @return The interface.
      */
-    EasyFieldPtr createField();
+    PvaClientFieldPtr createField();
     /**
-     * @brief Create an EasyField for the specified subField.
+     * @brief Create an PvaClientField for the specified subField.
      * @param subField The syntax for subField is defined in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyFieldPtr createField(std::string const & subField);
+    PvaClientFieldPtr createField(std::string const & subField);
     /**
      * @brief Calls the next method with request = "";
      * @return The interface.
      */
-    EasyProcessPtr createProcess();
+    PvaClientProcessPtr createProcess();
     /**
      * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyProcessPtr createProcess(std::string const & request);
+    PvaClientProcessPtr createProcess(std::string const & request);
     /**
-     * @brief Creates an EasyProcess. 
+     * @brief Creates an PvaClientProcess. 
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
      */
-    EasyProcessPtr createProcess(epics::pvData::PVStructurePtr const &  pvRequest);
+    PvaClientProcessPtr createProcess(epics::pvData::PVStructurePtr const &  pvRequest);
     /**
      * @brief Call the next method with request =  "field(value,alarm,timeStamp)" 
      * @return The interface.
      */
-    EasyGetPtr get();
+    PvaClientGetPtr get();
     /**
-     * @brief get a cached EasyGet or create and connect to a new EasyGet.
+     * @brief get a cached PvaClientGet or create and connect to a new PvaClientGet.
      * Then call it's get method.
      * If connection can not be made an exception is thrown.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyGetPtr get(std::string const & request);
+    PvaClientGetPtr get(std::string const & request);
     /**
      * @brief Call the next method with request =  "field(value,alarm,timeStamp)" 
      * @return The interface.
      */
-    EasyGetPtr createGet();
+    PvaClientGetPtr createGet();
     /**
      * @brief First call createRequest as implemented by pvDataJava and then call the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyGetPtr createGet(std::string const & request);
+    PvaClientGetPtr createGet(std::string const & request);
     /**
-     * @brief Creates an EasyGet.
+     * @brief Creates an PvaClientGet.
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
      */
-    EasyGetPtr createGet(epics::pvData::PVStructurePtr const &  pvRequest);
+    PvaClientGetPtr createGet(epics::pvData::PVStructurePtr const &  pvRequest);
     /**
      * @brief Call the next method with request =  "field(value)" 
      * @return The interface.
      */
-    EasyPutPtr put();
+    PvaClientPutPtr put();
     /**
-     *  @brief get a cached EasyPut or create and connect to a new EasyPut.
+     *  @brief get a cached PvaClientPut or create and connect to a new PvaClientPut.
      *  Then call it's get method.
      *  If connection can not be made an exception is thrown.
      *  @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyPutPtr put(std::string const & request);
+    PvaClientPutPtr put(std::string const & request);
     /**
      *  @brief Call the next method with request = "field(value)" 
      * @return The interface.
      */
-    EasyPutPtr createPut();
+    PvaClientPutPtr createPut();
     /**
      * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyPutPtr createPut(std::string const & request);
+    PvaClientPutPtr createPut(std::string const & request);
     /**
-     * @brief Create an EasyPut.
+     * @brief Create an PvaClientPut.
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
      */
-    EasyPutPtr createPut(epics::pvData::PVStructurePtr const & pvRequest);
+    PvaClientPutPtr createPut(epics::pvData::PVStructurePtr const & pvRequest);
     /**
      *  @brief Call the next method with request = "record[process=true]putField(argument)getField(result)".
      * @return The interface.
      */
-    EasyPutGetPtr createPutGet();
+    PvaClientPutGetPtr createPutGet();
     /**
      * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyPutGetPtr createPutGet(std::string const & request);
+    PvaClientPutGetPtr createPutGet(std::string const & request);
     /**
-     * @brief Create an EasyPutGet.
+     * @brief Create an PvaClientPutGet.
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
      */
-    EasyPutGetPtr createPutGet(epics::pvData::PVStructurePtr const & pvRequest);
+    PvaClientPutGetPtr createPutGet(epics::pvData::PVStructurePtr const & pvRequest);
     /**
      * @brief Call createRPC(PVStructure(null))
      * @return The interface.
      */
-    EasyRPCPtr createRPC();
+    PvaClientRPCPtr createRPC();
     /**
      * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyRPCPtr createRPC(std::string const & request);
+    PvaClientRPCPtr createRPC(std::string const & request);
     /**
-     * @brief Create an EasyRPC.
+     * @brief Create an PvaClientRPC.
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
      */
-    EasyRPCPtr createRPC(epics::pvData::PVStructurePtr const & pvRequest);
+    PvaClientRPCPtr createRPC(epics::pvData::PVStructurePtr const & pvRequest);
     /**
      * @brief Call the next method with request = "field(value)";
      * @return The interface.
      */
-    EasyArrayPtr createArray();
+    PvaClientArrayPtr createArray();
     /**
      * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyArrayPtr createArray(std::string const & request);
+    PvaClientArrayPtr createArray(std::string const & request);
     /**
-     * @brief Create an EasyArray.
+     * @brief Create an PvaClientArray.
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
      */
-    EasyArrayPtr createArray(epics::pvData::PVStructurePtr const &  pvRequest);
+    PvaClientArrayPtr createArray(epics::pvData::PVStructurePtr const &  pvRequest);
     /**
      * @brief Call the next method with request =  "field(value,alarm,timeStamp)" 
      * @return The interface.
      */
-    EasyMonitorPtr monitor();
+    PvaClientMonitorPtr monitor();
     /**
-     * @brief get a cached EasyMonitor or create and connect to a new EasyMonitor.
+     * @brief get a cached PvaClientMonitor or create and connect to a new PvaClientMonitor.
      * Then call it's start method.
      * If connection can not be made an exception is thrown.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyMonitorPtr monitor(std::string const & request);
+    PvaClientMonitorPtr monitor(std::string const & request);
     /**
       * @brief Call the next method with request =  "field(value,alarm,timeStamp)" 
-      * @param easyMonitorRequester The client callback.
+      * @param pvaClientMonitorRequester The client callback.
       * @return The interface.
       */
-    EasyMonitorPtr monitor(EasyMonitorRequesterPtr const & easyMonitorRequester);
+    PvaClientMonitorPtr monitor(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester);
 
     /**
-     * @brief get a cached EasyMonitor or create and connect to a new EasyMonitor.
+     * @brief get a cached PvaClientMonitor or create and connect to a new PvaClientMonitor.
      * Then call it's start method.
      * If connection can not be made an exception is thrown.
      * @param request The request as described in package org.epics.pvdata.copy
-     * @param easyMonitorRequester The client callback.
+     * @param pvaClientMonitorRequester The client callback.
      * @return The interface.
      */
-    EasyMonitorPtr monitor(
+    PvaClientMonitorPtr monitor(
         std::string const & request,
-        EasyMonitorRequesterPtr const & easyMonitorRequester);
+        PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester);
     /**
      * @brief Call the next method with request = "field(value.alarm,timeStamp)" 
      * @return The interface.
      */
-    EasyMonitorPtr createMonitor();
+    PvaClientMonitorPtr createMonitor();
     /**
      * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
      */
-    EasyMonitorPtr createMonitor(std::string const & request);
+    PvaClientMonitorPtr createMonitor(std::string const & request);
     /**
-     * @brief Create an EasyMonitor.
+     * @brief Create an PvaClientMonitor.
      * @param pvRequest  The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
      */
-    EasyMonitorPtr createMonitor(epics::pvData::PVStructurePtr const &  pvRequest);
-    EasyChannelPtr getPtrSelf()
+    PvaClientMonitorPtr createMonitor(epics::pvData::PVStructurePtr const &  pvRequest);
+    PvaClientChannelPtr getPtrSelf()
     {
         return shared_from_this();
     }
 private:
-    EasyChannel(
-        EasyPVAPtr const &pva,
+    PvaClientChannel(
+        PvaClientPtr const &pvaClient,
         std::string const & channelName,
         std::string const & providerName);
     void channelCreated(
@@ -480,14 +480,14 @@ private:
 
     enum ConnectState {connectIdle,connectActive,notConnected,connected};
 
-    EasyPVA::weak_pointer easyPVA;
+    PvaClient::weak_pointer pvaClient;
     std::string channelName;
     std::string providerName;
     ConnectState connectState;
     bool isDestroyed;
     epics::pvData::CreateRequest::shared_pointer createRequest;
-    EasyGetCachePtr easyGetCache;
-    EasyPutCachePtr easyPutCache;
+    PvaClientGetCachePtr pvaClientGetCache;
+    PvaClientPutCachePtr pvaClientPutCache;
 
     epics::pvData::Status channelConnectStatus;
     epics::pvData::Mutex mutex;
@@ -498,18 +498,18 @@ private:
 };
 
 /**
- * @brief This is a class that holds data returned by EasyGet or EasyPutGet
+ * @brief This is a class that holds data returned by PvaClientGet or PvaClientPutGet
  *
  */
-class epicsShareClass EasyGetData
+class epicsShareClass PvaClientGetData
 {
 public:
-    POINTER_DEFINITIONS(EasyGetData);
+    POINTER_DEFINITIONS(PvaClientGetData);
     /**
-     * @brief Factory method for creating an instance of EasyGetData.
+     * @brief Factory method for creating an instance of PvaClientGetData.
      */
-    static EasyGetDataPtr create(epics::pvData::StructureConstPtr const & structure);
-    ~EasyGetData() {}
+    static PvaClientGetDataPtr create(epics::pvData::StructureConstPtr const & structure);
+    ~PvaClientGetData() {}
     /**
      * @brief Set a prefix for throw messages.
      * @param value The prefix.
@@ -618,7 +618,7 @@ public:
      */
     epics::pvData::TimeStamp getTimeStamp();
 private:
-    EasyGetData(epics::pvData::StructureConstPtr const & structure);
+    PvaClientGetData(epics::pvData::StructureConstPtr const & structure);
     void checkValue();
     epics::pvData::StructureConstPtr structure;
     epics::pvData::PVStructurePtr pvStructure;
@@ -630,20 +630,20 @@ private:
     epics::pvData::PVTimeStamp pvTimeStamp;
 };
 
-class EasyPostHandlerPvt; // private to EasyPutData
+class PvaClientPostHandlerPvt; // private to PvaClientPutData
 /**
- * @brief This is a class that holds data given to  by EasyPut or EasyPutGet
+ * @brief This is a class that holds data given to  by PvaClientPut or PvaClientPutGet
  *
  */
-class epicsShareClass EasyPutData
+class epicsShareClass PvaClientPutData
 {
 public:
-    POINTER_DEFINITIONS(EasyPutData);
+    POINTER_DEFINITIONS(PvaClientPutData);
     /**
-     * @brief Factory method for creating an instance of EasyPutData.
+     * @brief Factory method for creating an instance of PvaClientPutData.
      */
-    static EasyPutDataPtr create(epics::pvData::StructureConstPtr const & structure);
-    ~EasyPutData() {}
+    static PvaClientPutDataPtr create(epics::pvData::StructureConstPtr const & structure);
+    ~PvaClientPutData() {}
     /**
      * @brief Set a prefix for throw messages.
      * @param value The prefix.
@@ -759,7 +759,7 @@ public:
      */
     void putStringArray(std::vector<std::string> const & value);
 private:
-    EasyPutData(epics::pvData::StructureConstPtr const &structure);
+    PvaClientPutData(epics::pvData::StructureConstPtr const &structure);
     void checkValue();
     void postPut(size_t fieldNumber);
 
@@ -767,25 +767,25 @@ private:
     epics::pvData::StructureConstPtr structure;
     epics::pvData::PVStructurePtr pvStructure;
     epics::pvData::BitSetPtr bitSet;
-    friend class EasyPostHandlerPvt;
+    friend class PvaClientPostHandlerPvt;
 
     std::string messagePrefix;
     epics::pvData::PVFieldPtr pvValue;
 };
 
 /**
- * @brief This is a class that holds data returned by EasyMonitor
+ * @brief This is a class that holds data returned by PvaClientMonitor
  *
  */
-class epicsShareClass EasyMonitorData
+class epicsShareClass PvaClientMonitorData
 {
 public:
-    POINTER_DEFINITIONS(EasyMonitorData);
+    POINTER_DEFINITIONS(PvaClientMonitorData);
     /**
-     * @brief Factory method for creating an instance of EasyMonitorData.
+     * @brief Factory method for creating an instance of PvaClientMonitorData.
      */
-    static EasyMonitorDataPtr create(epics::pvData::StructureConstPtr const & structure);
-    ~EasyMonitorData() {}
+    static PvaClientMonitorDataPtr create(epics::pvData::StructureConstPtr const & structure);
+    ~PvaClientMonitorData() {}
     /**
      * @brief Set a prefix for throw messages.
      * @param value The prefix.
@@ -901,7 +901,7 @@ public:
      */
     epics::pvData::TimeStamp getTimeStamp();
 private:
-    EasyMonitorData(epics::pvData::StructureConstPtr const & structure);
+    PvaClientMonitorData(epics::pvData::StructureConstPtr const & structure);
     void checkValue();
 
     epics::pvData::StructureConstPtr structure;
@@ -915,34 +915,34 @@ private:
     epics::pvData::PVTimeStamp pvTimeStamp;
 };
 
-class ChannelProcessRequesterImpl; // private to EasyProcess
+class ChannelProcessRequesterImpl; // private to PvaClientProcess
 /**
  * @brief An easy to use alternative to ChannelProcess.
  *
  * @author mrk
  */
-class epicsShareClass EasyProcess 
+class epicsShareClass PvaClientProcess 
 {
 public:
-    POINTER_DEFINITIONS(EasyProcess);
+    POINTER_DEFINITIONS(PvaClientProcess);
     /**
-     * @brief Create a EasyProcess.
-     * @param &easyPVA Interface to EasyPVA
-     * @param easyChannel Interface to EasyChannel
+     * @brief Create a PvaClientProcess.
+     * @param &pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface to the PvaClientStructure.
      */
-    static EasyProcessPtr create(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    static PvaClientProcessPtr create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
     /**
      * @brief destructor
      */
-    ~EasyProcess();
+    ~PvaClientProcess();
     /** 
      * @brief destroy an resources used.
      */
@@ -977,9 +977,9 @@ public:
      */
     epics::pvData::Status waitProcess();
 private:
-    EasyProcess(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    PvaClientProcess(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -993,8 +993,8 @@ private:
     void checkProcessState();
     enum ProcessConnectState {connectIdle,connectActive,connected};
 
-    EasyPVA::weak_pointer easyPVA;
-    EasyChannel::weak_pointer easyChannel;
+    PvaClient::weak_pointer pvaClient;
+    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelProcessRequester::shared_pointer processRequester;
     epics::pvData::PVStructurePtr pvRequest;
@@ -1015,34 +1015,34 @@ private:
     friend class ChannelProcessRequesterImpl;
 };
 
-class ChannelGetRequesterImpl; // private to EasyGet
+class ChannelGetRequesterImpl; // private to PvaClientGet
 /**
  * @brief An easy to use alternative to ChannelGet.
  *
  * @author mrk
  */
-class epicsShareClass EasyGet 
+class epicsShareClass PvaClientGet 
 {
 public:
-    POINTER_DEFINITIONS(EasyGet);
+    POINTER_DEFINITIONS(PvaClientGet);
     /**
-     * @brief Create a EasyGet.
-     * @param &easyPVA Interface to EasyPVA
-     * @param easyChannel Interface to EasyChannel
+     * @brief Create a PvaClientGet.
+     * @param &pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface to the PvaClientStructure.
      */
-    static EasyGetPtr create(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    static PvaClientGetPtr create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
     /**
      * @brief destructor
      */
-    ~EasyGet();
+    ~PvaClientGet();
     /** 
      * @brief destroy an resources used.
      */
@@ -1080,11 +1080,11 @@ public:
      * @brief Get the data/
      * @return The interface.
      */
-    EasyGetDataPtr getData();   
+    PvaClientGetDataPtr getData();   
 private:
-    EasyGet(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    PvaClientGet(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -1101,15 +1101,15 @@ private:
     void checkGetState();
     enum GetConnectState {connectIdle,connectActive,connected};
 
-    EasyPVA::weak_pointer easyPVA;
-    EasyChannel::weak_pointer easyChannel;
+    PvaClient::weak_pointer pvaClient;
+    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelGetRequester::shared_pointer getRequester;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForGet;
-    EasyGetDataPtr easyData;
+    PvaClientGetDataPtr pvaClientData;
     std::string messagePrefix;
 
     bool isDestroyed;
@@ -1124,34 +1124,34 @@ private:
     friend class ChannelGetRequesterImpl;
 };
 
-class ChannelPutRequesterImpl; // private to EasyPut
+class ChannelPutRequesterImpl; // private to PvaClientPut
 /**
  * @brief An easy to use alternative to ChannelPut.
  *
  * @author mrk
  */
-class epicsShareClass EasyPut 
+class epicsShareClass PvaClientPut 
 {
 public:
-    POINTER_DEFINITIONS(EasyPut);
+    POINTER_DEFINITIONS(PvaClientPut);
     /**
-     * @brief Create a EasyPut.
-     * @param &easyPVA Interface to EasyPVA
-     * @param easyChannel Interface to EasyChannel
+     * @brief Create a PvaClientPut.
+     * @param &pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface to the PvaClientStructure.
      */
-    static EasyPutPtr create(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    static PvaClientPutPtr create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
     /**
      * @brief destructor
      */
-    ~EasyPut();
+    ~PvaClientPut();
     /** 
      * @brief destroy an resources used.
      */
@@ -1203,11 +1203,11 @@ public:
      * @brief Get the data/
      * @return The interface.
      */
-    EasyPutDataPtr getData();   
+    PvaClientPutDataPtr getData();   
 private :
-    EasyPut(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    PvaClientPut(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -1227,15 +1227,15 @@ private :
     void checkPutState();
     enum PutConnectState {connectIdle,connectActive,connected};
 
-    EasyPVA::weak_pointer easyPVA;
-    EasyChannel::weak_pointer easyChannel;
+    PvaClient::weak_pointer pvaClient;
+    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelPutRequester::shared_pointer putRequester;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForGetPut;
-    EasyPutDataPtr easyData;
+    PvaClientPutDataPtr pvaClientData;
     std::string messagePrefix;
 
     bool isDestroyed;
@@ -1250,34 +1250,34 @@ private :
     friend class ChannelPutRequesterImpl;
 };
 
-class ChannelPutGetRequesterImpl; // private to EasyPutGet
+class ChannelPutGetRequesterImpl; // private to PvaClientPutGet
 /**
  * @brief An easy to use alternative to ChannelPutGet.
  *
  * @author mrk
  */
-class epicsShareClass EasyPutGet 
+class epicsShareClass PvaClientPutGet 
 {
 public:
-    POINTER_DEFINITIONS(EasyPutGet);
+    POINTER_DEFINITIONS(PvaClientPutGet);
     /**
-     * @brief Create a EasyPutGet.
-     * @param &easyPVA Interface to EasyPVA
-     * @param easyChannel Interface to EasyChannel
+     * @brief Create a PvaClientPutGet.
+     * @param &pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface to the PvaClientStructure.
      */
-    static EasyPutGetPtr create(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    static PvaClientPutGetPtr create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
     /**
      * @brief destructor
      */
-    ~EasyPutGet();
+    ~PvaClientPutGet();
     /** 
      * @brief destroy an resources used.
      */
@@ -1346,16 +1346,16 @@ public:
      * @brief Get the put data.
      * @return The interface.
      */
-    EasyPutDataPtr getPutData();   
+    PvaClientPutDataPtr getPutData();   
     /**
      * @brief Get the get data.
      * @return The interface.
      */
-    EasyGetDataPtr getGetData();   
+    PvaClientGetDataPtr getGetData();   
 private :
-    EasyPutGet(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    PvaClientPutGet(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -1383,16 +1383,16 @@ private :
     void checkPutGetState();
     enum PutGetConnectState {connectIdle,connectActive,connected};
 
-    EasyPVA::weak_pointer easyPVA;
-    EasyChannel::weak_pointer easyChannel;
+    PvaClient::weak_pointer pvaClient;
+    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelPutGetRequester::shared_pointer putGetRequester;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForPutGet;
-    EasyGetDataPtr easyGetData;
-    EasyPutDataPtr easyPutData;
+    PvaClientGetDataPtr pvaClientGetData;
+    PvaClientPutDataPtr pvaClientPutData;
     std::string messagePrefix;
 
     bool isDestroyed;
@@ -1408,53 +1408,53 @@ private :
     friend class ChannelPutGetRequesterImpl;
 };
 
-class ChannelMonitorRequester; // private to EasyMonitor
+class ChannelMonitorRequester; // private to PvaClientMonitor
 /**
  * @brief Optional client callback.
  *
  */
-class epicsShareClass EasyMonitorRequester
+class epicsShareClass PvaClientMonitorRequester
 {
 public:
-    POINTER_DEFINITIONS(EasyMonitorRequester);
+    POINTER_DEFINITIONS(PvaClientMonitorRequester);
     /**
      * @brief destructor
      */
-    virtual ~EasyMonitorRequester(){}
+    virtual ~PvaClientMonitorRequester(){}
     /**
      * @brief A monitor event has occurred.
-     * @param monitor The EasyMonitor that received the event.
+     * @param monitor The PvaClientMonitor that received the event.
      */
-    virtual void event(EasyMonitorPtr monitor) = 0;
+    virtual void event(PvaClientMonitorPtr monitor) = 0;
 };
 
 /**
  * @brief An easy to use alternative to Monitor.
  *
  */
-class epicsShareClass EasyMonitor :
-     public std::tr1::enable_shared_from_this<EasyMonitor>
+class epicsShareClass PvaClientMonitor :
+     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
 public:
-    POINTER_DEFINITIONS(EasyMonitor);
+    POINTER_DEFINITIONS(PvaClientMonitor);
     /**
-     * @brief Create a EasyMonitor.
-     * @param &easyPVA Interface to EasyPVA
-     * @param easyChannel Interface to EasyChannel
+     * @brief Create a PvaClientMonitor.
+     * @param &pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface to the PvaClientStructure.
      */
-    static EasyMonitorPtr create(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    static PvaClientMonitorPtr create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
     /**
      * @brief destructor
      */
-    ~EasyMonitor();
+    ~PvaClientMonitor();
     /** 
      * @brief destroy an resources used.
      */
@@ -1477,9 +1477,9 @@ public:
     epics::pvData::Status waitConnect();
     /**
      * @brief Set a user callback.
-     * @param easyMonitorrRequester The requester which must be implemented by the caller.
+     * @param pvaClientMonitorrRequester The requester which must be implemented by the caller.
      */
-    void setRequester(EasyMonitorRequesterPtr const & easyMonitorrRequester);
+    void setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorrRequester);
     /**
      * @brief Start monitoring.
      */
@@ -1490,13 +1490,13 @@ public:
     void stop();
     /**
      * @brief poll for a monitor event.
-     * The data will be in EasyData.
+     * The data will be in PvaClientData.
      * @return (false,true) means event (did not, did) occur.
      */
     bool poll();
     /**
      * @brief wait for a monitor event.
-     * The data will be in EasyData.
+     * The data will be in PvaClientData.
      * @param secondsToWait Time to wait for event.
      * @return (false,true) means event (did not, did) occur.
      */
@@ -1509,18 +1509,18 @@ public:
      * @brief The data in which monitor events are placed.
      * @return The interface.
      */
-    EasyMonitorDataPtr getData();   
+    PvaClientMonitorDataPtr getData();   
     /**
      * @brief get shared pointer to this
      */
-    EasyMonitorPtr getPtrSelf()
+    PvaClientMonitorPtr getPtrSelf()
     {
         return shared_from_this();
     }
 private:
-    EasyMonitor(
-        EasyPVAPtr const &easyPVA,
-        EasyChannelPtr const & easyChannel,
+    PvaClientMonitor(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -1534,22 +1534,22 @@ private:
     void checkMonitorState();
     enum MonitorConnectState {connectIdle,connectActive,connected,monitorStarted};
 
-    EasyPVA::weak_pointer easyPVA;
-    EasyChannel::weak_pointer easyChannel;
+    PvaClient::weak_pointer pvaClient;
+    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::MonitorRequester::shared_pointer monitorRequester;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForEvent;
-    EasyMonitorDataPtr easyData;
+    PvaClientMonitorDataPtr pvaClientData;
     std::string messagePrefix;
 
     bool isDestroyed;
     epics::pvData::Status connectStatus;
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;
-    EasyMonitorRequester::weak_pointer easyMonitorRequester;
+    PvaClientMonitorRequester::weak_pointer pvaClientMonitorRequester;
 
     MonitorConnectState connectState;
     bool userPoll;
@@ -1562,22 +1562,22 @@ private:
  *
  * @author mrk
  */
-class epicsShareClass EasyMultiChannel :
-    public std::tr1::enable_shared_from_this<EasyMultiChannel>
+class epicsShareClass PvaClientMultiChannel :
+    public std::tr1::enable_shared_from_this<PvaClientMultiChannel>
 {
 public:
-    POINTER_DEFINITIONS(EasyMultiChannel);
+    POINTER_DEFINITIONS(PvaClientMultiChannel);
     /**
-     * @brief Create a EasyMultiChannel.
+     * @brief Create a PvaClientMultiChannel.
      * @param channelNames The name. of the channel..
      * @param providerName The name of the provider.
-     * @return The interface to the EasyPVAStructure.
+     * @return The interface to the PvaClientStructure.
      */
-    static EasyMultiChannelPtr create(
-         EasyPVAPtr const &easyPVA,
+    static PvaClientMultiChannelPtr create(
+         PvaClientPtr const &pvaClient,
          epics::pvData::PVStringArrayPtr const & channelNames,
          std::string const & providerName = "pva");
-    ~EasyMultiChannel();
+    ~PvaClientMultiChannel();
     /**
      * @brief Destroy the pvAccess connection.
      */
@@ -1614,37 +1614,37 @@ public:
      */
     epics::pvData::PVBooleanArrayPtr getIsConnected();
     /**
-     * Get the easyChannelArray.
+     * Get the pvaClientChannelArray.
      * @return The weak shared pointer.
      */
-    EasyChannelArrayWPtr getEasyChannelArray();
+    PvaClientChannelArrayWPtr getPvaClientChannelArray();
     /**
-     * Get easyPVA.
+     * Get pvaClient.
      * @return The weak shared pointer.
      */
-    EasyPVA::weak_pointer getEasyPVA();
+    PvaClient::weak_pointer getPvaClient();
     /**
      * Get the shared pointer to self.
      * @return The shared pointer.
      */
-    EasyMultiChannelPtr getPtrSelf()
+    PvaClientMultiChannelPtr getPtrSelf()
     {
         return shared_from_this();
     }
 private:
-    EasyMultiChannel(
-        EasyPVAPtr const &pva,
+    PvaClientMultiChannel(
+        PvaClientPtr const &pvaClient,
         epics::pvData::PVStringArrayPtr const & channelName,
         std::string const & providerName);
 
-    EasyPVA::weak_pointer easyPVA;
+    PvaClient::weak_pointer pvaClient;
     epics::pvData::PVStringArrayPtr channelName;
     std::string providerName;
     size_t numChannel;
     epics::pvData::Mutex mutex;
 
     size_t numConnected;
-    EasyChannelArrayPtr easyChannelArray;
+    PvaClientChannelArrayPtr pvaClientChannelArray;
     epics::pvData::PVBooleanArrayPtr isConnected;
     bool isDestroyed;
 };
@@ -1652,11 +1652,11 @@ private:
 
 }}
 
-#endif  /* EASYPVA_H */
+#endif  /* PVACLIENT_H */
 
 /** @page Overview Documentation
  *
- * <a href = "overview.html">overview.html</a>
+ * <a href = "pvaClientOverview.html">pvaClientOverview.html</a>
  *
  */
 

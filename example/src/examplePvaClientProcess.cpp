@@ -1,4 +1,4 @@
-/*exampleEasyProcess.cpp */
+/*examplePvaClientProcess.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,19 +12,19 @@
 
 #include <iostream>
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void exampleProcess(EasyPVAPtr const &easyPVA)
+static void exampleProcess(PvaClientPtr const &pva)
 {
     cout << "example process\n";
-    EasyChannelPtr channel = easyPVA->channel("exampleDouble");
-    EasyProcessPtr process = channel->createProcess();
+    PvaClientChannelPtr channel = pva->channel("exampleDouble");
+    PvaClientProcessPtr process = channel->createProcess();
     try {
         process->process();
         cout <<  channel->get("field()")->getData()->showChanged(cout) << endl;
@@ -38,7 +38,7 @@ static void exampleProcess(EasyPVAPtr const &easyPVA)
 
 int main(int argc,char *argv[])
 {
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    exampleProcess(easyPVA);
+    PvaClientPtr pva = PvaClient::create();
+    exampleProcess(pva);
     return 0;
 }

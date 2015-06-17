@@ -1,4 +1,4 @@
-/*exampleEasyMultiDouble.cpp */
+/*examplePvaClientMultiDouble.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,15 +12,15 @@
 
 #include <iostream>
 
-#include <pv/easyMultiDouble.h>
+#include <pv/pvaClientMultiDouble.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void example(EasyPVAPtr const &easyPVA)
+static void example(PvaClientPtr const &pva)
 {
     cout << "example multiDouble\n";
     size_t num = 5;
@@ -33,7 +33,7 @@ static void example(EasyPVAPtr const &easyPVA)
     PVStringArrayPtr pvNames =
         getPVDataCreate()->createPVScalarArray<PVStringArray>();
     pvNames->replace(freeze(channelNames));
-    EasyMultiDoublePtr multiDouble(EasyMultiDouble::create(easyPVA,pvNames));
+    PvaClientMultiDoublePtr multiDouble(PvaClientMultiDouble::create(pva,pvNames));
     try {
         shared_vector<double> data = multiDouble->get();
         cout << "initial " << data << endl;
@@ -47,7 +47,7 @@ static void example(EasyPVAPtr const &easyPVA)
 
 }
 
-static void exampleCA(EasyPVAPtr const &easyPVA)
+static void exampleCA(PvaClientPtr const &pva)
 {
     cout << "example multiDouble\n";
     size_t num = 5;
@@ -60,7 +60,7 @@ static void exampleCA(EasyPVAPtr const &easyPVA)
     PVStringArrayPtr pvNames =
         getPVDataCreate()->createPVScalarArray<PVStringArray>();
     pvNames->replace(freeze(channelNames));
-    EasyMultiDoublePtr multiDouble(EasyMultiDouble::create(easyPVA,pvNames,5.0,"ca"));
+    PvaClientMultiDoublePtr multiDouble(PvaClientMultiDouble::create(pva,pvNames,5.0,"ca"));
     try {
         shared_vector<double> data = multiDouble->get();
         cout << "initial " << data << endl;
@@ -77,8 +77,8 @@ static void exampleCA(EasyPVAPtr const &easyPVA)
 
 int main(int argc,char *argv[])
 {
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    example(easyPVA);
-    exampleCA(easyPVA);
+    PvaClientPtr pva = PvaClient::create();
+    example(pva);
+    exampleCA(pva);
     return 0;
 }

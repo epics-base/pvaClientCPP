@@ -1,4 +1,4 @@
-/*exampleEasyNTMultiChannel.cpp */
+/*examplePvaClientNTMultiChannel.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,16 +12,16 @@
 
 #include <iostream>
 
-#include <pv/easyNTMultiChannel.h>
+#include <pv/pvaClientNTMultiChannel.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 using namespace epics::nt;
 
 
-static void example(EasyPVAPtr const &easyPVA)
+static void example(PvaClientPtr const &pva)
 {
     cout << "example ntMultiChannel\n";
     size_t num = 5;
@@ -44,10 +44,10 @@ static void example(EasyPVAPtr const &easyPVA)
             addNanoseconds() ->
             addUserTag() ->
             createStructure();
-    EasyNTMultiChannelPtr easy = EasyNTMultiChannel::create(
-       easyPVA,pvNames,structure);
+    PvaClientNTMultiChannelPtr multi = PvaClientNTMultiChannel::create(
+       pva,pvNames,structure);
     try {
-        NTMultiChannelPtr nt = easy->get();
+        NTMultiChannelPtr nt = multi->get();
         cout << "initial\n" << nt->getPVStructure() << endl;
 
     } catch (std::runtime_error e) {
@@ -56,7 +56,7 @@ static void example(EasyPVAPtr const &easyPVA)
 
 }
 
-static void exampleCA(EasyPVAPtr const &easyPVA)
+static void exampleCA(PvaClientPtr const &pva)
 {
     cout << "example ntMultiChannel\n";
     size_t num = 5;
@@ -79,10 +79,10 @@ static void exampleCA(EasyPVAPtr const &easyPVA)
             addNanoseconds() ->
             addUserTag() ->
             createStructure();
-    EasyNTMultiChannelPtr easy = EasyNTMultiChannel::create(
-       easyPVA,pvNames,structure,5.0,"ca");
+    PvaClientNTMultiChannelPtr multi = PvaClientNTMultiChannel::create(
+       pva,pvNames,structure,5.0,"ca");
     try {
-        NTMultiChannelPtr nt = easy->get();
+        NTMultiChannelPtr nt = multi->get();
         cout << "initial\n" << nt->getPVStructure() << endl;
 
     } catch (std::runtime_error e) {
@@ -94,8 +94,8 @@ static void exampleCA(EasyPVAPtr const &easyPVA)
 
 int main(int argc,char *argv[])
 {
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    example(easyPVA);
-    exampleCA(easyPVA);
+    PvaClientPtr pva = PvaClient::create();
+    example(pva);
+    exampleCA(pva);
     return 0;
 }

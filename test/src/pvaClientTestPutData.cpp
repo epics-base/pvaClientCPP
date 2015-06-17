@@ -1,4 +1,4 @@
-/*testEasyPutData.cpp */
+/*pvaClientTestPutData.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -15,15 +15,15 @@
 #include <epicsUnitTest.h>
 #include <testMain.h>
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 #include <pv/bitSet.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
-static EasyPVAPtr easyPVA = EasyPVA::create();
+static PvaClientPtr pvaClient = PvaClient::create();
 static FieldCreatePtr fieldCreate = getFieldCreate();
 static StandardFieldPtr standardField = getStandardField();
 static PVDataCreatePtr pvDataCreate = getPVDataCreate();
@@ -49,9 +49,9 @@ static void testPostPut()
                endNested()->
             createStructure();
 
-    EasyPutDataPtr easyData = EasyPutData::create(structure);
-    PVStructurePtr pvStructure = easyData->getPVStructure();
-    BitSetPtr change = easyData->getBitSet();
+    PvaClientPutDataPtr pvaData = PvaClientPutData::create(structure);
+    PVStructurePtr pvStructure = pvaData->getPVStructure();
+    BitSetPtr change = pvaData->getBitSet();
     PVDoublePtr powerValue = pvStructure->getSubField<PVDouble>("power.value");
     PVDoublePtr voltageValue = pvStructure->getSubField<PVDouble>("voltage.value");
     PVDoublePtr currentValue = pvStructure->getSubField<PVDouble>("current.value");
@@ -63,7 +63,7 @@ static void testPostPut()
     voltageValue->put(2.0);
     currentValue->put(.5);
     cout << "changed\n";
-    cout  << easyData->showChanged(cout) << endl;
+    cout  << pvaData->showChanged(cout) << endl;
     testOk(change->cardinality()==3,"num set bits 3");
     testOk(change->get(powerOffset)==true,"power changed");
     testOk(change->get(voltageOffset)==true,"voltage changed");
@@ -80,52 +80,52 @@ void testDouble()
             add("value",pvDouble) ->
             createStructure();
 
-    EasyPutDataPtr easyData = EasyPutData::create(structure);
-    PVDoublePtr pvDouble = easyData->getPVStructure()->getSubField<PVDouble>("value");
+    PvaClientPutDataPtr pvaData = PvaClientPutData::create(structure);
+    PVDoublePtr pvDouble = pvaData->getPVStructure()->getSubField<PVDouble>("value");
     pvDouble->put(5.0);
-    BitSetPtr change = easyData->getBitSet();
+    BitSetPtr change = pvaData->getBitSet();
     size_t valueOffset = pvDouble->getFieldOffset();
     testOk(change->cardinality()==1,"num set bits 1");
     testOk(change->get(valueOffset)==true,"value changed");
-    testOk(easyData->hasValue()==true,"hasValue");
-    testOk(easyData->isValueScalar()==true,"isValueScalar");
-    testOk(easyData->isValueScalarArray()==false,"isValueScalarArray");
+    testOk(pvaData->hasValue()==true,"hasValue");
+    testOk(pvaData->isValueScalar()==true,"isValueScalar");
+    testOk(pvaData->isValueScalarArray()==false,"isValueScalarArray");
     bool result;
     result = false;
-    if(easyData->getValue()) result = true;
+    if(pvaData->getValue()) result = true;
     testOk(result==true,"getValue");
     result = false;
-    if(easyData->getScalarValue()) result = true;
+    if(pvaData->getScalarValue()) result = true;
     testOk(result==true,"getScalarValue");
     try {
-        easyData->getArrayValue();
+        pvaData->getArrayValue();
     } catch (std::runtime_error e) {
         cout << "getArrayValue " << e.what() << endl;
     }
     try {
-        easyData->getScalarArrayValue();
+        pvaData->getScalarArrayValue();
     } catch (std::runtime_error e) {
         cout << " getScalarArrayValue " << e.what() << endl;
     }
-    cout << "as double " << easyData->getDouble() << endl;
-    cout << "as string " << easyData->getString() << endl;
+    cout << "as double " << pvaData->getDouble() << endl;
+    cout << "as string " << pvaData->getString() << endl;
     try {
-        shared_vector<const double> value = easyData->getDoubleArray();
+        shared_vector<const double> value = pvaData->getDoubleArray();
     } catch (std::runtime_error e) {
         cout << " getDoubleArray " << e.what() << endl;
     }
     try {
-        shared_vector<const string> value = easyData->getStringArray();
+        shared_vector<const string> value = pvaData->getStringArray();
     } catch (std::runtime_error e) {
         cout << " getStringArray " << e.what() << endl;
     }
-    easyData->putDouble(5.0);
-    easyData->putString("1e5");
+    pvaData->putDouble(5.0);
+    pvaData->putString("1e5");
     try {
         size_t len = 2;
         shared_vector<double> val(len);
         for(size_t i=0; i<len; ++i) val[i] = (i+1)*10.0;
-        easyData->putDoubleArray(freeze(val));
+        pvaData->putDoubleArray(freeze(val));
     } catch (std::runtime_error e) {
         cout << " putDoubleArray " << e.what() << endl;
     }
@@ -133,7 +133,7 @@ void testDouble()
         size_t len = 2;
         shared_vector<string> val(len);
         val[0] = "one"; val[1] = "two";
-        easyData->putStringArray(freeze(val));
+        pvaData->putStringArray(freeze(val));
     } catch (std::runtime_error e) {
         cout << " putStringArray " << e.what() << endl;
     }
@@ -149,78 +149,78 @@ void testDoubleArray()
             addArray("value",pvDouble) ->
             createStructure();
 
-    EasyPutDataPtr easyData = EasyPutData::create(structure);
-    PVDoubleArrayPtr pvalue = easyData->getPVStructure()->getSubField<PVDoubleArray>("value");
+    PvaClientPutDataPtr pvaData = PvaClientPutData::create(structure);
+    PVDoubleArrayPtr pvalue = pvaData->getPVStructure()->getSubField<PVDoubleArray>("value");
     size_t len = 5;
     shared_vector<double> value(len);
     for(size_t i=0; i<len; ++i) value[i] = i*10.0;
     pvalue->replace(freeze(value));
-    BitSetPtr change = easyData->getBitSet();
+    BitSetPtr change = pvaData->getBitSet();
     size_t valueOffset = pvalue->getFieldOffset();
     testOk(change->cardinality()==1,"num set bits 1");
     testOk(change->get(valueOffset)==true,"value changed");
-    testOk(easyData->hasValue()==true,"hasValue");
-    testOk(easyData->isValueScalar()==false,"isValueScalar");
-    testOk(easyData->isValueScalarArray()==true,"isValueScalarArray");
+    testOk(pvaData->hasValue()==true,"hasValue");
+    testOk(pvaData->isValueScalar()==false,"isValueScalar");
+    testOk(pvaData->isValueScalarArray()==true,"isValueScalarArray");
     bool result;
     result = false;
-    if(easyData->getValue()) result = true;
+    if(pvaData->getValue()) result = true;
     testOk(result==true,"getValue");
     result = false;
-    if(easyData->getArrayValue()) result = true;
+    if(pvaData->getArrayValue()) result = true;
     testOk(result==true,"getArrayValue");
     result = false;
-    if(easyData->getScalarArrayValue()) result = true;
+    if(pvaData->getScalarArrayValue()) result = true;
     testOk(result==true,"getScalarValue");
     try {
-        easyData->getScalarValue();
+        pvaData->getScalarValue();
     } catch (std::runtime_error e) {
         cout << " getScalarValue " << e.what() << endl;
     }
     try {
-        cout << "as double " << easyData->getDouble() << endl;
+        cout << "as double " << pvaData->getDouble() << endl;
     } catch (std::runtime_error e) {
         cout << " getDouble " << e.what() << endl;
     }
     try {
-        string val = easyData->getString();
+        string val = pvaData->getString();
     } catch (std::runtime_error e) {
         cout << " getString " << e.what() << endl;
     }
-    cout << "as doubleArray " << easyData->getDoubleArray() << endl;
+    cout << "as doubleArray " << pvaData->getDoubleArray() << endl;
     try {
-        shared_vector<const string> value = easyData->getStringArray();
+        shared_vector<const string> value = pvaData->getStringArray();
     } catch (std::runtime_error e) {
         cout << " getStringArray " << e.what() << endl;
     }
     try {
-        easyData->putDouble(5.0);
+        pvaData->putDouble(5.0);
     } catch (std::runtime_error e) {
         cout << " putDouble " << e.what() << endl;
     }
     try {
-        easyData->putString("1e5");
+        pvaData->putString("1e5");
     } catch (std::runtime_error e) {
         cout << " putString " << e.what() << endl;
     }
     value = shared_vector<double>(len);
     for(size_t i=0; i<len; ++i) value[i] = (i+1)* 2;
-    easyData->putDoubleArray(freeze(value));
-    cout << "as doubleArray " << easyData->getDoubleArray() << endl;
+    pvaData->putDoubleArray(freeze(value));
+    cout << "as doubleArray " << pvaData->getDoubleArray() << endl;
     try {
         size_t len = 2;
         shared_vector<string> val(len);
         val[0] = "one"; val[1] = "two";
-        easyData->putStringArray(freeze(val));
+        pvaData->putStringArray(freeze(val));
         cout << "as stringArray " << val << endl;
     } catch (std::runtime_error e) {
         cout << " putStringArray " << e.what() << endl;
     }
 }
 
-MAIN(testEasyPutData)
+MAIN(pvaClientTestPutData)
 {
-    cout << "\nstarting testEasyPutData\n";
+    cout << "\nstarting pvaClientTestPutData\n";
     testPlan(19);
     testPostPut();
     testDouble();

@@ -1,4 +1,4 @@
-/* easyNTMultiChannel.h */
+/* pvaClientNTMultiChannel.h */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -8,20 +8,20 @@
  * @author mrk
  * @date 2015.02
  */
-#ifndef EASYNTMULTIChannel_H
-#define EASYNTMULTIChannel_H
+#ifndef PVACLIENTNTMULTIChannel_H
+#define PVACLIENTNTMULTIChannel_H
 
 #ifdef epicsExportSharedSymbols
-#   define easyPVAEpicsExportSharedSymbols
+#   define pvaClientEpicsExportSharedSymbols
 #   undef epicsExportSharedSymbols
 #endif
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
-namespace epics { namespace easyPVA { 
+namespace epics { namespace pvaClient { 
 
-class EasyNTMultiChannel;
-typedef std::tr1::shared_ptr<EasyNTMultiChannel> EasyNTMultiChannelPtr;
+class PvaClientNTMultiChannel;
+typedef std::tr1::shared_ptr<PvaClientNTMultiChannel> PvaClientNTMultiChannelPtr;
 
 /**
  * @brief Support for multiple channels where each channel has a value field that
@@ -31,21 +31,21 @@ typedef std::tr1::shared_ptr<EasyNTMultiChannel> EasyNTMultiChannelPtr;
  *
  * @author mrk
  */
-class epicsShareClass EasyNTMultiChannel 
+class epicsShareClass PvaClientNTMultiChannel 
 {
 public:
-    POINTER_DEFINITIONS(EasyNTMultiChannel);
+    POINTER_DEFINITIONS(PvaClientNTMultiChannel);
     /**
-     * @brief Create a EasyNTMultiChannel.
-     * @param &easyPVA Interface to EasyPVA
+     * @brief Create a PvaClientNTMultiChannel.
+     * @param &pvaClient Interface to PvaClient
      * @param channelName PVStringArray of channelNames.
      * @param structure valid NTMultiChannel structure.
      * @param timeout Timeout for connecting.
      * @param providerName The provider for each channel.
-     * @return The interface to EasyNTMultiChannel.
+     * @return The interface to PvaClientNTMultiChannel.
      */
-    static EasyNTMultiChannelPtr create(
-        EasyPVAPtr const & easyPVA,
+    static PvaClientNTMultiChannelPtr create(
+        PvaClientPtr const & pvaClient,
         epics::pvData::PVStringArrayPtr const & channelName,
         epics::pvData::StructureConstPtr const & structure,
         double timeout = 5.0,
@@ -53,7 +53,7 @@ public:
     /**
      * @brief destructor
      */
-    ~EasyNTMultiChannel();
+    ~PvaClientNTMultiChannel();
     /** 
      * @brief destroy any resources used.
      */
@@ -69,23 +69,23 @@ public:
      */
     void put(epics::nt::NTMultiChannelPtr const &value);
     /** 
-     * @brief Get the EasyMultiChannel.
+     * @brief Get the PvaClientMultiChannel.
      * @return The interface.
      */
-    EasyMultiChannelPtr getEasyMultiChannel();
+    PvaClientMultiChannelPtr getPvaClientMultiChannel();
 private:
-    EasyNTMultiChannel(
-        EasyMultiChannelPtr const & channelName,
+    PvaClientNTMultiChannel(
+        PvaClientMultiChannelPtr const & channelName,
         epics::nt::NTMultiChannelPtr const &ntMultiChannel);
     void createGet();
     void createPut();
 
-    EasyMultiChannelPtr easyMultiChannel;
+    PvaClientMultiChannelPtr pvaClientMultiChannel;
     epics::nt::NTMultiChannelPtr ntMultiChannel;
     epics::pvData::PVUnionArrayPtr pvUnionArray;
     epics::pvData::PVDataCreatePtr pvDataCreate;
-    std::vector<EasyGetPtr> easyGet;
-    std::vector<EasyPutPtr> easyPut;
+    std::vector<PvaClientGetPtr> pvaClientGet;
+    std::vector<PvaClientPutPtr> pvaClientPut;
     epics::pvData::shared_vector<epics::pvData::int32> severity;
     epics::pvData::shared_vector<epics::pvData::int32> status;
     epics::pvData::shared_vector<std::string> message;
@@ -100,4 +100,4 @@ private:
 
 }}
 
-#endif // EASYNTMULTIChannel_H
+#endif // PVACLIENTNTMULTIChannel_H

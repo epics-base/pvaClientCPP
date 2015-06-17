@@ -1,4 +1,4 @@
-/*exampleEasyGet.cpp */
+/*examplePvaClientGet.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,70 +12,70 @@
 
 #include <iostream>
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void exampleDouble(EasyPVAPtr const &easyPVA)
+static void exampleDouble(PvaClientPtr const &pva)
 {
     cout << "example double scalar\n";
     double value;
     try {
         cout << "short way\n";
-        value =  easyPVA->channel("exampleDouble")->get()->getData()->getDouble();
+        value =  pva->channel("exampleDouble")->get()->getData()->getDouble();
         cout << "as double " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
     cout << "long way\n";
-    EasyChannelPtr easyChannel = easyPVA->createChannel("exampleDouble");
-    easyChannel->issueConnect();
-    Status status = easyChannel->waitConnect(2.0);
+    PvaClientChannelPtr pvaChannel = pva->createChannel("exampleDouble");
+    pvaChannel->issueConnect();
+    Status status = pvaChannel->waitConnect(2.0);
     if(!status.isOK()) {cout << " connect failed\n"; return;}
-    EasyGetPtr easyGet = easyChannel->createGet();
-    easyGet->issueConnect();
-    status = easyGet->waitConnect();
+    PvaClientGetPtr pvaGet = pvaChannel->createGet();
+    pvaGet->issueConnect();
+    status = pvaGet->waitConnect();
     if(!status.isOK()) {cout << " createGet failed\n"; return;}
-    EasyGetDataPtr easyData = easyGet->getData();
-    value = easyData->getDouble();
+    PvaClientGetDataPtr pvaData = pvaGet->getData();
+    value = pvaData->getDouble();
     cout << "as double " << value << endl;
 }
 
-static void exampleDoubleArray(EasyPVAPtr const &easyPVA)
+static void exampleDoubleArray(PvaClientPtr const &pva)
 {
     cout << "example double array\n";
     shared_vector<const double> value;
     try {
         cout << "short way\n";
-        value =  easyPVA->channel("exampleDoubleArray")->get()->getData()->getDoubleArray();
+        value =  pva->channel("exampleDoubleArray")->get()->getData()->getDoubleArray();
         cout << "as doubleArray " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
     try {
         cout << "long way\n";
-        EasyChannelPtr easyChannel = easyPVA->createChannel("exampleDoubleArray");
-        easyChannel->connect(2.0);
-        EasyGetPtr easyGet = easyChannel->createGet();
-        EasyGetDataPtr easyData = easyGet->getData();
-        value = easyData->getDoubleArray();
+        PvaClientChannelPtr pvaChannel = pva->createChannel("exampleDoubleArray");
+        pvaChannel->connect(2.0);
+        PvaClientGetPtr pvaGet = pvaChannel->createGet();
+        PvaClientGetDataPtr pvaData = pvaGet->getData();
+        value = pvaData->getDoubleArray();
         cout << "as doubleArray " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
 }
 
-static void examplePowerSupply(EasyPVAPtr const &easyPVA)
+static void examplePowerSupply(PvaClientPtr const &pva)
 {
     cout << "example powerSupply\n";
     PVStructurePtr pvStructure;
     try {
         cout << "short way\n";
-        pvStructure =  easyPVA->channel("examplePowerSupply")->
+        pvStructure =  pva->channel("examplePowerSupply")->
             get("field()")->getData()->getPVStructure();
         cout << pvStructure << endl;
     } catch (std::runtime_error e) {
@@ -84,49 +84,49 @@ static void examplePowerSupply(EasyPVAPtr const &easyPVA)
      
 }
 
-static void exampleCADouble(EasyPVAPtr const &easyPVA)
+static void exampleCADouble(PvaClientPtr const &pva)
 {
     cout << "example double scalar\n";
     double value;
     try {
         cout << "short way\n";
-        value =  easyPVA->channel("double00","ca",5.0)->get()->getData()->getDouble();
+        value =  pva->channel("double00","ca",5.0)->get()->getData()->getDouble();
         cout << "as double " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
     cout << "long way\n";
-    EasyChannelPtr easyChannel = easyPVA->createChannel("double00","ca");
-    easyChannel->issueConnect();
-    Status status = easyChannel->waitConnect(2.0);
+    PvaClientChannelPtr pvaChannel = pva->createChannel("double00","ca");
+    pvaChannel->issueConnect();
+    Status status = pvaChannel->waitConnect(2.0);
     if(!status.isOK()) {cout << " connect failed\n"; return;}
-    EasyGetPtr easyGet = easyChannel->createGet();
-    easyGet->issueConnect();
-    status = easyGet->waitConnect();
+    PvaClientGetPtr pvaGet = pvaChannel->createGet();
+    pvaGet->issueConnect();
+    status = pvaGet->waitConnect();
     if(!status.isOK()) {cout << " createGet failed\n"; return;}
-    EasyGetDataPtr easyData = easyGet->getData();
-    value = easyData->getDouble();
+    PvaClientGetDataPtr pvaData = pvaGet->getData();
+    value = pvaData->getDouble();
     cout << "as double " << value << endl;
 }
 
-static void exampleCADoubleArray(EasyPVAPtr const &easyPVA)
+static void exampleCADoubleArray(PvaClientPtr const &pva)
 {
     cout << "example double array\n";
     shared_vector<const double> value;
     try {
         cout << "short way\n";
-        value =  easyPVA->channel("doubleArray","ca",5.0)->get()->getData()->getDoubleArray();
+        value =  pva->channel("doubleArray","ca",5.0)->get()->getData()->getDoubleArray();
         cout << "as doubleArray " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
     try {
         cout << "long way\n";
-        EasyChannelPtr easyChannel = easyPVA->createChannel("doubleArray","ca");
-        easyChannel->connect(2.0);
-        EasyGetPtr easyGet = easyChannel->createGet();
-        EasyGetDataPtr easyData = easyGet->getData();
-        value = easyData->getDoubleArray();
+        PvaClientChannelPtr pvaChannel = pva->createChannel("doubleArray","ca");
+        pvaChannel->connect(2.0);
+        PvaClientGetPtr pvaGet = pvaChannel->createGet();
+        PvaClientGetDataPtr pvaData = pvaGet->getData();
+        value = pvaData->getDoubleArray();
         cout << "as doubleArray " << value << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
@@ -135,12 +135,12 @@ static void exampleCADoubleArray(EasyPVAPtr const &easyPVA)
 
 int main(int argc,char *argv[])
 {
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    exampleDouble(easyPVA);
-    exampleDoubleArray(easyPVA);
-    examplePowerSupply(easyPVA);
-    exampleCADouble(easyPVA);
-    exampleCADoubleArray(easyPVA);
+    PvaClientPtr pva= PvaClient::create();
+    exampleDouble(pva);
+    exampleDoubleArray(pva);
+    examplePowerSupply(pva);
+    exampleCADouble(pva);
+    exampleCADoubleArray(pva);
     cout << "done\n";
     return 0;
 }

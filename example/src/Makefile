@@ -5,52 +5,52 @@ include $(TOP)/configure/CONFIG
 #  ADD MACRO DEFINITIONS AFTER THIS LINE
 
 
-PROD_HOST += exampleEasyProcess
-exampleEasyProcess_SRCS += exampleEasyProcess.cpp
-exampleEasyProcess_LIBS += easyPVA
-exampleEasyProcess_LIBS += pvAccess
-exampleEasyProcess_LIBS += pvData
-exampleEasyProcess_LIBS += Com
+PROD_HOST += examplePvaClientProcess
+examplePvaClientProcess_SRCS += examplePvaClientProcess.cpp
+examplePvaClientProcess_LIBS += pvaClient
+examplePvaClientProcess_LIBS += pvAccess
+examplePvaClientProcess_LIBS += pvData
+examplePvaClientProcess_LIBS += Com
 
-PROD_HOST += exampleEasyGet
-exampleEasyGet_SRCS += exampleEasyGet.cpp
-exampleEasyGet_LIBS += easyPVA
-exampleEasyGet_LIBS += pvAccess
-exampleEasyGet_LIBS += pvData
-exampleEasyGet_LIBS += Com
+PROD_HOST += examplePvaClientGet
+examplePvaClientGet_SRCS += examplePvaClientGet.cpp
+examplePvaClientGet_LIBS += pvaClient
+examplePvaClientGet_LIBS += pvAccess
+examplePvaClientGet_LIBS += pvData
+examplePvaClientGet_LIBS += Com
 
-PROD_HOST += exampleEasyPut
-exampleEasyPut_SRCS += exampleEasyPut.cpp
-exampleEasyPut_LIBS += easyPVA
-exampleEasyPut_LIBS += pvAccess
-exampleEasyPut_LIBS += pvData
-exampleEasyPut_LIBS += Com
+PROD_HOST += examplePvaClientPut
+examplePvaClientPut_SRCS += examplePvaClientPut.cpp
+examplePvaClientPut_LIBS += pvaClient
+examplePvaClientPut_LIBS += pvAccess
+examplePvaClientPut_LIBS += pvData
+examplePvaClientPut_LIBS += Com
 
-PROD_HOST += exampleEasyMonitor
-exampleEasyMonitor_SRCS += exampleEasyMonitor.cpp
-exampleEasyMonitor_LIBS += easyPVA
-exampleEasyMonitor_LIBS += pvAccess
-exampleEasyMonitor_LIBS += pvData
-exampleEasyMonitor_LIBS += Com
+PROD_HOST += examplePvaClientMonitor
+examplePvaClientMonitor_SRCS += examplePvaClientMonitor.cpp
+examplePvaClientMonitor_LIBS += pvaClient
+examplePvaClientMonitor_LIBS += pvAccess
+examplePvaClientMonitor_LIBS += pvData
+examplePvaClientMonitor_LIBS += Com
 
-PROD_HOST += exampleEasyMultiDouble
-exampleEasyMultiDouble_SRCS += exampleEasyMultiDouble.cpp
-exampleEasyMultiDouble_LIBS += easyPVA
-exampleEasyMultiDouble_LIBS += pvAccess
-exampleEasyMultiDouble_LIBS += pvData
-exampleEasyMultiDouble_LIBS += Com
+PROD_HOST += examplePvaClientMultiDouble
+examplePvaClientMultiDouble_SRCS += examplePvaClientMultiDouble.cpp
+examplePvaClientMultiDouble_LIBS += pvaClient
+examplePvaClientMultiDouble_LIBS += pvAccess
+examplePvaClientMultiDouble_LIBS += pvData
+examplePvaClientMultiDouble_LIBS += Com
 
-PROD_HOST += exampleEasyNTMultiChannel
-exampleEasyNTMultiChannel_SRCS += exampleEasyNTMultiChannel.cpp
-exampleEasyNTMultiChannel_LIBS += easyPVA
-exampleEasyNTMultiChannel_LIBS += pvAccess
-exampleEasyNTMultiChannel_LIBS += nt
-exampleEasyNTMultiChannel_LIBS += pvData
-exampleEasyNTMultiChannel_LIBS += Com
+PROD_HOST += examplePvaClientNTMultiChannel
+examplePvaClientNTMultiChannel_SRCS += examplePvaClientNTMultiChannel.cpp
+examplePvaClientNTMultiChannel_LIBS += pvaClient
+examplePvaClientNTMultiChannel_LIBS += pvAccess
+examplePvaClientNTMultiChannel_LIBS += nt
+examplePvaClientNTMultiChannel_LIBS += pvData
+examplePvaClientNTMultiChannel_LIBS += Com
 
 PROD_HOST += helloWorldRPC
 helloWorldRPC_SRCS += helloWorldRPC.cpp
-helloWorldRPC_LIBS += easyPVA
+helloWorldRPC_LIBS += pvaClient
 helloWorldRPC_LIBS += pvAccess
 helloWorldRPC_LIBS += nt
 helloWorldRPC_LIBS += pvData
@@ -58,7 +58,7 @@ helloWorldRPC_LIBS += Com
 
 PROD_HOST += helloWorldPutGet
 helloWorldPutGet_SRCS += helloWorldPutGet.cpp
-helloWorldPutGet_LIBS += easyPVA
+helloWorldPutGet_LIBS += pvaClient
 helloWorldPutGet_LIBS += pvAccess
 helloWorldPutGet_LIBS += nt
 helloWorldPutGet_LIBS += pvData

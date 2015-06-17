@@ -1,4 +1,4 @@
-/*testEasyMultiDouble.cpp */
+/*pvaClientTestMultiDouble.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,22 +12,22 @@
 
 #include <iostream>
 
-#include <pv/easyMultiDouble.h>
+#include <pv/pvaClientMultiDouble.h>
 #include <epicsUnitTest.h>
 #include <testMain.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void testGood(EasyPVAPtr const &easyPVA)
+static void testGood(PvaClientPtr const &pvaClient)
 {
     bool isOk = true;
     cout << "\nstarting testGood\n";
     try {
-        EasyPVAPtr easyPVA(EasyPVA::create());
+        PvaClientPtr pvaClient(PvaClient::create());
         size_t num = 5;
         shared_vector<string> channelNames(num);
         channelNames[0] = "exampleDouble01";
@@ -38,7 +38,7 @@ static void testGood(EasyPVAPtr const &easyPVA)
         PVStringArrayPtr pvNames =
             getPVDataCreate()->createPVScalarArray<PVStringArray>();
         pvNames->replace(freeze(channelNames));
-        EasyMultiDoublePtr multiDouble(EasyMultiDouble::create(easyPVA,pvNames));
+        PvaClientMultiDoublePtr multiDouble(PvaClientMultiDouble::create(pvaClient,pvNames));
         shared_vector<double> data = multiDouble->get();
         cout << "initial " << data << endl;
         for(size_t i=0; i<num; ++i) data[i] = data[i] + 1.1;
@@ -52,12 +52,12 @@ static void testGood(EasyPVAPtr const &easyPVA)
     testOk(isOk==true,"all channels double");
 }
 
-static void testGoodMixed(EasyPVAPtr const &easyPVA)
+static void testGoodMixed(PvaClientPtr const &pvaClient)
 {
     bool isOk = true;
     cout << "\nstarting testGoodMixed\n";
     try {
-        EasyPVAPtr easyPVA(EasyPVA::create());
+        PvaClientPtr pvaClient(PvaClient::create());
         size_t num = 5;
         shared_vector<string> channelNames(num);
         channelNames[0] = "exampleByte";
@@ -68,7 +68,7 @@ static void testGoodMixed(EasyPVAPtr const &easyPVA)
         PVStringArrayPtr pvNames =
             getPVDataCreate()->createPVScalarArray<PVStringArray>();
         pvNames->replace(freeze(channelNames));
-        EasyMultiDoublePtr multiDouble(EasyMultiDouble::create(easyPVA,pvNames));
+        PvaClientMultiDoublePtr multiDouble(PvaClientMultiDouble::create(pvaClient,pvNames));
         shared_vector<double> data = multiDouble->get();
         cout << "initial " << data << endl;
         for(size_t i=0; i<num; ++i) data[i] = data[i] + 1.1;
@@ -82,12 +82,12 @@ static void testGoodMixed(EasyPVAPtr const &easyPVA)
     testOk(isOk==true,"channels mixed type");
 }
 
-static void testChannelNotExist(EasyPVAPtr const &easyPVA)
+static void testChannelNotExist(PvaClientPtr const &pvaClient)
 {
     bool isOk = true;
     cout << "\nstarting testChannelNotExist\n";
     try {
-        EasyPVAPtr easyPVA(EasyPVA::create());
+        PvaClientPtr pvaClient(PvaClient::create());
         size_t num = 5;
         shared_vector<string> channelNames(num);
         channelNames[0] = "exampleDouble01";
@@ -98,7 +98,7 @@ static void testChannelNotExist(EasyPVAPtr const &easyPVA)
         PVStringArrayPtr pvNames =
             getPVDataCreate()->createPVScalarArray<PVStringArray>();
         pvNames->replace(freeze(channelNames));
-        EasyMultiDoublePtr multiDouble(EasyMultiDouble::create(easyPVA,pvNames));
+        PvaClientMultiDoublePtr multiDouble(PvaClientMultiDouble::create(pvaClient,pvNames));
         shared_vector<double> data = multiDouble->get();
         cout << "initial " << data << endl;
         for(size_t i=0; i<num; ++i) data[i] = data[i] + 1.1;
@@ -112,12 +112,12 @@ static void testChannelNotExist(EasyPVAPtr const &easyPVA)
     testOk(isOk==false,"channel not exist");
 }
 
-static void testNonNumeric(EasyPVAPtr const &easyPVA)
+static void testNonNumeric(PvaClientPtr const &pvaClient)
 {
     bool isOk = true;
     cout << "\nstarting testNonNumeric\n";
     try {
-        EasyPVAPtr easyPVA(EasyPVA::create());
+        PvaClientPtr pvaClient(PvaClient::create());
         size_t num = 5;
         shared_vector<string> channelNames(num);
         channelNames[0] = "exampleDouble01";
@@ -128,7 +128,7 @@ static void testNonNumeric(EasyPVAPtr const &easyPVA)
         PVStringArrayPtr pvNames =
             getPVDataCreate()->createPVScalarArray<PVStringArray>();
         pvNames->replace(freeze(channelNames));
-        EasyMultiDoublePtr multiDouble(EasyMultiDouble::create(easyPVA,pvNames));
+        PvaClientMultiDoublePtr multiDouble(PvaClientMultiDouble::create(pvaClient,pvNames));
         shared_vector<double> data = multiDouble->get();
         cout << "initial " << data << endl;
         for(size_t i=0; i<num; ++i) data[i] = data[i] + 1.1;
@@ -142,15 +142,15 @@ static void testNonNumeric(EasyPVAPtr const &easyPVA)
     testOk(isOk==false,"channel not numeric");
 }
 
-MAIN(testEasyMultiDouble)
+MAIN(pvaClientTestMultiDouble)
 {
-    cout << "\nstarting testEasyMultiDouble\n";
+    cout << "\nstarting pvaClientTestMultiDouble\n";
     testPlan(4);
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    testGood(easyPVA);
-    testGoodMixed(easyPVA);
-    testChannelNotExist(easyPVA);
-    testNonNumeric(easyPVA);
+    PvaClientPtr pvaClient = PvaClient::create();
+    testGood(pvaClient);
+    testGoodMixed(pvaClient);
+    testChannelNotExist(pvaClient);
+    testNonNumeric(pvaClient);
     cout << "done\n";
     return 0;
 }

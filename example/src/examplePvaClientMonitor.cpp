@@ -1,4 +1,4 @@
-/*monitorPowerSupply.cpp */
+/*examplePvaClientClientMonitor.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -14,24 +14,24 @@
 
 #include <iostream>
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void exampleMonitor(EasyPVAPtr const &easyPVA)
+static void exampleMonitor(PvaClientPtr const &pva)
 {
-    EasyMonitorPtr monitor = easyPVA->channel("examplePowerSupply")->monitor("");
-    EasyMonitorDataPtr easyData = monitor->getData();
+    PvaClientMonitorPtr monitor = pva->channel("examplePowerSupply")->monitor("");
+    PvaClientMonitorDataPtr pvaData = monitor->getData();
     while(true) {
          monitor->waitEvent();
          cout << "changed\n";
-         easyData->showChanged(cout);
+         pvaData->showChanged(cout);
          cout << "overrun\n";
-         easyData->showOverrun(cout);
+         pvaData->showOverrun(cout);
          monitor->releaseEvent();
      }
 }
@@ -39,8 +39,8 @@ static void exampleMonitor(EasyPVAPtr const &easyPVA)
 
 int main(int argc,char *argv[])
 {
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    exampleMonitor(easyPVA);
+    PvaClientPtr pva = PvaClient::create();
+    exampleMonitor(pva);
     cout << "done\n";
     return 0;
 }

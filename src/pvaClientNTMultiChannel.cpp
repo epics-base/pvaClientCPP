@@ -1,4 +1,4 @@
-/* easyNTMultiChannel.cpp */
+/* pvaClientNTMultiChannel.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -9,7 +9,8 @@
  * @date 2015.03
  */
 
-#include <pv/easyNTMultiChannel.h>
+#define epicsExportSharedSymbols
+#include <pv/pvaClientNTMultiChannel.h>
 
 using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
@@ -17,44 +18,44 @@ using namespace epics::pvAccess;
 using namespace epics::nt;
 using namespace std;
 
-namespace epics { namespace easyPVA { 
+namespace epics { namespace pvaClient { 
 
-EasyNTMultiChannelPtr EasyNTMultiChannel::create(
-    EasyPVAPtr const & easyPVA,
+PvaClientNTMultiChannelPtr PvaClientNTMultiChannel::create(
+    PvaClientPtr const & pvaClient,
     PVStringArrayPtr const & channelName,
     StructureConstPtr const &structure,
     double timeout,
     std::string const & providerName)
 {
-    EasyMultiChannelPtr easyMultiChannel(
-        EasyMultiChannel::create(easyPVA,channelName,providerName));
-    Status status = easyMultiChannel->connect(timeout,0);
+    PvaClientMultiChannelPtr pvaClientMultiChannel(
+        PvaClientMultiChannel::create(pvaClient,channelName,providerName));
+    Status status = pvaClientMultiChannel->connect(timeout,0);
     if(!status.isOK()) throw std::runtime_error(status.getMessage());
     if(!NTMultiChannel::is_a(structure)) throw std::runtime_error("structure is not valid");
     PVStructurePtr pvStructure = getPVDataCreate()->createPVStructure(structure);
     pvStructure->getSubField<PVStringArray>("channelName")->
-        replace(easyMultiChannel->getChannelNames()->view());
+        replace(pvaClientMultiChannel->getChannelNames()->view());
     pvStructure->getSubField<PVBooleanArray>("isConnected")->
-        replace(easyMultiChannel->getIsConnected()->view());
+        replace(pvaClientMultiChannel->getIsConnected()->view());
     NTMultiChannelPtr ntMultiChannel(NTMultiChannel::wrap(pvStructure));
-    return EasyNTMultiChannelPtr(new EasyNTMultiChannel(easyMultiChannel,ntMultiChannel));
+    return PvaClientNTMultiChannelPtr(new PvaClientNTMultiChannel(pvaClientMultiChannel,ntMultiChannel));
 }
 
-EasyNTMultiChannel::EasyNTMultiChannel(
-        EasyMultiChannelPtr const &easyMultiChannel,
+PvaClientNTMultiChannel::PvaClientNTMultiChannel(
+        PvaClientMultiChannelPtr const &pvaClientMultiChannel,
         NTMultiChannelPtr const &ntMultiChannel)
 :
-   easyMultiChannel(easyMultiChannel),
+   pvaClientMultiChannel(pvaClientMultiChannel),
    ntMultiChannel(ntMultiChannel),
    pvUnionArray(ntMultiChannel->getPVStructure()->getSubField<PVUnionArray>("value")),
    pvDataCreate(getPVDataCreate())
 {}
 
-EasyNTMultiChannel::~EasyNTMultiChannel()
+PvaClientNTMultiChannel::~PvaClientNTMultiChannel()
 {
 }
 
-void EasyNTMultiChannel::createGet()
+void PvaClientNTMultiChannel::createGet()
 {
     PVStructurePtr pvStructure = ntMultiChannel->getPVStructure();
     bool getAlarm = false;
@@ -68,21 +69,21 @@ void EasyNTMultiChannel::createGet()
     string request = "value";
     if(getAlarm) request += ",alarm";
     if(getTimeStamp) request += ",timeStamp";
-    EasyChannelArrayPtr easyChannelArray = easyMultiChannel->getEasyChannelArray().lock();
-    if(!easyChannelArray)  throw std::runtime_error("easyChannelArray is gone");
-    shared_vector<const EasyChannelPtr> easyChannels = *easyChannelArray;
-    size_t numChannel = easyChannels.size();
-    easyGet = std::vector<EasyGetPtr>(numChannel,EasyGetPtr());
+    PvaClientChannelArrayPtr pvaClientChannelArray = pvaClientMultiChannel->getPvaClientChannelArray().lock();
+    if(!pvaClientChannelArray)  throw std::runtime_error("pvaClientChannelArray is gone");
+    shared_vector<const PvaClientChannelPtr> pvaClientChannels = *pvaClientChannelArray;
+    size_t numChannel = pvaClientChannels.size();
+    pvaClientGet = std::vector<PvaClientGetPtr>(numChannel,PvaClientGetPtr());
     bool allOK = true;
     string message;
     for(size_t i=0; i<numChannel; ++i)
     {
-        easyGet[i] = easyChannels[i]->createGet(request);
-        easyGet[i]->issueConnect();
+        pvaClientGet[i] = pvaClientChannels[i]->createGet(request);
+        pvaClientGet[i]->issueConnect();
     }
     for(size_t i=0; i<numChannel; ++i)
     {
-         Status status = easyGet[i]->waitConnect();
+         Status status = pvaClientGet[i]->waitConnect();
          if(!status.isOK()) {
              message = "connect status " + status.getMessage();
              allOK = false;
@@ -93,23 +94,23 @@ void EasyNTMultiChannel::createGet()
     
 }
 
-void EasyNTMultiChannel::createPut()
+void PvaClientNTMultiChannel::createPut()
 {
-    EasyChannelArrayPtr easyChannelArray = easyMultiChannel->getEasyChannelArray().lock();
-    if(!easyChannelArray)  throw std::runtime_error("easyChannelArray is gone");
-    shared_vector<const EasyChannelPtr> easyChannels = *easyChannelArray;
-    size_t numChannel = easyChannels.size();
-    easyPut = std::vector<EasyPutPtr>(numChannel,EasyPutPtr());
+    PvaClientChannelArrayPtr pvaClientChannelArray = pvaClientMultiChannel->getPvaClientChannelArray().lock();
+    if(!pvaClientChannelArray)  throw std::runtime_error("pvaClientChannelArray is gone");
+    shared_vector<const PvaClientChannelPtr> pvaClientChannels = *pvaClientChannelArray;
+    size_t numChannel = pvaClientChannels.size();
+    pvaClientPut = std::vector<PvaClientPutPtr>(numChannel,PvaClientPutPtr());
     bool allOK = true;
     string message;
     for(size_t i=0; i<numChannel; ++i)
     {
-        easyPut[i] = easyChannels[i]->createPut("value");
-        easyPut[i]->issueConnect();
+        pvaClientPut[i] = pvaClientChannels[i]->createPut("value");
+        pvaClientPut[i]->issueConnect();
     }
     for(size_t i=0; i<numChannel; ++i)
     {
-         Status status = easyPut[i]->waitConnect();
+         Status status = pvaClientPut[i]->waitConnect();
          if(!status.isOK()) {
              message = "connect status " + status.getMessage();
              allOK = false;
@@ -119,11 +120,11 @@ void EasyNTMultiChannel::createPut()
     if(!allOK) throw std::runtime_error(message);
 }
 
-NTMultiChannelPtr EasyNTMultiChannel::get()
+NTMultiChannelPtr PvaClientNTMultiChannel::get()
 {
-    if(easyGet.empty()) createGet();
+    if(pvaClientGet.empty()) createGet();
     PVStructurePtr pvStructure = ntMultiChannel->getPVStructure();
-    shared_vector<const string> channelNames = easyMultiChannel->getChannelNames()->view();
+    shared_vector<const string> channelNames = pvaClientMultiChannel->getChannelNames()->view();
     size_t numChannel = channelNames.size();
     bool severityExists = false;
     bool statusExists = false;
@@ -158,16 +159,16 @@ NTMultiChannelPtr EasyNTMultiChannel::get()
     shared_vector<PVUnionPtr> valueVector(numChannel);
     for(size_t i=0; i<numChannel; ++i)
     {
-        easyGet[i]->issueGet();
+        pvaClientGet[i]->issueGet();
     }
     for(size_t i=0; i<numChannel; ++i)
     {
-        Status stat = easyGet[i]->waitGet();
+        Status stat = pvaClientGet[i]->waitGet();
         if(!stat.isOK()) {
             string message = channelNames[i] + " " + stat.getMessage();
             throw std::runtime_error(message);
         }
-        PVStructurePtr pvStructure = easyGet[i]->getData()->getPVStructure();
+        PVStructurePtr pvStructure = pvaClientGet[i]->getData()->getPVStructure();
         PVFieldPtr pvField = pvStructure->getSubField("value");
         if(!pvField) {
             string message = channelNames[i] + " no value field";
@@ -228,10 +229,10 @@ NTMultiChannelPtr EasyNTMultiChannel::get()
     return ntMultiChannel;
 }
 
-void EasyNTMultiChannel::put(NTMultiChannelPtr const &value)
+void PvaClientNTMultiChannel::put(NTMultiChannelPtr const &value)
 {
-    if(easyPut.empty()) createPut();
-    shared_vector<const string> channelNames = easyMultiChannel->getChannelNames()->view();
+    if(pvaClientPut.empty()) createPut();
+    shared_vector<const string> channelNames = pvaClientMultiChannel->getChannelNames()->view();
     size_t numChannel = channelNames.size();
     PVUnionArrayPtr pvValue = value->getPVStructure()->
         getSubField<PVUnionArray>("value");
@@ -240,7 +241,7 @@ void EasyNTMultiChannel::put(NTMultiChannelPtr const &value)
     {
         try {
             PVFieldPtr pvFrom = valueVector[i]->get();
-            PVFieldPtr pvTo = easyPut[i]->getData()->getValue();
+            PVFieldPtr pvTo = pvaClientPut[i]->getData()->getValue();
             Type typeFrom = pvFrom->getField()->getType();
             Type typeTo = pvTo->getField()->getType();
             if(typeFrom==typeTo) {
@@ -248,7 +249,7 @@ void EasyNTMultiChannel::put(NTMultiChannelPtr const &value)
                       pvTo->copy(*pvFrom);
                   }
             }
-            easyPut[i]->issuePut();
+            pvaClientPut[i]->issuePut();
         } catch (std::exception e) {
             string message = channelNames[i] + " " + e.what();
             throw std::runtime_error(message);
@@ -256,7 +257,7 @@ void EasyNTMultiChannel::put(NTMultiChannelPtr const &value)
     }
     for(size_t i=0; i<numChannel; ++i)
     {
-        Status status = easyPut[i]->waitPut();
+        Status status = pvaClientPut[i]->waitPut();
         if(!status.isOK()) {
             string message = channelNames[i] + " " + status.getMessage();
             throw std::runtime_error(message);

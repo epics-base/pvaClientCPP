@@ -12,27 +12,27 @@
 
 #include <iostream>
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void example(EasyPVAPtr const &easyPVA)
+static void example(PvaClientPtr const &pva)
 {
     cout << "helloWorldPutGet\n";
     try {
-        EasyChannelPtr channel = easyPVA->channel("exampleHello");
-        EasyPutGetPtr putGet = channel->createPutGet();
+        PvaClientChannelPtr channel = pva->channel("exampleHello");
+        PvaClientPutGetPtr putGet = channel->createPutGet();
         putGet->connect();
-        EasyPutDataPtr putData = putGet->getPutData();
+        PvaClientPutDataPtr putData = putGet->getPutData();
         PVStructurePtr arg = putData->getPVStructure();
         PVStringPtr pvValue = arg->getSubField<PVString>("argument.value");
         pvValue->put("World");
         putGet->putGet();
-        EasyGetDataPtr getData = putGet->getGetData();
+        PvaClientGetDataPtr getData = putGet->getGetData();
         cout << getData->getPVStructure() << endl;
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
@@ -42,7 +42,7 @@ static void example(EasyPVAPtr const &easyPVA)
 
 int main(int argc,char *argv[])
 {
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    example(easyPVA);
+    PvaClientPtr pva = PvaClient::create();
+    example(pva);
     return 0;
 }

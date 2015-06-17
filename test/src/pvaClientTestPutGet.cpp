@@ -1,4 +1,4 @@
-/*exampleEasyPutGet.cpp */
+/*pvaClientTestPutGet.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,26 +12,30 @@
 
 #include <iostream>
 
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 #include <epicsUnitTest.h>
 #include <testMain.h>
 
 using namespace std;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
-using namespace epics::easyPVA;
+using namespace epics::pvaClient;
 
 
-static void example(EasyPVAPtr const &easyPVA)
+static void example(PvaClientPtr const &pvaClient)
 {
     cout << "\nstarting channelPutGet example\n";
     try {
-        EasyChannelPtr easyChannel = easyPVA->createChannel("examplePowerSupply");
-        easyChannel->connect(2.0);
+cout << "calling createChannel\n";
+        PvaClientChannelPtr pvaChannel = pvaClient->createChannel("examplePowerSupply");
+cout << "calling connect\n";
+        pvaChannel->connect(2.0);
         testOk(true==true,"connected");
-        EasyPutGetPtr putGet = easyChannel->createPutGet(
+cout << "calling createPutGet\n";
+        PvaClientPutGetPtr putGet = pvaChannel->createPutGet(
             "putField(power.value,voltage.value)getField()");
-        EasyPutDataPtr putData = putGet->getPutData();
+cout << "calling getPutData\n";
+        PvaClientPutDataPtr putData = putGet->getPutData();
         testOk(true==true,"put connected");
         PVStructurePtr pvStructure = putData->getPVStructure();
         PVDoublePtr power = pvStructure->getSubField<PVDouble>("power.value");
@@ -39,7 +43,7 @@ static void example(EasyPVAPtr const &easyPVA)
         power->put(5.0);
         voltage->put(5.0);
         putGet->putGet();
-        EasyGetDataPtr getData = putGet->getGetData();
+        PvaClientGetDataPtr getData = putGet->getGetData();
         pvStructure = getData->getPVStructure();
         BitSetPtr bitSet = getData->getBitSet();
         cout << "changed " << getData->showChanged(cout) << endl;
@@ -55,12 +59,12 @@ static void example(EasyPVAPtr const &easyPVA)
 }
 
 
-MAIN(testEasyPutGet)
+MAIN(pvaClientTestPutGet)
 {
-    cout << "\nstarting testEasyPutGet\n";
+    cout << "\nstarting pvaClientTestPutGet\n";
     testPlan(2);
-    EasyPVAPtr easyPVA = EasyPVA::create();
-    example(easyPVA);
+    PvaClientPtr pvaClient = PvaClient::create();
+    example(pvaClient);
     cout << "done\n";
     return 0;
 }

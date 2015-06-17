@@ -1,4 +1,4 @@
-/* easyPut.cpp */
+/* pvaClientPut.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,49 +12,49 @@
 
 #include <sstream>
 #include <pv/event.h>
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace std;
 
-namespace epics { namespace easyPVA {
+namespace epics { namespace pvaClient {
 
 class ChannelPutRequesterImpl : public ChannelPutRequester
 {
-    EasyPut * easyPut;
+    PvaClientPut * pvaClientPut;
 public:
-    ChannelPutRequesterImpl(EasyPut * easyPut)
-    : easyPut(easyPut) {}
+    ChannelPutRequesterImpl(PvaClientPut * pvaClientPut)
+    : pvaClientPut(pvaClientPut) {}
     string getRequesterName()
-    {return easyPut->getRequesterName();}
+    {return pvaClientPut->getRequesterName();}
     void message(string const & message,MessageType messageType)
-    {easyPut->message(message,messageType);}
+    {pvaClientPut->message(message,messageType);}
     void channelPutConnect(
         const Status& status,
         ChannelPut::shared_pointer const & channelPut,
         StructureConstPtr const & structure)
-    {easyPut->channelPutConnect(status,channelPut,structure);}
+    {pvaClientPut->channelPutConnect(status,channelPut,structure);}
     void getDone(
         const Status& status,
         ChannelPut::shared_pointer const & channelPut,
         PVStructurePtr const & pvStructure,
         BitSetPtr const & bitSet)
-    {easyPut->getDone(status,channelPut,pvStructure,bitSet);}
+    {pvaClientPut->getDone(status,channelPut,pvStructure,bitSet);}
     void putDone(
         const Status& status,
         ChannelPut::shared_pointer const & channelPut)
-    {easyPut->putDone(status,channelPut);}
+    {pvaClientPut->putDone(status,channelPut);}
 };
 
-EasyPut::EasyPut(
-        EasyPVAPtr const &pva,
-        EasyChannelPtr const & easyChannel,
+PvaClientPut::PvaClientPut(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
-: easyPVA(pva),
-  easyChannel(easyChannel),
+: pvaClient(pvaClient),
+  pvaClientChannel(pvaClientChannel),
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
@@ -63,14 +63,14 @@ EasyPut::EasyPut(
 {
 }
 
-EasyPut::~EasyPut()
+PvaClientPut::~PvaClientPut()
 {
     destroy();
 }
 
-void EasyPut::checkPutState()
+void PvaClientPut::checkPutState()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(connectState==connectIdle){
           connect();
           get();
@@ -78,67 +78,67 @@ void EasyPut::checkPutState()
 }
 
 // from ChannelPutRequester
-string EasyPut::getRequesterName()
+string PvaClientPut::getRequesterName()
 {
-     EasyPVAPtr yyy = easyPVA.lock();
-     if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+     PvaClientPtr yyy = pvaClient.lock();
+     if(!yyy) throw std::runtime_error("pvaClient was destroyed");
      return yyy->getRequesterName();
 }
 
-void EasyPut::message(string const & message,MessageType messageType)
+void PvaClientPut::message(string const & message,MessageType messageType)
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
-    EasyPVAPtr yyy = easyPVA.lock();
-    if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
+    PvaClientPtr yyy = pvaClient.lock();
+    if(!yyy) throw std::runtime_error("pvaClient was destroyed");
     yyy->message(message, messageType);
 }
 
-void EasyPut::channelPutConnect(
+void PvaClientPut::channelPutConnect(
     const Status& status,
     ChannelPut::shared_pointer const & channelPut,
     StructureConstPtr const & structure)
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     channelPutConnectStatus = status;
     this->channelPut = channelPut;
     if(status.isOK()) {
-        easyData = EasyPutData::create(structure);
-        easyData->setMessagePrefix(easyChannel.lock()->getChannelName());
+        pvaClientData = PvaClientPutData::create(structure);
+        pvaClientData->setMessagePrefix(pvaClientChannel.lock()->getChannelName());
     }
     waitForConnect.signal();
     
 }
 
-void EasyPut::getDone(
+void PvaClientPut::getDone(
     const Status& status,
     ChannelPut::shared_pointer const & channelPut,
     PVStructurePtr const & pvStructure,
     BitSetPtr const & bitSet)
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     channelGetPutStatus = status;
     if(status.isOK()) {
-        PVStructurePtr pvs = easyData->getPVStructure();
+        PVStructurePtr pvs = pvaClientData->getPVStructure();
         pvs->copyUnchecked(*pvStructure,*bitSet);
-        BitSetPtr bs = easyData->getBitSet();
+        BitSetPtr bs = pvaClientData->getBitSet();
         bs->clear();
         *bs |= *bitSet;
     }
     waitForGetPut.signal();
 }
 
-void EasyPut::putDone(
+void PvaClientPut::putDone(
     const Status& status,
     ChannelPut::shared_pointer const & channelPut)
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     channelGetPutStatus = status;
     waitForGetPut.signal();
 }
 
 
-// from EasyPut
-void EasyPut::destroy()
+// from PvaClientPut
+void PvaClientPut::destroy()
 {
     {
         Lock xx(mutex);
@@ -149,23 +149,23 @@ void EasyPut::destroy()
     channelPut.reset();
 }
 
-void EasyPut::connect()
+void PvaClientPut::connect()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
     stringstream ss;
-    ss << "channel " << channel->getChannelName() << " EasyPut::connect " << status.getMessage();
+    ss << "channel " << channel->getChannelName() << " PvaClientPut::connect " << status.getMessage();
     throw std::runtime_error(ss.str());
 }
 
-void EasyPut::issueConnect()
+void PvaClientPut::issueConnect()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(connectState!=connectIdle) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " easyPut already connected ";
+        ss << "channel " << channel->getChannelName() << " pvaClientPut already connected ";
         throw std::runtime_error(ss.str());
     }
     putRequester = ChannelPutRequester::shared_pointer(new ChannelPutRequesterImpl(this));
@@ -173,12 +173,12 @@ void EasyPut::issueConnect()
     channelPut = channel->createChannelPut(putRequester,pvRequest);
 }
 
-Status EasyPut::waitConnect()
+Status PvaClientPut::waitConnect()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(connectState!=connectActive) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " easyPut illegal connect state ";
+        ss << "channel " << channel->getChannelName() << " pvaClientPut illegal connect state ";
         throw std::runtime_error(ss.str());
     }
     waitForConnect.wait();
@@ -190,37 +190,37 @@ Status EasyPut::waitConnect()
     return Status(Status::STATUSTYPE_ERROR,channelPutConnectStatus.getMessage());
 }
 
-void EasyPut::get()
+void PvaClientPut::get()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     issueGet();
     Status status = waitGet();
     if(status.isOK()) return;
     stringstream ss;
-    ss << "channel " << channel->getChannelName() << " EasyPut::get " << status.getMessage();
+    ss << "channel " << channel->getChannelName() << " PvaClientPut::get " << status.getMessage();
     throw std::runtime_error(ss.str());
 }
 
-void EasyPut::issueGet()
+void PvaClientPut::issueGet()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(connectState==connectIdle) connect();
     if(putState!=putIdle) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyPut::issueGet get or put aleady active ";
+        ss << "channel " << channel->getChannelName() << " PvaClientPut::issueGet get or put aleady active ";
         throw std::runtime_error(ss.str());
     }
     putState = getActive;
-    easyData->getBitSet()->clear();
+    pvaClientData->getBitSet()->clear();
     channelPut->get();
 }
 
-Status EasyPut::waitGet()
+Status PvaClientPut::waitGet()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(putState!=getActive){
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyPut::waitGet llegal put state";
+        ss << "channel " << channel->getChannelName() << " PvaClientPut::waitGet llegal put state";
         throw std::runtime_error(ss.str());
     }
     waitForGetPut.wait();
@@ -231,60 +231,60 @@ Status EasyPut::waitGet()
     return Status(Status::STATUSTYPE_ERROR,channelGetPutStatus.getMessage());
 }
 
-void EasyPut::put()
+void PvaClientPut::put()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     issuePut();
     Status status = waitPut();
     if(status.isOK()) return;
     stringstream ss;
-    ss << "channel " << channel->getChannelName() << " EasyPut::put " << status.getMessage();
+    ss << "channel " << channel->getChannelName() << " PvaClientPut::put " << status.getMessage();
     throw std::runtime_error(ss.str());
 }
 
-void EasyPut::issuePut()
+void PvaClientPut::issuePut()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(connectState==connectIdle) connect();
     if(putState!=putIdle) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyPut::issueGet get or put aleady active ";
+        ss << "channel " << channel->getChannelName() << " PvaClientPut::issueGet get or put aleady active ";
         throw std::runtime_error(ss.str());
     }
     putState = putActive;
-    channelPut->put(easyData->getPVStructure(),easyData->getBitSet());
+    channelPut->put(pvaClientData->getPVStructure(),pvaClientData->getBitSet());
 }
 
-Status EasyPut::waitPut()
+Status PvaClientPut::waitPut()
 {
-    if(isDestroyed) throw std::runtime_error("easyPut was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(putState!=putActive){
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyPut::waitPut llegal put state";
+        ss << "channel " << channel->getChannelName() << " PvaClientPut::waitPut llegal put state";
         throw std::runtime_error(ss.str());
     }
     waitForGetPut.wait();
     putState = putIdle;
     if(channelGetPutStatus.isOK()) {
-        easyData->getBitSet()->clear();
+        pvaClientData->getBitSet()->clear();
         return Status::Ok;
     }
     return Status(Status::STATUSTYPE_ERROR,channelGetPutStatus.getMessage());
 }
 
-EasyPutDataPtr EasyPut::getData()
+PvaClientPutDataPtr PvaClientPut::getData()
 {
     checkPutState();
-    return easyData;
+    return pvaClientData;
 }
 
-EasyPutPtr EasyPut::create(
-        EasyPVAPtr const &pva,
-        EasyChannelPtr const & easyChannel,
+PvaClientPutPtr PvaClientPut::create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 {
-    EasyPutPtr epv(new EasyPut(pva,easyChannel,channel,pvRequest));
+    PvaClientPutPtr epv(new PvaClientPut(pvaClient,pvaClientChannel,channel,pvRequest));
     return epv;
 }
 

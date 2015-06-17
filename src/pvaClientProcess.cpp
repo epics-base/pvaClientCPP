@@ -1,4 +1,4 @@
-/* easyProcess.cpp */
+/* pvaClientProcess.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -12,43 +12,43 @@
 
 #include <sstream>
 #include <pv/event.h>
-#include <pv/easyPVA.h>
+#include <pv/pvaClient.h>
 
 using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace std;
 
-namespace epics { namespace easyPVA {
+namespace epics { namespace pvaClient {
 
 
 class ChannelProcessRequesterImpl : public ChannelProcessRequester
 {
-    EasyProcess * easyProcess;
+    PvaClientProcess * pvaClientProcess;
 public:
-    ChannelProcessRequesterImpl(EasyProcess * easyProcess)
-    : easyProcess(easyProcess) {}
+    ChannelProcessRequesterImpl(PvaClientProcess * pvaClientProcess)
+    : pvaClientProcess(pvaClientProcess) {}
     string getRequesterName()
-    {return easyProcess->getRequesterName();}
+    {return pvaClientProcess->getRequesterName();}
     void message(string const & message,MessageType messageType)
-    {easyProcess->message(message,messageType);}
+    {pvaClientProcess->message(message,messageType);}
     void channelProcessConnect(
         const Status& status,
         ChannelProcess::shared_pointer const & channelProcess)
-    {easyProcess->channelProcessConnect(status,channelProcess);}
+    {pvaClientProcess->channelProcessConnect(status,channelProcess);}
     void processDone(
         const Status& status,
         ChannelProcess::shared_pointer const & channelProcess)
-    {easyProcess->processDone(status,channelProcess);}
+    {pvaClientProcess->processDone(status,channelProcess);}
 };
 
-EasyProcess::EasyProcess(
-        EasyPVAPtr const &pva,
-        EasyChannelPtr const & easyChannel,
+PvaClientProcess::PvaClientProcess(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
-: easyPVA(pva),
-  easyChannel(easyChannel),
+: pvaClient(pvaClient),
+  pvaClientChannel(pvaClientChannel),
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
@@ -57,57 +57,57 @@ EasyProcess::EasyProcess(
 {
 }
 
-EasyProcess::~EasyProcess()
+PvaClientProcess::~PvaClientProcess()
 {
     destroy();
 }
 
-void EasyProcess::checkProcessState()
+void PvaClientProcess::checkProcessState()
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(connectState==connectIdle) connect();
     if(processState==processIdle) process();
 }
 
 // from ChannelProcessRequester
-string EasyProcess::getRequesterName()
+string PvaClientProcess::getRequesterName()
 {
-     EasyPVAPtr yyy = easyPVA.lock();
-     if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+     PvaClientPtr yyy = pvaClient.lock();
+     if(!yyy) throw std::runtime_error("pvaClient was destroyed");
      return yyy->getRequesterName();
 }
 
-void EasyProcess::message(string const & message,MessageType messageType)
+void PvaClientProcess::message(string const & message,MessageType messageType)
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
-    EasyPVAPtr yyy = easyPVA.lock();
-    if(!yyy) throw std::runtime_error("easyPVA was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
+    PvaClientPtr yyy = pvaClient.lock();
+    if(!yyy) throw std::runtime_error("pvaClient was destroyed");
     yyy->message(message, messageType);
 }
 
-void EasyProcess::channelProcessConnect(
+void PvaClientProcess::channelProcessConnect(
     const Status& status,
     ChannelProcess::shared_pointer const & channelProcess)
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     channelProcessConnectStatus = status;
     this->channelProcess = channelProcess;
     waitForConnect.signal();
     
 }
 
-void EasyProcess::processDone(
+void PvaClientProcess::processDone(
     const Status& status,
     ChannelProcess::shared_pointer const & channelProcess)
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     channelProcessStatus = status;
     waitForProcess.signal();
 }
 
 
-// from EasyProcess
-void EasyProcess::destroy()
+// from PvaClientProcess
+void PvaClientProcess::destroy()
 {
     {
         Lock xx(mutex);
@@ -118,23 +118,23 @@ void EasyProcess::destroy()
     channelProcess.reset();
 }
 
-void EasyProcess::connect()
+void PvaClientProcess::connect()
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
     stringstream ss;
-    ss << "channel " << channel->getChannelName() << " EasyProcess::connect " << status.getMessage();
+    ss << "channel " << channel->getChannelName() << " PvaClientProcess::connect " << status.getMessage();
     throw std::runtime_error(ss.str());
 }
 
-void EasyProcess::issueConnect()
+void PvaClientProcess::issueConnect()
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(connectState!=connectIdle) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " easyProcess already connected ";
+        ss << "channel " << channel->getChannelName() << " pvaClientProcess already connected ";
         throw std::runtime_error(ss.str());
     }
     processRequester = ChannelProcessRequester::shared_pointer(new ChannelProcessRequesterImpl(this));
@@ -142,12 +142,12 @@ void EasyProcess::issueConnect()
     channelProcess = channel->createChannelProcess(processRequester,pvRequest);
 }
 
-Status EasyProcess::waitConnect()
+Status PvaClientProcess::waitConnect()
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(connectState!=connectActive) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " easyProcess illegal connect state ";
+        ss << "channel " << channel->getChannelName() << " pvaClientProcess illegal connect state ";
         throw std::runtime_error(ss.str());
     }
     waitForConnect.wait();
@@ -159,36 +159,36 @@ Status EasyProcess::waitConnect()
     return Status(Status::STATUSTYPE_ERROR,channelProcessConnectStatus.getMessage());
 }
 
-void EasyProcess::process()
+void PvaClientProcess::process()
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     issueProcess();
     Status status = waitProcess();
     if(status.isOK()) return;
     stringstream ss;
-    ss << "channel " << channel->getChannelName() << " EasyProcess::process " << status.getMessage();
+    ss << "channel " << channel->getChannelName() << " PvaClientProcess::process " << status.getMessage();
     throw std::runtime_error(ss.str());
 }
 
-void EasyProcess::issueProcess()
+void PvaClientProcess::issueProcess()
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(connectState==connectIdle) connect();
     if(processState!=processIdle) {
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyProcess::issueProcess process aleady active ";
+        ss << "channel " << channel->getChannelName() << " PvaClientProcess::issueProcess process aleady active ";
         throw std::runtime_error(ss.str());
     }
     processState = processActive;
     channelProcess->process();
 }
 
-Status EasyProcess::waitProcess()
+Status PvaClientProcess::waitProcess()
 {
-    if(isDestroyed) throw std::runtime_error("easyProcess was destroyed");
+    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(processState!=processActive){
         stringstream ss;
-        ss << "channel " << channel->getChannelName() << " EasyProcess::waitProcess llegal process state";
+        ss << "channel " << channel->getChannelName() << " PvaClientProcess::waitProcess llegal process state";
         throw std::runtime_error(ss.str());
     }
     waitForProcess.wait();
@@ -199,13 +199,13 @@ Status EasyProcess::waitProcess()
     return Status(Status::STATUSTYPE_ERROR,channelProcessStatus.getMessage());
 }
 
-EasyProcessPtr EasyProcess::create(
-        EasyPVAPtr const &pva,
-        EasyChannelPtr const & easyChannel,
+PvaClientProcessPtr PvaClientProcess::create(
+        PvaClientPtr const &pvaClient,
+        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 {
-    EasyProcessPtr epv(new EasyProcess(pva,easyChannel,channel,pvRequest));
+    PvaClientProcessPtr epv(new PvaClientProcess(pvaClient,pvaClientChannel,channel,pvRequest));
     return epv;
 }
 
