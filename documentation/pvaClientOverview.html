@@ -84,8 +84,8 @@ PvaClientProcessPtr process = channel-&gt;createProcess();
 process-&gt;process();
 
 </pre>
-<p><b>pvaExample</b> includes a number of examples.</p>
-<p>pva does <b>not</b> provide support for:</p>
+<p><b>pvClientCPP/example</b> includes a number of examples.</p>
+<p>pvaClient does <b>not</b> provide support for:</p>
 <dl>
    <dt>ChannelArray</dt>
      <dd>TBD</dd>
@@ -103,7 +103,7 @@ PvaClientPtr pva = PvaClient::create();
 
 <p>PvaClient has methods to create instances of <b>PvaClientChannel</b>.
 The client can specify the provider name or use the default provider.
-The client can manage it's own channels or can let pva cache channels.
+The client can manage it's own channels or can let pvaClient cache channels.
 An example of using the cached method is:</p>
 <pre>
 PvaClientChannelPtr pvaChannel = pva-&gt;channel("exampleDouble");

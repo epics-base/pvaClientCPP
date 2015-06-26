@@ -78,30 +78,65 @@ public:
     void destroy() {
        pvaClientChannelMap.clear();
     }
-    PvaClientChannelPtr getChannel(string const & channelName);
+    PvaClientChannelPtr getChannel(
+        string const & channelName,
+        string const & providerName);
     void addChannel(PvaClientChannelPtr const & pvaClientChannel);
-    void removeChannel(string const & channelName);
+    void removeChannel(string const & channelName,string const & providerName);
+    void showCache();
+    size_t cacheSize();
 private:
     map<string,PvaClientChannelPtr> pvaClientChannelMap;
 };
    
-PvaClientChannelPtr PvaClientChannelCache::getChannel(string const & channelName)
+PvaClientChannelPtr PvaClientChannelCache::getChannel(
+    string const & channelName,
+    string const & providerName)
 {
-    map<string,PvaClientChannelPtr>::iterator iter = pvaClientChannelMap.find(channelName);
+    string name = channelName + providerName;
+    map<string,PvaClientChannelPtr>::iterator iter = pvaClientChannelMap.find(name);
     if(iter!=pvaClientChannelMap.end()) return iter->second;
     return PvaClientChannelPtr();
 }
 
 void PvaClientChannelCache::addChannel(PvaClientChannelPtr const & pvaClientChannel)
 {
+     Channel::shared_pointer channel = pvaClientChannel->getChannel();
+     string name = channel->getChannelName()
+         + channel->getProvider()->getProviderName();
      pvaClientChannelMap.insert(std::pair<string,PvaClientChannelPtr>(
-         pvaClientChannel->getChannelName(),pvaClientChannel));
+         name,pvaClientChannel));
 }
 
-void PvaClientChannelCache::removeChannel(string const & channelName)
+void PvaClientChannelCache::removeChannel(
+        string const & channelName,
+        string const & providerName)
 {
-    map<string,PvaClientChannelPtr>::iterator iter = pvaClientChannelMap.find(channelName);
+    string name = channelName + providerName;
+    map<string,PvaClientChannelPtr>::iterator iter = pvaClientChannelMap.find(name);
     if(iter!=pvaClientChannelMap.end()) pvaClientChannelMap.erase(iter);
+}
+
+void PvaClientChannelCache::showCache()
+{
+    map<string,PvaClientChannelPtr>::iterator iter;
+    for(iter = pvaClientChannelMap.begin(); iter != pvaClientChannelMap.end(); ++iter)
+    {
+         PvaClientChannelPtr pvaChannel = iter->second;
+         Channel::shared_pointer channel = pvaChannel->getChannel();
+         string channelName = channel->getChannelName();
+         string providerName = channel->getProvider()->getProviderName();
+         cout << "channel " << channelName << " provider " << providerName << endl;
+         cout << "  get and put cacheSize " << pvaChannel->cacheSize() << endl;
+         pvaChannel->showCache();
+    }
+    
+}
+
+size_t PvaClientChannelCache::cacheSize()
+{
+    return pvaClientChannelMap.size();
+
 }
 
 using namespace epics::pvaClient::pvaClientPvt;
@@ -149,6 +184,10 @@ void PvaClient::destroy()
 string PvaClient:: getRequesterName()
 {
     static string name("pvaClient");
+    RequesterPtr req = requester.lock();
+    if(req) {
+         return req->getRequesterName();
+    }
     return name;
 }
 
@@ -156,6 +195,11 @@ void  PvaClient::message(
         string const & message,
         MessageType messageType)
 {
+    RequesterPtr req = requester.lock();
+    if(req) {
+         req->message(message,messageType);
+         return;
+    }
     cout << getMessageTypeName(messageType) << " " << message << endl;
 }
 
@@ -164,7 +208,8 @@ PvaClientChannelPtr PvaClient::channel(
         std::string const & providerName,
         double timeOut)
 {
-    PvaClientChannelPtr pvaClientChannel = pvaClientChannelCache->getChannel(channelName);
+    PvaClientChannelPtr pvaClientChannel = 
+        pvaClientChannelCache->getChannel(channelName,providerName);
     if(pvaClientChannel) return pvaClientChannel;
     pvaClientChannel = createChannel(channelName,providerName);
     pvaClientChannel->connect(timeOut);
@@ -172,14 +217,30 @@ PvaClientChannelPtr PvaClient::channel(
     return pvaClientChannel;
 }
 
-PvaClientChannelPtr PvaClient::createChannel(string const & channelName)
-{
-     return PvaClientChannel::create(getPtrSelf(),channelName);
-}
-
 PvaClientChannelPtr PvaClient::createChannel(string const & channelName, string const & providerName)
 {
      return PvaClientChannel::create(getPtrSelf(),channelName,providerName);
+}
+
+void PvaClient::setRequester(RequesterPtr const & requester)
+{
+    this->requester = requester;
+}
+
+void PvaClient::clearRequester()
+{
+    requester = Requester::weak_pointer();
+}
+
+void PvaClient::showCache()
+{
+    pvaClientChannelCache->showCache();
+}
+
+
+size_t PvaClient::cacheSize()
+{
+    return pvaClientChannelCache->cacheSize();
 }
 
 PvaClientMultiChannelPtr PvaClient::createMultiChannel(

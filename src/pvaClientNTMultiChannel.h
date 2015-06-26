@@ -23,8 +23,7 @@ namespace epics { namespace pvaClient {
 class PvaClientNTMultiChannel;
 typedef std::tr1::shared_ptr<PvaClientNTMultiChannel> PvaClientNTMultiChannelPtr;
 
-/**
- * @brief Support for multiple channels where each channel has a value field that
+/** Support for multiple channels where each channel has a value field that
  * is a scalar, scalarArray, or enumerated structure.
  * The data is provided via normativeType NTMultiChannel.
  * If any problems arise an exception is thrown.
@@ -35,8 +34,7 @@ class epicsShareClass PvaClientNTMultiChannel
 {
 public:
     POINTER_DEFINITIONS(PvaClientNTMultiChannel);
-    /**
-     * @brief Create a PvaClientNTMultiChannel.
+    /** Create a PvaClientNTMultiChannel.
      * @param &pvaClient Interface to PvaClient
      * @param channelName PVStringArray of channelNames.
      * @param structure valid NTMultiChannel structure.
@@ -50,26 +48,21 @@ public:
         epics::pvData::StructureConstPtr const & structure,
         double timeout = 5.0,
         std::string const & providerName = "pva");
-    /**
-     * @brief destructor
+    /** Destructor
      */
     ~PvaClientNTMultiChannel();
-    /** 
-     * @brief destroy any resources used.
+    /** Destroy all resources used.
      */
     void destroy();
-    /** 
-     * @brief get the value of all the channels.
+    /** Get the value of all the channels.
      * @return The data.
      */
     epics::nt::NTMultiChannelPtr get();
-    /** 
-     * @brief put a new value to each  channel.
+    /** Put a new value to each  channel.
      * @param value The data.
      */
     void put(epics::nt::NTMultiChannelPtr const &value);
-    /** 
-     * @brief Get the PvaClientMultiChannel.
+    /** Get the PvaClientMultiChannel.
      * @return The interface.
      */
     PvaClientMultiChannelPtr getPvaClientMultiChannel();
