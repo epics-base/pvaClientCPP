@@ -38,6 +38,8 @@ static string noArray("value is not an array");
 static string noScalarArray("value is not a scalarArray");
 static string notDoubleArray("value is not a doubleArray");
 static string notStringArray("value is not a stringArray");
+static string noAlarm("no alarm");
+static string noTimeStamp("no timeStamp");
 
 PvaClientMonitorDataPtr PvaClientMonitorData::create(StructureConstPtr const & structure)
 {
@@ -221,6 +223,40 @@ shared_vector<const string> PvaClientMonitorData::getStringArray()
     }
     return pv->view();   
 
+}
+
+Alarm PvaClientMonitorData::getAlarm()
+{
+   if(!pvStructure) {
+        throw std::runtime_error(messagePrefix + noAlarm);
+   }
+   PVStructurePtr pvs = pvStructure->getSubField<PVStructure>("alarm");
+   if(!pvs) throw std::runtime_error(messagePrefix + noAlarm);
+   pvAlarm.attach(pvs);
+   if(pvAlarm.isAttached()) {
+       Alarm alarm;
+       pvAlarm.get(alarm);
+       pvAlarm.detach();
+       return alarm;
+   }
+   throw std::runtime_error(messagePrefix + noAlarm);
+}
+
+TimeStamp PvaClientMonitorData::getTimeStamp()
+{
+   if(!pvStructure) {
+        throw std::runtime_error(messagePrefix + noTimeStamp);
+   }
+   PVStructurePtr pvs = pvStructure->getSubField<PVStructure>("timeStamp");
+   if(!pvs) throw std::runtime_error(messagePrefix + noTimeStamp);
+   pvTimeStamp.attach(pvs);
+   if(pvTimeStamp.isAttached()) {
+       TimeStamp timeStamp;
+       pvTimeStamp.get(timeStamp);
+       pvTimeStamp.detach();
+       return timeStamp;
+   }
+   throw std::runtime_error(messagePrefix + noTimeStamp);
 }
 
 }}

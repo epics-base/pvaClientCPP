@@ -36,6 +36,8 @@ public:
     }
     PvaClientGetPtr getGet(string const & request);
     void addGet(string const & request,PvaClientGetPtr const & pvaClientGet);
+    void showCache();
+    size_t cacheSize();
 private:
     map<string,PvaClientGetPtr> pvaClientGetMap;
 };
@@ -58,6 +60,20 @@ void PvaClientGetCache::addGet(string const & request,PvaClientGetPtr const & pv
          request,pvaClientGet));
 }
 
+void PvaClientGetCache::showCache()
+{
+    map<string,PvaClientGetPtr>::iterator iter;
+    for(iter = pvaClientGetMap.begin(); iter != pvaClientGetMap.end(); ++iter)
+    {
+         cout << "        " << iter->first << endl;
+    }
+}
+
+size_t PvaClientGetCache::cacheSize()
+{
+    return pvaClientGetMap.size();
+
+}
 
 class PvaClientPutCache
 {
@@ -69,6 +85,8 @@ public:
     }
     PvaClientPutPtr getPut(string const & request);
     void addPut(string const & request,PvaClientPutPtr const & pvaClientPut);
+    void showCache();
+    size_t cacheSize();
 private:
     map<string,PvaClientPutPtr> pvaClientPutMap;
 };
@@ -89,6 +107,21 @@ void PvaClientPutCache::addPut(string const & request,PvaClientPutPtr const & pv
 {
      pvaClientPutMap.insert(std::pair<string,PvaClientPutPtr>(
          request,pvaClientPut));
+}
+
+void PvaClientPutCache::showCache()
+{
+    map<string,PvaClientPutPtr>::iterator iter;
+    for(iter = pvaClientPutMap.begin(); iter != pvaClientPutMap.end(); ++iter)
+    {
+         cout << "        " << iter->first << endl;
+    }
+}
+
+size_t PvaClientPutCache::cacheSize()
+{
+    return pvaClientPutMap.size();
+
 }
 
 class ChannelRequesterImpl : public ChannelRequester
@@ -480,6 +513,19 @@ PvaClientMonitorPtr  PvaClientChannel::createMonitor(PVStructurePtr const &  pvR
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
     return PvaClientMonitor::create(yyy,getPtrSelf(),channel,pvRequest);
+}
+
+void PvaClientChannel::showCache()
+{
+     cout << "    pvaClientGet" << endl;
+     pvaClientGetCache->showCache();
+     cout << "    pvaClientPut" << endl;
+     pvaClientPutCache->showCache();
+}
+
+size_t PvaClientChannel::cacheSize()
+{
+    return pvaClientGetCache->cacheSize() + pvaClientPutCache->cacheSize();
 }
 
 

@@ -169,7 +169,7 @@ Status PvaClientGet::waitConnect()
         return Status::Ok;
     }
     connectState = connectIdle;
-    return Status(Status::STATUSTYPE_ERROR,channelGetConnectStatus.getMessage());
+    return channelGetConnectStatus;
 }
 
 void PvaClientGet::get()
@@ -209,7 +209,7 @@ Status PvaClientGet::waitGet()
     if(channelGetStatus.isOK()) {
         return Status::Ok;
     }
-    return Status(Status::STATUSTYPE_ERROR,channelGetStatus.getMessage());
+    return channelGetStatus;
 }
 PvaClientGetDataPtr PvaClientGet::getData()
 {
