@@ -148,15 +148,6 @@ PvaClientPtr PvaClient::create()
     return xx;
 }
 
-PVStructurePtr PvaClient::createRequest(string const &request)
-{
-    CreateRequest::shared_pointer createRequest = CreateRequest::create();
-    PVStructurePtr pvRequest = createRequest->createRequest(request);
-    if(!pvRequest) {
-        throw std::invalid_argument("invalid pvRequest: " + createRequest->getMessage());
-    }
-    return pvRequest;
-}
 
 PvaClient::PvaClient()
 :   pvaClientChannelCache(new PvaClientChannelCache()),
@@ -176,8 +167,6 @@ void PvaClient::destroy()
         isDestroyed = true;
     }
     pvaClientChannelCache.reset();
-    channelList.clear();
-    multiChannelList.clear();
     StartStopClientFactory::PvaClientBeingDestroyed();
 }
 
@@ -241,19 +230,6 @@ void PvaClient::showCache()
 size_t PvaClient::cacheSize()
 {
     return pvaClientChannelCache->cacheSize();
-}
-
-PvaClientMultiChannelPtr PvaClient::createMultiChannel(
-    epics::pvData::PVStringArrayPtr const & channelNames)
-{
-    return createMultiChannel(channelNames,"pvaClient");
-}
-
-PvaClientMultiChannelPtr PvaClient::createMultiChannel(
-    epics::pvData::PVStringArrayPtr const & channelNames,
-    std::string const & providerName)
-{
-    return PvaClientMultiChannel::create(getPtrSelf(),channelNames,providerName);
 }
 
 }}

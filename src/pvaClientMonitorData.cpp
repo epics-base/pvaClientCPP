@@ -27,9 +27,12 @@ namespace epics { namespace pvaClient {
 
 
 typedef std::tr1::shared_ptr<PVArray> PVArrayPtr;
+
+static ConvertPtr convert = getConvert();
+
 static StructureConstPtr nullStructure;
 static PVStructurePtr nullPVStructure;
-static ConvertPtr convert = getConvert();
+
 static string noStructure("no pvStructure ");
 static string noValue("no value field");
 static string noScalar("value is not a scalar");
@@ -41,6 +44,7 @@ static string notStringArray("value is not a stringArray");
 static string noAlarm("no alarm");
 static string noTimeStamp("no timeStamp");
 
+
 PvaClientMonitorDataPtr PvaClientMonitorData::create(StructureConstPtr const & structure)
 {
     PvaClientMonitorDataPtr epv(new PvaClientMonitorData(structure));
@@ -49,8 +53,17 @@ PvaClientMonitorDataPtr PvaClientMonitorData::create(StructureConstPtr const & s
 
 PvaClientMonitorData::PvaClientMonitorData(StructureConstPtr const & structure)
 : structure(structure)
-{}
+{
+    messagePrefix = "";
+}
 
+void PvaClientMonitorData::setData(MonitorElementPtr const & monitorElement)
+{
+   pvStructure = monitorElement->pvStructurePtr;
+   changedBitSet = monitorElement->changedBitSet;
+   overrunBitSet = monitorElement->overrunBitSet;
+   pvValue = pvStructure->getSubField("value");
+}
 
 void PvaClientMonitorData::checkValue()
 {
@@ -118,14 +131,6 @@ std::ostream & PvaClientMonitorData::showOverrun(std::ostream & out)
         nextSet = overrunBitSet->nextSetBit(nextSet+1);
     }
     return out;
-}
-
-void PvaClientMonitorData::setData(MonitorElementPtr const & monitorElement)
-{
-   pvStructure = monitorElement->pvStructurePtr;
-   changedBitSet = monitorElement->changedBitSet;
-   overrunBitSet = monitorElement->overrunBitSet;
-   pvValue = pvStructure->getSubField("value");
 }
 
 bool PvaClientMonitorData::hasValue()

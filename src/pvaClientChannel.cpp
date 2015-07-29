@@ -182,6 +182,7 @@ void PvaClientChannel::channelStateChange(
     Channel::shared_pointer const & channel,
     Channel::ConnectionState connectionState)
 {
+    Lock xx(mutex);
     if(isDestroyed) return;
     bool waitingForConnect = false;
     if(connectState==connectActive) waitingForConnect = true;
@@ -193,6 +194,7 @@ void PvaClientChannel::channelStateChange(
          connectState = notConnected;
     } else {
          connectState = connected;
+         channelConnectStatus = Status::Ok;
     }
     if(waitingForConnect) waitForConnect.signal();
 }
@@ -211,7 +213,7 @@ void PvaClientChannel::message(
     if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    yyy->message(message, messageType);
+    yyy->message(channelName + " " + message, messageType);
 }
 
 void PvaClientChannel::destroy()
@@ -269,7 +271,7 @@ void PvaClientChannel::issueConnect()
     }
     channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
     if(!channel) {
-         throw std::runtime_error(channelConnectStatus.getMessage());
+         throw std::runtime_error(getChannelName() + " channelCreate failed ");
     }
 }
 
@@ -277,8 +279,7 @@ Status PvaClientChannel::waitConnect(double timeout)
 {
     if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
     waitForConnect.wait(timeout);
-    if(connectState==connected) return Status::Ok;
-    return Status(Status::STATUSTYPE_ERROR,channelConnectStatus.getMessage());
+    return channelConnectStatus;
 }
 
 PvaClientFieldPtr PvaClientChannel::createField()
@@ -288,6 +289,7 @@ PvaClientFieldPtr PvaClientChannel::createField()
 
 PvaClientFieldPtr PvaClientChannel::createField(string const & subField)
 {
+    if(connectState!=connected) connect(5.0);
     throw std::runtime_error("PvaClientChannel::createField not implemented");
 }
 
@@ -311,10 +313,9 @@ PvaClientProcessPtr PvaClientChannel::createProcess(string const & request)
 PvaClientProcessPtr PvaClientChannel::createProcess(PVStructurePtr const &  pvRequest)
 {
     if(connectState!=connected) connect(5.0);
-    if(connectState!=connected) throw std::runtime_error("PvaClientChannel::creatProcess not connected");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientProcess::create(yyy,getPtrSelf(),channel,pvRequest);
+    return PvaClientProcess::create(yyy,channel,pvRequest);
 }
 
 PvaClientGetPtr PvaClientChannel::get() {return get("value,alarm,timeStamp");}
@@ -349,10 +350,9 @@ PvaClientGetPtr PvaClientChannel::createGet(string const & request)
 PvaClientGetPtr PvaClientChannel::createGet(PVStructurePtr const &  pvRequest)
 {
     if(connectState!=connected) connect(5.0);
-    if(connectState!=connected) throw std::runtime_error("PvaClientChannel::creatGet not connected");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientGet::create(yyy,getPtrSelf(),channel,pvRequest);
+    return PvaClientGet::create(yyy,channel,pvRequest);
 }
 
 PvaClientPutPtr PvaClientChannel::put() {return put("value");}
@@ -388,10 +388,9 @@ PvaClientPutPtr PvaClientChannel::createPut(string const & request)
 PvaClientPutPtr PvaClientChannel::createPut(PVStructurePtr const & pvRequest)
 {
     if(connectState!=connected) connect(5.0);
-    if(connectState!=connected) throw std::runtime_error("PvaClientChannel::creatPut not connected");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientPut::create(yyy,getPtrSelf(),channel,pvRequest);
+    return PvaClientPut::create(yyy,channel,pvRequest);
 }
 
 PvaClientPutGetPtr PvaClientChannel::createPutGet()
@@ -414,33 +413,11 @@ PvaClientPutGetPtr PvaClientChannel::createPutGet(string const & request)
 PvaClientPutGetPtr PvaClientChannel::createPutGet(PVStructurePtr const & pvRequest)
 {
     if(connectState!=connected) connect(5.0);
-    if(connectState!=connected) throw std::runtime_error("PvaClientChannel::creatPutGet not connected");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientPutGet::create(yyy,getPtrSelf(),channel,pvRequest);
+    return PvaClientPutGet::create(yyy,channel,pvRequest);
 }
 
-PvaClientRPCPtr PvaClientChannel::createRPC()
-{
-    return createRPC("");
-}
-
-PvaClientRPCPtr PvaClientChannel::createRPC(string const & request)
-{
-    PVStructurePtr pvRequest = createRequest->createRequest(request);
-    if(!pvRequest) {
-        stringstream ss;
-        ss << "channel " << getChannelName();
-        ss << " PvaClientChannel::createRPC invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
-    }
-    return createRPC(pvRequest);
-}
-
-PvaClientRPCPtr PvaClientChannel::createRPC(PVStructurePtr const & pvRequest)
-{
-    throw std::runtime_error("PvaClientChannel::createRPC not implemented");
-}
 
 PvaClientArrayPtr PvaClientChannel::createArray()
 {
@@ -461,6 +438,7 @@ PvaClientArrayPtr PvaClientChannel::createArray(string const & request)
 
 PvaClientArrayPtr PvaClientChannel::createArray(PVStructurePtr const &  pvRequest)
 {
+    if(connectState!=connected) connect(5.0);
     throw std::runtime_error("PvaClientChannel::createArray not implemented");
 }
 
@@ -476,7 +454,8 @@ PvaClientMonitorPtr PvaClientChannel::monitor(string const & request)
 }
 
 PvaClientMonitorPtr PvaClientChannel::monitor(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester)
-{    return monitor("value,alarm,timeStamp",pvaClientMonitorRequester);
+{
+      return monitor("value,alarm,timeStamp",pvaClientMonitorRequester);
 }
 
 PvaClientMonitorPtr PvaClientChannel::monitor(string const & request,
@@ -509,10 +488,9 @@ PvaClientMonitorPtr PvaClientChannel::createMonitor(string const & request)
 PvaClientMonitorPtr  PvaClientChannel::createMonitor(PVStructurePtr const &  pvRequest)
 {
     if(connectState!=connected) connect(5.0);
-    if(connectState!=connected) throw std::runtime_error("PvaClientChannel::createMonitor not connected");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientMonitor::create(yyy,getPtrSelf(),channel,pvRequest);
+    return PvaClientMonitor::create(yyy,channel,pvRequest);
 }
 
 void PvaClientChannel::showCache()

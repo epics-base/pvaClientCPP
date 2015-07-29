@@ -47,11 +47,9 @@ public:
 
 PvaClientGet::PvaClientGet(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 : pvaClient(pvaClient),
-  pvaClientChannel(pvaClientChannel),
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
@@ -99,6 +97,7 @@ void PvaClientGet::channelGetConnect(
     if(status.isOK()) {
         pvaClientData = PvaClientGetData::create(structure);
         pvaClientData->setMessagePrefix(channel->getChannelName());
+        connectState = connected;
     }
     waitForConnect.signal();
     
@@ -158,17 +157,14 @@ void PvaClientGet::issueConnect()
 Status PvaClientGet::waitConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
+    if(connectState==connected) return channelGetConnectStatus;
     if(connectState!=connectActive) {
         stringstream ss;
         ss << "channel " << channel->getChannelName() << " pvaClientGet illegal connect state ";
         throw std::runtime_error(ss.str());
     }
     waitForConnect.wait();
-    if(channelGetConnectStatus.isOK()){
-        connectState = connected;
-        return Status::Ok;
-    }
-    connectState = connectIdle;
+    connectState = channelGetConnectStatus.isOK() ? connected : connectIdle;
     return channelGetConnectStatus;
 }
 
@@ -219,11 +215,10 @@ PvaClientGetDataPtr PvaClientGet::getData()
 
 PvaClientGetPtr PvaClientGet::create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 {
-    PvaClientGetPtr epv(new PvaClientGet(pvaClient,pvaClientChannel,channel,pvRequest));
+    PvaClientGetPtr epv(new PvaClientGet(pvaClient,channel,pvRequest));
     return epv;
 }
 
