@@ -47,7 +47,9 @@ PvaClientGetDataPtr PvaClientGetData::create(StructureConstPtr const & structure
 
 PvaClientGetData::PvaClientGetData(StructureConstPtr const & structure)
 : structure(structure)
-{}
+{
+    messagePrefix = "";
+}
 
 void PvaClientGetData::checkValue()
 {
@@ -69,7 +71,7 @@ PVStructurePtr PvaClientGetData::getPVStructure()
     throw std::runtime_error(messagePrefix + noStructure);
 }
 
-BitSetPtr PvaClientGetData::getBitSet()
+BitSetPtr PvaClientGetData::getChangedBitSet()
 {
     if(bitSet)return bitSet;
     throw std::runtime_error(messagePrefix + noStructure);
@@ -132,9 +134,7 @@ PVScalarPtr  PvaClientGetData::getScalarValue()
 {
     checkValue();
     PVScalarPtr pv = pvStructure->getSubField<PVScalar>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + noScalar);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + noScalar);
     return pv;
 }
 
@@ -142,9 +142,7 @@ PVArrayPtr  PvaClientGetData::getArrayValue()
 {
     checkValue();
     PVArrayPtr pv = pvStructure->getSubField<PVArray>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + noArray);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + noArray);
     return pv;
 }
 
@@ -152,9 +150,7 @@ PVScalarArrayPtr  PvaClientGetData::getScalarArrayValue()
 {
     checkValue();
     PVScalarArrayPtr pv = pvStructure->getSubField<PVScalarArray>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + noScalarArray);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + noScalarArray);
     return pv;
 }
 
@@ -182,9 +178,7 @@ shared_vector<const double> PvaClientGetData::getDoubleArray()
 {
     checkValue();
     PVDoubleArrayPtr pv = pvStructure->getSubField<PVDoubleArray>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + notDoubleArray);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + notDoubleArray);
     return pv->view();   
 }
 
@@ -192,18 +186,14 @@ shared_vector<const string> PvaClientGetData::getStringArray()
 {
     checkValue();
     PVStringArrayPtr pv = pvStructure->getSubField<PVStringArray>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + notStringArray);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + notStringArray);
     return pv->view();   
 }
 
 
 Alarm PvaClientGetData::getAlarm()
 {
-   if(!pvStructure) {
-        throw std::runtime_error(messagePrefix + noAlarm);
-   }
+   if(!pvStructure) throw new std::runtime_error(messagePrefix + noStructure);
    PVStructurePtr pvs = pvStructure->getSubField<PVStructure>("alarm");
    if(!pvs) throw std::runtime_error(messagePrefix + noAlarm);
    pvAlarm.attach(pvs);
@@ -218,9 +208,7 @@ Alarm PvaClientGetData::getAlarm()
 
 TimeStamp PvaClientGetData::getTimeStamp()
 {
-   if(!pvStructure) {
-        throw std::runtime_error(messagePrefix + noTimeStamp);
-   }
+   if(!pvStructure) throw new std::runtime_error(messagePrefix + noStructure);
    PVStructurePtr pvs = pvStructure->getSubField<PVStructure>("timeStamp");
    if(!pvs) throw std::runtime_error(messagePrefix + noTimeStamp);
    pvTimeStamp.attach(pvs);

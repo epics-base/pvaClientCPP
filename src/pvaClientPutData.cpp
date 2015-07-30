@@ -57,6 +57,7 @@ PvaClientPutData::PvaClientPutData(StructureConstPtr const & structure)
   pvStructure(getPVDataCreate()->createPVStructure(structure)),
   bitSet(BitSetPtr(new BitSet(pvStructure->getNumberFields())))
 {
+    messagePrefix = "";
     size_t nfields = pvStructure->getNumberFields();
     postHandler.resize(nfields);
     PVFieldPtr pvField;
@@ -95,7 +96,7 @@ StructureConstPtr PvaClientPutData::getStructure()
 PVStructurePtr PvaClientPutData::getPVStructure()
 {return pvStructure;}
 
-BitSetPtr PvaClientPutData::getBitSet()
+BitSetPtr PvaClientPutData::getChangedBitSet()
 {return bitSet;}
 
 std::ostream & PvaClientPutData::showChanged(std::ostream & out)
@@ -145,9 +146,7 @@ PVScalarPtr  PvaClientPutData::getScalarValue()
 {
     checkValue();
     PVScalarPtr pv = pvStructure->getSubField<PVScalar>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + notScalar);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + notScalar);
     return pv;
 }
 
@@ -155,9 +154,7 @@ PVArrayPtr  PvaClientPutData::getArrayValue()
 {
     checkValue();
     PVArrayPtr pv = pvStructure->getSubField<PVArray>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + notArray);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + notArray);
     return pv;
 }
 
@@ -165,9 +162,7 @@ PVScalarArrayPtr  PvaClientPutData::getScalarArrayValue()
 {
     checkValue();
     PVScalarArrayPtr pv = pvStructure->getSubField<PVScalarArray>("value");
-    if(!pv) {
-        throw std::runtime_error(messagePrefix + notScalarArray);
-    }
+    if(!pv) throw std::runtime_error(messagePrefix + notScalarArray);
     return pv;
 }
 
@@ -180,7 +175,7 @@ double PvaClientPutData::getDouble()
         return pvDouble->get();
     }
     if(!ScalarTypeFunc::isNumeric(scalarType)) {
-        throw std::runtime_error(notCompatibleScalar);
+        throw std::runtime_error(messagePrefix  + notCompatibleScalar);
     }
     return convert->toDouble(pvScalar);
 }

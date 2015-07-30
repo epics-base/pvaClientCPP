@@ -70,16 +70,7 @@ class PvaClientMonitorRequester;
 typedef std::tr1::shared_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterPtr;
 class PvaClientArray;
 typedef std::tr1::shared_ptr<PvaClientArray> PvaClientArrayPtr;
-class PvaClientRPC;
-typedef std::tr1::shared_ptr<PvaClientRPC> PvaClientRPCPtr;
 
-typedef epics::pvData::shared_vector<const PvaClientChannelPtr> PvaClientChannelArray;
-typedef std::tr1::shared_ptr<PvaClientChannelArray> PvaClientChannelArrayPtr;
-typedef std::tr1::weak_ptr<PvaClientChannelArray> PvaClientChannelArrayWPtr;
-
-class PvaClientMultiChannel;
-typedef std::tr1::shared_ptr<PvaClientMultiChannel> PvaClientMultiChannelPtr;
-class PvaClientMultiChannelGet;
 
 // following are private to pvaClient
 class PvaClientChannelCache;
@@ -168,20 +159,6 @@ public:
      /** Get the number of cached channels.
      */
     size_t cacheSize();
-    /** Create an PvaClientMultiChannel. The provider is pvAccess.
-     * @param channelName The channelName array.
-     * @return The interface.
-     */
-    PvaClientMultiChannelPtr createMultiChannel(
-        epics::pvData::PVStringArrayPtr const & channelNames);
-    /** Create an PvaClientMultiChannel with the specified provider.
-     * @param channelName The channelName array.
-     * @param providerName The provider.
-     * @return The interface.
-     */
-    PvaClientMultiChannelPtr createMultiChannel(
-        epics::pvData::PVStringArrayPtr const & channelNames,
-        std::string const & providerName);
     /** Get shared pointer to this
      */
     PvaClientPtr getPtrSelf()
@@ -192,9 +169,6 @@ private:
     PvaClient();
     PvaClientChannelCachePtr pvaClientChannelCache;
 
-    epics::pvData::PVStructurePtr createRequest(std::string const &request);
-    std::list<PvaClientChannelPtr> channelList;
-    std::list<PvaClientMultiChannelPtr> multiChannelList;
     epics::pvData::Requester::weak_pointer requester;
     bool isDestroyed;
     epics::pvData::Mutex mutex;
@@ -218,7 +192,7 @@ public:
     /** Create a PvaClientChannel.
      * @param channelName The name of the channel.
      * @param providerName The name of the provider.
-     * @return The interface to the PvaClientStructure.
+     * @return The interface to the PvaClientChannel.
      */
     static PvaClientChannelPtr create(
          PvaClientPtr const &pvaClient,
@@ -337,21 +311,6 @@ public:
      * @return The interface.
      */
     PvaClientPutGetPtr createPutGet(epics::pvData::PVStructurePtr const & pvRequest);
-    /** Call createRPC(PVStructure(null))
-     * @return The interface.
-     */
-    PvaClientRPCPtr createRPC();
-    /**
-     * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
-     * @param request The request as described in package org.epics.pvdata.copy
-     * @return The interface.
-     */
-    PvaClientRPCPtr createRPC(std::string const & request);
-    /** Create an PvaClientRPC.
-     * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
-     * @return The interface.
-     */
-    PvaClientRPCPtr createRPC(epics::pvData::PVStructurePtr const & pvRequest);
     /** Call the next method with request = "field(value)";
      * @return The interface.
      */
@@ -479,7 +438,7 @@ public:
     * This shows which fields have changed value.
     * @return The bitSet
     */
-   epics::pvData::BitSetPtr getBitSet();
+   epics::pvData::BitSetPtr getChangedBitSet();
    /** Show the fields that have changed.
     * @param out The stream that shows the changed fields.
     * @return The stream that was input
@@ -597,7 +556,7 @@ public:
      * This shows which fields have changed value.
      * @return The bitSet
      */
-    epics::pvData::BitSetPtr getBitSet();
+    epics::pvData::BitSetPtr getChangedBitSet();
     /**  Show the fields that have changed.
      * @param out The stream that shows the changed fields.
      * @return The stream that was input
@@ -739,11 +698,6 @@ public:
      * @return The stream that was input
      */
     std::ostream & showOverrun(std::ostream & out);
-    /**
-     * @brief New data is present.
-     * @param monitorElement The new data.
-     */
-    void setData(epics::pvData::MonitorElementPtr const & monitorElement);
     /** Is there a top level field named value.
      * @return The answer.
      */
@@ -807,10 +761,16 @@ public:
      * @return The timeStamp.
      */
     epics::pvData::TimeStamp getTimeStamp();
+    /*
+     * This is called by pvaClientMonitor when it gets a monitor.
+     * @param monitorElement The new data.
+     * @param monitorElement The new data.
+     */
+    void setData(epics::pvData::MonitorElementPtr const & monitorElement);
 private:
     PvaClientMonitorData(epics::pvData::StructureConstPtr const & structure);
     void checkValue();
-
+    
     epics::pvData::StructureConstPtr structure;
     epics::pvData::PVStructurePtr pvStructure;
     epics::pvData::BitSetPtr changedBitSet;
@@ -820,6 +780,7 @@ private:
     epics::pvData::PVFieldPtr pvValue;
     epics::pvData::PVAlarm pvAlarm;
     epics::pvData::PVTimeStamp pvTimeStamp;
+    friend class PvaClientMonitor;
 };
 
 class ChannelProcessRequesterImpl; // private to PvaClientProcess
@@ -834,14 +795,12 @@ public:
     POINTER_DEFINITIONS(PvaClientProcess);
     /** Create a PvaClientProcess.
      * @param &pvaClient Interface to PvaClient
-     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the PvaClientStructure.
+     * @return The interface to the PvaClientProcess.
      */
     static PvaClientProcessPtr create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
@@ -877,7 +836,6 @@ public:
 private:
     PvaClientProcess(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -888,18 +846,15 @@ private:
     void processDone(
         const epics::pvData::Status& status,
         epics::pvAccess::ChannelProcess::shared_pointer const & channelProcess);
-    void checkProcessState();
     enum ProcessConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
-    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelProcessRequester::shared_pointer processRequester;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForProcess;
-    std::string messagePrefix;
 
     bool isDestroyed;
     epics::pvData::Status channelProcessConnectStatus;
@@ -925,14 +880,12 @@ public:
     POINTER_DEFINITIONS(PvaClientGet);
     /** Create a PvaClientGet.
      * @param &pvaClient Interface to PvaClient
-     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the PvaClientStructure.
+     * @return The interface to the PvaClientGet.
      */
     static PvaClientGetPtr create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
@@ -975,7 +928,6 @@ public:
 private:
     PvaClientGet(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -993,7 +945,6 @@ private:
     enum GetConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
-    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelGetRequester::shared_pointer getRequester;
     epics::pvData::PVStructurePtr pvRequest;
@@ -1027,14 +978,12 @@ public:
     POINTER_DEFINITIONS(PvaClientPut);
     /** Create a PvaClientPut.
      * @param &pvaClient Interface to PvaClient
-     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the PvaClientStructure.
+     * @return The interface to the PvaClientPut.
      */
     static PvaClientPutPtr create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
@@ -1087,7 +1036,6 @@ public:
 private :
     PvaClientPut(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -1108,7 +1056,6 @@ private :
     enum PutConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
-    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelPutRequester::shared_pointer putRequester;
     epics::pvData::PVStructurePtr pvRequest;
@@ -1116,13 +1063,11 @@ private :
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForGetPut;
     PvaClientPutDataPtr pvaClientData;
-    std::string messagePrefix;
 
     bool isDestroyed;
     epics::pvData::Status channelPutConnectStatus;
     epics::pvData::Status channelGetPutStatus;
     epics::pvAccess::ChannelPut::shared_pointer channelPut;
-
     PutConnectState connectState;
 
     enum PutState {putIdle,getActive,putActive,putComplete};
@@ -1141,14 +1086,12 @@ public:
     POINTER_DEFINITIONS(PvaClientPutGet);
     /** Create a PvaClientPutGet.
      * @param &pvaClient Interface to PvaClient
-     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the PvaClientStructure.
+     * @return The interface to the PvaClientPutGet.
      */
     static PvaClientPutGetPtr create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
@@ -1217,7 +1160,6 @@ public:
 private :
     PvaClientPutGet(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -1246,7 +1188,6 @@ private :
     enum PutGetConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
-    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvAccess::ChannelPutGetRequester::shared_pointer putGetRequester;
     epics::pvData::PVStructurePtr pvRequest;
@@ -1255,15 +1196,12 @@ private :
     epics::pvData::Event waitForPutGet;
     PvaClientGetDataPtr pvaClientGetData;
     PvaClientPutDataPtr pvaClientPutData;
-    std::string messagePrefix;
 
     bool isDestroyed;
     epics::pvData::Status channelPutGetConnectStatus;
-    epics::pvData::Status channelGetPutGetStatus;
-    epics::pvAccess::ChannelPutGet::shared_pointer channelPutGet;
-
-    PutGetConnectState connectState;
     epics::pvData::Status channelPutGetStatus;
+    epics::pvAccess::ChannelPutGet::shared_pointer channelPutGet;
+    PutGetConnectState connectState;
 
     enum PutGetState {putGetIdle,putGetActive,putGetComplete};
     PutGetState putGetState;
@@ -1299,14 +1237,12 @@ public:
     POINTER_DEFINITIONS(PvaClientMonitor);
     /** Create a PvaClientMonitor.
      * @param &pvaClient Interface to PvaClient
-     * @param pvaClientChannel Interface to PvaClientChannel
      * @param channel Interface to Channel
      * @param pvRequest The request structure.
-     * @return The interface to the PvaClientStructure.
+     * @return The interface to the PvaClientMonitor.
      */
     static PvaClientMonitorPtr create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
@@ -1366,7 +1302,6 @@ public:
 private:
     PvaClientMonitor(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
     std::string getRequesterName();
@@ -1381,7 +1316,6 @@ private:
     enum MonitorConnectState {connectIdle,connectActive,connected,monitorStarted};
 
     PvaClient::weak_pointer pvaClient;
-    PvaClientChannel::weak_pointer pvaClientChannel;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::MonitorRequester::shared_pointer monitorRequester;
@@ -1389,7 +1323,6 @@ private:
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForEvent;
     PvaClientMonitorDataPtr pvaClientData;
-    std::string messagePrefix;
 
     bool isDestroyed;
     epics::pvData::Status connectStatus;
@@ -1402,89 +1335,6 @@ private:
     bool userWait;
     friend class ChannelMonitorRequester;
 };
-
-/**
- * Provides access to multiple channels.
- *
- * @author mrk
- */
-class epicsShareClass PvaClientMultiChannel :
-    public std::tr1::enable_shared_from_this<PvaClientMultiChannel>
-{
-public:
-    POINTER_DEFINITIONS(PvaClientMultiChannel);
-    /** Create a PvaClientMultiChannel.
-     * @param channelNames The name. of the channel..
-     * @param providerName The name of the provider.
-     * @return The interface to the PvaClientStructure.
-     */
-    static PvaClientMultiChannelPtr create(
-         PvaClientPtr const &pvaClient,
-         epics::pvData::PVStringArrayPtr const & channelNames,
-         std::string const & providerName = "pva");
-    ~PvaClientMultiChannel();
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
-    /** Get the channelNames.
-     * @return The names.
-     */
-    epics::pvData::PVStringArrayPtr getChannelNames();
-    /** Connect to the channels.
-     * This calls issueConnect and waitConnect.
-     * An exception is thrown if connect fails.
-     * @param timeout The time to wait for connecting to the channel.
-     * @param maxNotConnected Maximum number of channels that do not connect.
-     * @return status of request
-     */
-    epics::pvData::Status connect(
-       double timeout=5,
-       size_t maxNotConnected=0);
-    /** Are all channels connected?
-     * @return if all are connected.
-     */
-    bool allConnected();
-    /** Has a connection state change occured?
-     * @return (true, false) if (at least one, no) channel has changed state.
-     */
-    bool connectionChange();
-    /** Get the connection state of each channel.
-     * @return The state of each channel.
-     */
-    epics::pvData::PVBooleanArrayPtr getIsConnected();
-    /** Get the pvaClientChannelArray.
-     * @return The weak shared pointer.
-     */
-    PvaClientChannelArrayWPtr getPvaClientChannelArray();
-    /** Get pvaClient.
-     * @return The weak shared pointer.
-     */
-    PvaClient::weak_pointer getPvaClient();
-    /** Get the shared pointer to self.
-     * @return The shared pointer.
-     */
-    PvaClientMultiChannelPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
-private:
-    PvaClientMultiChannel(
-        PvaClientPtr const &pvaClient,
-        epics::pvData::PVStringArrayPtr const & channelName,
-        std::string const & providerName);
-
-    PvaClient::weak_pointer pvaClient;
-    epics::pvData::PVStringArrayPtr channelName;
-    std::string providerName;
-    size_t numChannel;
-    epics::pvData::Mutex mutex;
-
-    size_t numConnected;
-    PvaClientChannelArrayPtr pvaClientChannelArray;
-    epics::pvData::PVBooleanArrayPtr isConnected;
-    bool isDestroyed;
-};
-
 
 }}
 

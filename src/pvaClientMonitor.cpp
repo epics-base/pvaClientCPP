@@ -48,11 +48,9 @@ public:
 
 PvaClientMonitor::PvaClientMonitor(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 : pvaClient(pvaClient),
-  pvaClientChannel(pvaClientChannel),
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
@@ -108,6 +106,7 @@ void PvaClientMonitor::monitorConnect(
 
 void PvaClientMonitor::monitorEvent(MonitorPtr const & monitor)
 {
+    if(isDestroyed) throw std::runtime_error("pvaClientMonitor was destroyed");
     PvaClientMonitorRequesterPtr req = pvaClientMonitorRequester.lock();
     if(req) req->event(getPtrSelf());
     if(userWait) waitForEvent.signal();
@@ -118,7 +117,6 @@ void PvaClientMonitor::unlisten()
     destroy();
 }
 
-// from PvaClientMonitor
 void PvaClientMonitor::destroy()
 {
     {
@@ -128,6 +126,7 @@ void PvaClientMonitor::destroy()
     }
     if(monitor) monitor->destroy();
     monitor.reset();
+    monitorElement.reset();
 }
 
 void PvaClientMonitor::connect()
@@ -163,12 +162,8 @@ Status PvaClientMonitor::waitConnect()
         throw std::runtime_error(ss.str());
     }
     waitForConnect.wait();
-    if(connectStatus.isOK()){
-        connectState = connected;
-        return Status::Ok;
-    }
-    connectState = connectIdle;
-    return Status(Status::STATUSTYPE_ERROR,connectStatus.getMessage());
+    connectState = connectStatus.isOK() ? connected : connectIdle;
+    return connectStatus;
 }
 
 void PvaClientMonitor::setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorrRequester)
@@ -210,7 +205,7 @@ bool PvaClientMonitor::poll()
 bool PvaClientMonitor::waitEvent(double secondsToWait)
 {
     if(isDestroyed) throw std::runtime_error("pvaClientMonitor was destroyed");
-    if(connectState!=monitorStarted) throw std::runtime_error("PvaClientMonitor::poll illegal state");
+    if(connectState!=monitorStarted) throw std::runtime_error("PvaClientMonitor::waitEvent illegal state");
     if(poll()) return true;
     userWait = true;
     if(secondsToWait==0.0) {
@@ -239,11 +234,10 @@ PvaClientMonitorDataPtr PvaClientMonitor::getData()
 
 PvaClientMonitorPtr PvaClientMonitor::create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 {
-    PvaClientMonitorPtr epv(new PvaClientMonitor(pvaClient,pvaClientChannel,channel,pvRequest));
+    PvaClientMonitorPtr epv(new PvaClientMonitor(pvaClient,channel,pvRequest));
     return epv;
 }
 

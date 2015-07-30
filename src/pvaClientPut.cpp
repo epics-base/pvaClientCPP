@@ -50,11 +50,9 @@ public:
 
 PvaClientPut::PvaClientPut(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 : pvaClient(pvaClient),
-  pvaClientChannel(pvaClientChannel),
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
@@ -103,7 +101,7 @@ void PvaClientPut::channelPutConnect(
     this->channelPut = channelPut;
     if(status.isOK()) {
         pvaClientData = PvaClientPutData::create(structure);
-        pvaClientData->setMessagePrefix(pvaClientChannel.lock()->getChannelName());
+        pvaClientData->setMessagePrefix(channel->getChannelName());
     }
     waitForConnect.signal();
     
@@ -120,7 +118,7 @@ void PvaClientPut::getDone(
     if(status.isOK()) {
         PVStructurePtr pvs = pvaClientData->getPVStructure();
         pvs->copyUnchecked(*pvStructure,*bitSet);
-        BitSetPtr bs = pvaClientData->getBitSet();
+        BitSetPtr bs = pvaClientData->getChangedBitSet();
         bs->clear();
         *bs |= *bitSet;
     }
@@ -182,12 +180,8 @@ Status PvaClientPut::waitConnect()
         throw std::runtime_error(ss.str());
     }
     waitForConnect.wait();
-    if(channelPutConnectStatus.isOK()) {
-        connectState = connected;
-        return Status::Ok;
-    }
-    connectState = connectIdle;
-    return Status(Status::STATUSTYPE_ERROR,channelPutConnectStatus.getMessage());
+    connectState = channelPutConnectStatus.isOK() ? connected : connectIdle;
+    return channelPutConnectStatus;
 }
 
 void PvaClientPut::get()
@@ -211,7 +205,7 @@ void PvaClientPut::issueGet()
         throw std::runtime_error(ss.str());
     }
     putState = getActive;
-    pvaClientData->getBitSet()->clear();
+    pvaClientData->getChangedBitSet()->clear();
     channelPut->get();
 }
 
@@ -225,10 +219,7 @@ Status PvaClientPut::waitGet()
     }
     waitForGetPut.wait();
     putState = putIdle;
-    if(channelGetPutStatus.isOK()) {
-        return Status::Ok;
-    }
-    return Status(Status::STATUSTYPE_ERROR,channelGetPutStatus.getMessage());
+    return channelGetPutStatus;
 }
 
 void PvaClientPut::put()
@@ -252,7 +243,7 @@ void PvaClientPut::issuePut()
         throw std::runtime_error(ss.str());
     }
     putState = putActive;
-    channelPut->put(pvaClientData->getPVStructure(),pvaClientData->getBitSet());
+    channelPut->put(pvaClientData->getPVStructure(),pvaClientData->getChangedBitSet());
 }
 
 Status PvaClientPut::waitPut()
@@ -265,11 +256,8 @@ Status PvaClientPut::waitPut()
     }
     waitForGetPut.wait();
     putState = putIdle;
-    if(channelGetPutStatus.isOK()) {
-        pvaClientData->getBitSet()->clear();
-        return Status::Ok;
-    }
-    return Status(Status::STATUSTYPE_ERROR,channelGetPutStatus.getMessage());
+    if(channelGetPutStatus.isOK()) pvaClientData->getChangedBitSet()->clear();
+    return channelGetPutStatus;
 }
 
 PvaClientPutDataPtr PvaClientPut::getData()
@@ -280,11 +268,10 @@ PvaClientPutDataPtr PvaClientPut::getData()
 
 PvaClientPutPtr PvaClientPut::create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 {
-    PvaClientPutPtr epv(new PvaClientPut(pvaClient,pvaClientChannel,channel,pvRequest));
+    PvaClientPutPtr epv(new PvaClientPut(pvaClient,channel,pvRequest));
     return epv;
 }
 

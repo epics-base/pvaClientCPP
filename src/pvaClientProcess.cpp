@@ -44,11 +44,9 @@ public:
 
 PvaClientProcess::PvaClientProcess(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 : pvaClient(pvaClient),
-  pvaClientChannel(pvaClientChannel),
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
@@ -60,13 +58,6 @@ PvaClientProcess::PvaClientProcess(
 PvaClientProcess::~PvaClientProcess()
 {
     destroy();
-}
-
-void PvaClientProcess::checkProcessState()
-{
-    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
-    if(connectState==connectIdle) connect();
-    if(processState==processIdle) process();
 }
 
 // from ChannelProcessRequester
@@ -89,7 +80,7 @@ void PvaClientProcess::channelProcessConnect(
     const Status& status,
     ChannelProcess::shared_pointer const & channelProcess)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
+    if(isDestroyed) return;
     channelProcessConnectStatus = status;
     this->channelProcess = channelProcess;
     waitForConnect.signal();
@@ -100,7 +91,7 @@ void PvaClientProcess::processDone(
     const Status& status,
     ChannelProcess::shared_pointer const & channelProcess)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
+    if(isDestroyed) return;
     channelProcessStatus = status;
     waitForProcess.signal();
 }
@@ -151,12 +142,8 @@ Status PvaClientProcess::waitConnect()
         throw std::runtime_error(ss.str());
     }
     waitForConnect.wait();
-    if(channelProcessConnectStatus.isOK()){
-        connectState = connected;
-        return Status::Ok;
-    }
-    connectState = connectIdle;
-    return Status(Status::STATUSTYPE_ERROR,channelProcessConnectStatus.getMessage());
+    connectState = channelProcessConnectStatus.isOK() ? connected : connectIdle;
+    return channelProcessConnectStatus;
 }
 
 void PvaClientProcess::process()
@@ -193,19 +180,15 @@ Status PvaClientProcess::waitProcess()
     }
     waitForProcess.wait();
     processState = processIdle;
-    if(channelProcessStatus.isOK()) {
-        return Status::Ok;
-    }
-    return Status(Status::STATUSTYPE_ERROR,channelProcessStatus.getMessage());
+    return channelProcessStatus;
 }
 
 PvaClientProcessPtr PvaClientProcess::create(
         PvaClientPtr const &pvaClient,
-        PvaClientChannelPtr const & pvaClientChannel,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
 {
-    PvaClientProcessPtr epv(new PvaClientProcess(pvaClient,pvaClientChannel,channel,pvRequest));
+    PvaClientProcessPtr epv(new PvaClientProcess(pvaClient,channel,pvRequest));
     return epv;
 }
 
