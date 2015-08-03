@@ -297,23 +297,15 @@ It has methods:</p>
 <h2>PvaClientMultiChannel - Wrapper For Multiple Channels</h2>
 <h3>PvaClientMultiChannel</h3>
 <p>This provides methods for connecting to multiple channels.
-A client can either use PvaClientMultiChannel directly or use PvaClientMultiDouble or PvaClientNTMultiChannel.
-But both impose restrictions on what can be accessed.
 </p>
-<h3>PvaClientMultiDouble</h3>
-<p>This provides support for gets and puts to the value field of multiple channels.
-Each channel must have a value field that is a numeric scalar.
-The client always sees the data as a PVDoubleArray.
-All channels must connect.
-If any problems occur an exception is thrown.
+<h3>PvaClientMultiGetDouble</h3>
+<p>This provides support for channelGet to multiple channels.
 </p>
-<h3>PvaClientNTMultiChannel</h3>
-<p>This provides support for gets and puts to the value field of multiple channels.
-Each channel must have a value field.
-The client always sees the data as a NTMultiChannel, which is one
-of the types provided by normativeTypesCPP.
-All channels must connect.
-If any problems occur an exception is thrown.
+<h3>PvaClientMultiPutDouble</h3>
+<p>This provides support for channelPut to multiple channels.
+</p>
+<h3>PvaClientMultiMonitorDouble</h3>
+<p>This provides support for monitoring changes to multiple channels.
 </p>
 
 </div> <!-- class="contents" -->
