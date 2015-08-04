@@ -26,11 +26,20 @@ static void examplePut(PvaClientPtr const &pva)
     PvaClientChannelPtr channel = pva->channel("exampleDouble");
     PvaClientPutPtr put = channel->put();
     PvaClientPutDataPtr putData = put->getData();
+    PvaClientMonitorPtr monitor = pva->channel("exampleDouble")->monitor("");
+    PvaClientMonitorDataPtr monitorData = monitor->getData();
     try {
         putData->putDouble(3.0); put->put();
         cout <<  channel->get("field()")->getData()->showChanged(cout) << endl;
         putData->putDouble(4.0); put->put();
         cout <<  channel->get("field()")->getData()->showChanged(cout) << endl;
+        if(!monitor->waitEvent()) {
+               cout << "waitEvent returned false. Why???";
+        } else while(true) {
+             cout << "monitor changed\n" << monitorData->showChanged(cout);
+             monitor->releaseEvent();
+             if(!monitor->poll()) break;
+        }
     } catch (std::runtime_error e) {
         cout << "exception " << e.what() << endl;
     }
