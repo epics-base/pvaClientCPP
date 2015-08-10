@@ -14,6 +14,7 @@ For example:
 ...
 mrk> pwd
 /home/epicsv4/pvaClientTestCPP/database/iocBoot/exampleDatabase
+
 mrk> ../../bin/linux-x86_64/exampleDatabase st.cmd 
 ...
 
