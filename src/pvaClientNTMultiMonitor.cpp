@@ -1,4 +1,4 @@
-/* pvaClientMultiMonitorDouble.cpp */
+/* pvaClientNTMultiMonitor.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -30,34 +30,44 @@ static PVDataCreatePtr pvDataCreate = getPVDataCreate();
 static StandardFieldPtr standardField = getStandardField();
 
 
-PvaClientMultiMonitorDoublePtr PvaClientMultiMonitorDouble::create(
+PvaClientNTMultiMonitorPtr PvaClientNTMultiMonitor::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
-    PvaClientChannelArray const &pvaClientChannelArray)
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest)
 {
-    PvaClientMultiMonitorDoublePtr pvaClientMultiMonitorDouble(
-         new PvaClientMultiMonitorDouble(pvaMultiChannel,pvaClientChannelArray));
-    return pvaClientMultiMonitorDouble;
+    UnionConstPtr u = fieldCreate->createVariantUnion();
+    PvaClientNTMultiMonitorPtr pvaClientNTMultiMonitor(
+         new PvaClientNTMultiMonitor(u,pvaMultiChannel,pvaClientChannelArray,pvRequest));
+    return pvaClientNTMultiMonitor;
 }
 
-PvaClientMultiMonitorDouble::PvaClientMultiMonitorDouble(
-     PvaClientMultiChannelPtr const &pvaClientMultiChannel,
-     PvaClientChannelArray const &pvaClientChannelArray)
+PvaClientNTMultiMonitor::PvaClientNTMultiMonitor(
+    UnionConstPtr const & u,
+    PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+    PvaClientChannelArray const &pvaClientChannelArray,
+    PVStructurePtr const &  pvRequest)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
   nchannel(pvaClientChannelArray.size()),
-  doubleValue(shared_vector<double>(nchannel,nan(""))),
-  pvaClientMonitor(std::vector<PvaClientMonitorPtr>(nchannel,PvaClientMonitorPtr())),
-  isMonitorConnected(false),
+  pvRequest(pvRequest),
+  pvaClientNTMultiData(
+       PvaClientNTMultiData::create(
+           u,
+           pvaClientMultiChannel,
+           pvaClientChannelArray,
+           pvRequest)),
+  isConnected(false),
   isDestroyed(false)
 {
 }
 
-PvaClientMultiMonitorDouble::~PvaClientMultiMonitorDouble()
+
+PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor()
 {
     destroy();
 }
 
-void PvaClientMultiMonitorDouble::destroy()
+void PvaClientNTMultiMonitor::destroy()
 {
     {
         Lock xx(mutex);
@@ -67,10 +77,14 @@ void PvaClientMultiMonitorDouble::destroy()
     pvaClientChannelArray.clear();
 }
 
-void PvaClientMultiMonitorDouble::connect()
+
+void PvaClientNTMultiMonitor::connect()
 {
+    pvaClientMonitor.resize(nchannel);
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     string request = "value";
+    if(pvRequest->getSubField("field.alarm")) request += ",alarm";
+    if(pvRequest->getSubField("field.timeStamp")) request += ",timeStamp";
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -85,39 +99,39 @@ void PvaClientMultiMonitorDouble::connect()
                if(status.isOK()) continue;
                stringstream ss;
                string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelGet::waitConnect " << status.getMessage();
+               ss << "channel " << channelName << " PvaChannelMonitor::waitConnect " << status.getMessage();
                throw std::runtime_error(ss.str());
          }
     }
-     for(size_t i=0; i<nchannel; ++i)
+    for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) pvaClientMonitor[i]->start();
     }
-    isMonitorConnected = true;
+    this->isConnected = true;
 }
 
-bool PvaClientMultiMonitorDouble::poll()
+bool PvaClientNTMultiMonitor::poll()
 {
-    if(!isMonitorConnected){
-         connect();
-         epicsThreadSleep(.01);
-    }
+    if(!isConnected) connect();
     bool result = false;
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    pvaClientNTMultiData->startDeltaTime();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
               if(pvaClientMonitor[i]->poll()) {
-                   doubleValue[i] = pvaClientMonitor[i]->getData()->getDouble();
+                   pvaClientNTMultiData->setPVStructure(
+                       pvaClientMonitor[i]->getData()->getPVStructure(),i);
                    pvaClientMonitor[i]->releaseEvent();
                    result = true;
               }
          }
     }
+    if(result) pvaClientNTMultiData->endDeltaTime();
     return result;
 }
 
-bool PvaClientMultiMonitorDouble::waitEvent(double waitForEvent)
+bool PvaClientNTMultiMonitor::waitEvent(double waitForEvent)
 {
     if(poll()) return true;
     TimeStamp start;
@@ -133,10 +147,9 @@ bool PvaClientMultiMonitorDouble::waitEvent(double waitForEvent)
     return false;
 }
 
-epics::pvData::shared_vector<double> PvaClientMultiMonitorDouble::get()
+PvaClientNTMultiDataPtr PvaClientNTMultiMonitor::getData()
 {
-    return doubleValue;
+    return pvaClientNTMultiData;
 }
-
 
 }}

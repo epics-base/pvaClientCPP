@@ -1,4 +1,4 @@
-/* pvaClient.h */
+/* pvaClientMultiChannel.h */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -18,6 +18,7 @@
 
 #include <pv/pvaClient.h>
 #include <pv/ntmultiChannel.h>
+#include <pv/createRequest.h>
 
 
 namespace epics { namespace pvaClient { 
@@ -32,11 +33,20 @@ typedef std::tr1::shared_ptr<PvaClientMultiPutDouble> PvaClientMultiPutDoublePtr
 class PvaClientMultiMonitorDouble;
 typedef std::tr1::shared_ptr<PvaClientMultiMonitorDouble> PvaClientMultiMonitorDoublePtr;
 
+class PvaClientNTMultiGet;
+typedef std::tr1::shared_ptr<PvaClientNTMultiGet> PvaClientNTMultiGetPtr;
+class PvaClientNTMultiPut;
+typedef std::tr1::shared_ptr<PvaClientNTMultiPut> PvaClientNTMultiPutPtr;
+class PvaClientNTMultiMonitor;
+typedef std::tr1::shared_ptr<PvaClientNTMultiMonitor> PvaClientNTMultiMonitorPtr;
+class PvaClientNTMultiData;
+typedef std::tr1::shared_ptr<PvaClientNTMultiData> PvaClientNTMultiDataPtr;
+
 
 typedef epics::pvData::shared_vector<PvaClientChannelPtr> PvaClientChannelArray;
 
 /**
- * Provides access to multiple channels.
+ * @brief PvaMultiChannel is a synchronous interface for accessing multiple channels.
  *
  * @author mrk
  */
@@ -58,9 +68,11 @@ public:
          std::string const & providerName = "pva",
          size_t maxNotConnected=0
      );
-
+     /**
+     * Destructor
+     */
     ~PvaClientMultiChannel();
-    /** Destroy the pvAccess connection.
+    /** Destroy the pvAccess connections.
      */
     void destroy();
     /** Get the channelNames.
@@ -85,7 +97,7 @@ public:
     /** Get the connection state of each channel.
      * @return The state of each channel.
      */
-    epics::pvData::shared_vector<bool> getIsConnected();
+    epics::pvData::shared_vector<epics::pvData::boolean> getIsConnected();
     /** Get the pvaClientChannelArray.
      * @return The shared pointer.
      */
@@ -109,6 +121,35 @@ public:
      * @return The interface.
      */
     PvaClientMultiMonitorDoublePtr createMonitor();
+    /**
+     * Create a pvaClientNTMultiPut.
+     * @return The interface.
+     */
+    PvaClientNTMultiPutPtr createNTPut();
+    /**
+     * Create a pvaClientNTMultiGet.
+     * This calls the next method with request = "value,alarm,timeStamp"
+     * @return The interface.
+     */
+    PvaClientNTMultiGetPtr createNTGet();
+    /**
+     * Create a pvaClientNTMultiGet;
+     * @param request The request for each channel.
+     * @return The interface.
+     */
+    PvaClientNTMultiGetPtr createNTGet(std::string const &request);
+    /**
+     * Create a pvaClientNTMultiMonitor.
+     * This calls the next method with request = "value,alarm,timeStamp"
+     * @return The interface.
+     */
+    PvaClientNTMultiMonitorPtr createNTMonitor();
+    /**
+     * Create a pvaClientNTMultiPut.
+     * @param request The request for each channel.
+     * @return The interface.
+     */
+    PvaClientNTMultiMonitorPtr createNTMonitor(std::string const &request);
     /** Get the shared pointer to self.
      * @return The shared pointer.
      */
@@ -135,8 +176,10 @@ private:
 
     size_t numConnected;
     PvaClientChannelArray pvaClientChannelArray;
-    epics::pvData::shared_vector<bool> isConnected;
+    epics::pvData::shared_vector<epics::pvData::boolean> isConnected;
+    epics::pvData::CreateRequest::shared_pointer createRequest;
     bool isDestroyed;
+    
 };
 
 /**
@@ -318,6 +361,312 @@ private:
     bool isMonitorConnected;
     bool isDestroyed;
 };
+
+/**
+ *  This provides channelGet to multiple channels where the value field of each channel is presented as a union.
+ */
+class epicsShareClass PvaClientNTMultiGet :
+    public std::tr1::enable_shared_from_this<PvaClientNTMultiGet>
+{
+
+public:
+    POINTER_DEFINITIONS(PvaClientNTMultiGet);
+     /**
+     * Factory method that creates a PvaClientNTMultiGet.
+     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
+     * @param pvaClientChannelArray The PvaClientChannel array.
+     * @param pvRequest The pvRequest for each channel.
+     * @return The interface.
+     */
+    static PvaClientNTMultiGetPtr create(
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest);
+
+    ~PvaClientNTMultiGet();
+
+    /** Destroy the pvAccess connection.
+     */
+    void destroy();
+     /**
+     * Create a channelGet for each channel.
+     */
+    void connect();
+    /**
+     * get data for each channel.
+     */
+    void get();
+    /**
+     * get the data.
+     * @return the pvaClientNTMultiData.
+     */
+    PvaClientNTMultiDataPtr getData();
+    /** Get the shared pointer to self.
+     * @return The shared pointer.
+     */
+    PvaClientNTMultiGetPtr getPtrSelf()
+    {
+        return shared_from_this();
+    }
+private:
+    PvaClientNTMultiGet(
+         epics::pvData::UnionConstPtr const & u,
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest);
+
+    PvaClientMultiChannelPtr pvaClientMultiChannel;
+    PvaClientChannelArray pvaClientChannelArray;
+    size_t nchannel;
+    epics::pvData::Mutex mutex;
+    
+    epics::pvData::PVStructurePtr pvRequest;
+    PvaClientNTMultiDataPtr pvaClientNTMultiData;
+    std::vector<PvaClientGetPtr> pvaClientGet;
+    bool isConnected;
+    bool isDestroyed;
+};
+
+/**
+ *  This provides channelPut to multiple channels where the value field of each channel is presented as a union.
+ */
+class epicsShareClass PvaClientNTMultiPut :
+    public std::tr1::enable_shared_from_this<PvaClientNTMultiPut>
+{
+
+public:
+    POINTER_DEFINITIONS(PvaClientNTMultiPut);
+    /**
+     * Factory method that creates a PvaClientNTMultiPut.
+     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
+     * @param pvaClientChannelArray The PvaClientChannel array.
+     * @return The interface.
+     */
+    static PvaClientNTMultiPutPtr create(
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray);
+    ~PvaClientNTMultiPut();
+
+    /** Destroy the pvAccess connection.
+     */
+    void destroy();
+     /**
+     * Create a channelPut for each channel.
+     */
+    void connect();
+    /**
+     * get the value field of each channel as a union.
+     * @return A shared vector of union.
+     */
+    epics::pvData::shared_vector<epics::pvData::PVUnionPtr> getValues();
+    /**
+     * put the data to each channel.
+'    */
+    void put();
+    /** Get the shared pointer to self.
+     * @return The shared pointer.
+     */
+    PvaClientNTMultiPutPtr getPtrSelf()
+    {
+        return shared_from_this();
+    }
+private:
+    PvaClientNTMultiPut(
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray);
+
+    PvaClientMultiChannelPtr pvaClientMultiChannel;
+    PvaClientChannelArray pvaClientChannelArray;
+    size_t nchannel;
+    epics::pvData::Mutex mutex;
+
+    epics::pvData::shared_vector<epics::pvData::PVUnionPtr> unionValue;
+    epics::pvData::shared_vector<epics::pvData::PVFieldPtr> value;
+    std::vector<PvaClientPutPtr> pvaClientPut;
+    bool isConnected;
+    bool isDestroyed;
+};
+
+/**
+ *  This provides channel monitor to multiple channels where the value field of each channel is presented as a union.
+ */
+class epicsShareClass PvaClientNTMultiMonitor :
+    public std::tr1::enable_shared_from_this<PvaClientNTMultiMonitor>
+{
+
+public:
+    POINTER_DEFINITIONS(PvaClientNTMultiMonitor);
+    /**
+     * Factory method that creates a PvaClientNTMultiMonitor.
+     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
+     * @param pvaClientChannelArray The PvaClientChannel array.
+     * @param pvRequest The pvRequest for each channel.
+     * @return The interface.
+     */
+    static PvaClientNTMultiMonitorPtr create(
+         PvaClientMultiChannelPtr const &pvaNTMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest);
+    ~PvaClientNTMultiMonitor();
+
+    /** Destroy the pvAccess connection.
+     */
+    void destroy();
+     /**
+     * Create a channel monitor for each channel.
+     */
+    void connect();
+     /**
+     * poll each channel.
+     * If any has new data it is used to update the double[].
+     * @return (false,true) if (no, at least one) value was updated.
+     */
+    bool poll();
+    /**
+     * Wait until poll returns true.
+     * @param waitForEvent The time to keep trying.
+     * A thread sleep of .1 seconds occurs between each call to poll.
+     * @return (false,true) if (timeOut, poll returned true).
+     */
+    bool waitEvent(double waitForEvent);
+     /**
+     * get the data.
+     * @return the pvaClientNTMultiData.
+     */
+    PvaClientNTMultiDataPtr getData();
+    /** Monitor the shared pointer to self.
+     * @return The shared pointer.
+     */
+    PvaClientNTMultiMonitorPtr getPtrSelf()
+    {
+        return shared_from_this();
+    }
+private:
+    PvaClientNTMultiMonitor(
+         epics::pvData::UnionConstPtr const & u,
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest);
+
+    PvaClientMultiChannelPtr pvaClientMultiChannel;
+    PvaClientChannelArray pvaClientChannelArray;
+    size_t nchannel;
+    epics::pvData::Mutex mutex;
+    
+    epics::pvData::PVStructurePtr pvRequest;
+    PvaClientNTMultiDataPtr pvaClientNTMultiData;
+    std::vector<PvaClientMonitorPtr> pvaClientMonitor;
+    bool isConnected;
+    bool isDestroyed;
+};
+
+/**
+ *  This provides NTMultiChannel data for both PvaClientNTMultiGet and PvaClientNTMultiMonitor.
+ */
+class epicsShareClass PvaClientNTMultiData :
+    public std::tr1::enable_shared_from_this<PvaClientNTMultiData>
+{
+
+public:
+    POINTER_DEFINITIONS(PvaClientNTMultiData);
+    /**
+     * Factory method that creates a PvaClientNTMultiData.
+     * Normally only called by PvaClientNTMultiGet and PvaClientNTMultiMonitor.
+     * @param u The union interface for the value field of each channel.
+     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
+     * @param pvaClientChannelArray The PvaClientChannel array.
+     * @param pvRequest The pvRequest for each channel.
+     */
+    static PvaClientNTMultiDataPtr create(
+         epics::pvData::UnionConstPtr const & u,
+         PvaClientMultiChannelPtr const &pvaNTMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest);
+    ~PvaClientNTMultiData();
+    /** Destroy the pvAccess connection.
+     */
+    void destroy();
+
+    /**
+     * Get the number of channels.
+     * @return The number of channels.
+     */
+    size_t getNumber();
+   
+    /**
+     * Set the timeStamp base for computing deltaTimes. 
+     */
+    void startDeltaTime();
+   
+    /**
+     * Update NTMultiChannel fields.
+     */
+    void endDeltaTime();
+    /**
+     * Get the time when the last get was made.
+     * @return The timeStamp.
+     */
+    epics::pvData::TimeStamp getTimeStamp(); 
+    /**
+     * Get the  NTMultiChannel.
+     * @return The value.
+     */
+    epics::nt::NTMultiChannelPtr getNTMultiChannel();
+
+    /**
+     * Get the top level structure.
+     * @return The top level structure.
+     */
+    epics::pvData::PVStructurePtr getPVTop();
+    /** Get the shared pointer to self.
+     * @return The shared pointer.
+     */
+    PvaClientNTMultiDataPtr getPtrSelf()
+    {
+        return shared_from_this();
+    }
+   
+private:
+    PvaClientNTMultiData(
+         epics::pvData::UnionConstPtr const & u,
+         PvaClientMultiChannelPtr const &pvaNTMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest);
+    static epics::pvData::PVStructurePtr createRequest(std::string const & request);
+    void setStructure(epics::pvData::StructureConstPtr const & structure,size_t index);
+    void setPVStructure(
+        epics::pvData::PVStructurePtr const &pvStructure,size_t index);
+
+    PvaClientMultiChannelPtr pvaClientMultiChannel;
+    PvaClientChannelArray pvaClientChannelArray;
+    epics::pvData::PVStructurePtr pvRequest;
+    epics::pvData::UnionConstPtr u;
+    size_t nchannel;
+    epics::pvData::Mutex mutex;
+
+    std::vector<epics::pvData::PVStructurePtr> topPVStructure;
+    bool gotAlarm;
+    bool gotTimeStamp;
+    bool isDestroyed;
+    
+    epics::nt::NTMultiChannelPtr ntMultiChannel;
+    epics::pvData::PVStructurePtr pvTop;
+    epics::pvData::shared_vector<epics::pvData::PVUnionPtr> unionValue;
+    epics::pvData::shared_vector<epics::pvData::int32> severity;
+    epics::pvData::shared_vector<epics::pvData::int32> status;
+    epics::pvData::shared_vector<std::string> message;
+    epics::pvData::shared_vector<epics::pvData::int64> secondsPastEpoch;
+    epics::pvData::shared_vector<epics::pvData::int32> nanoseconds;
+    epics::pvData::shared_vector<epics::pvData::int32> userTag;
+    epics::pvData::Alarm alarm;
+    epics::pvData::PVAlarm pvAlarm;
+    epics::pvData::TimeStamp timeStamp;;
+    epics::pvData::PVTimeStamp pvTimeStamp;
+    friend class PvaClientNTMultiGet;
+    friend class PvaClientNTMultiPut;
+    friend class PvaClientNTMultiMonitor;
+};
+
 
 }}
 

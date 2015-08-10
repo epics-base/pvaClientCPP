@@ -1,4 +1,4 @@
-/* pvaClientMultiGetDouble.cpp */
+/* pvaClientNTMultiGet.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -29,34 +29,43 @@ static PVDataCreatePtr pvDataCreate = getPVDataCreate();
 static StandardFieldPtr standardField = getStandardField();
 
 
-PvaClientMultiGetDoublePtr PvaClientMultiGetDouble::create(
+PvaClientNTMultiGetPtr PvaClientNTMultiGet::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
-    PvaClientChannelArray const &pvaClientChannelArray)
+    PvaClientChannelArray const &pvaClientChannelArray,
+    PVStructurePtr const &  pvRequest)
 {
-    PvaClientMultiGetDoublePtr pvaClientMultiGetDouble(
-         new PvaClientMultiGetDouble(pvaMultiChannel,pvaClientChannelArray));
-    return pvaClientMultiGetDouble;
+    UnionConstPtr u = fieldCreate->createVariantUnion();
+    PvaClientNTMultiGetPtr pvaClientNTMultiGet(
+         new PvaClientNTMultiGet(u,pvaMultiChannel,pvaClientChannelArray,pvRequest));
+    return pvaClientNTMultiGet;
 }
 
-PvaClientMultiGetDouble::PvaClientMultiGetDouble(
+PvaClientNTMultiGet::PvaClientNTMultiGet(
+         UnionConstPtr const & u,
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
-         PvaClientChannelArray const &pvaClientChannelArray)
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
   nchannel(pvaClientChannelArray.size()),
-  doubleValue(shared_vector<double>(nchannel)),
-  pvaClientGet(std::vector<PvaClientGetPtr>(nchannel,PvaClientGetPtr())),
-  isGetConnected(false),
+  pvRequest(pvRequest),
+  pvaClientNTMultiData(
+       PvaClientNTMultiData::create(
+           u,
+           pvaClientMultiChannel,
+           pvaClientChannelArray,
+           pvRequest)),
+  isConnected(false),
   isDestroyed(false)
 {
 }
 
-PvaClientMultiGetDouble::~PvaClientMultiGetDouble()
+PvaClientNTMultiGet::~PvaClientNTMultiGet()
 {
     destroy();
 }
 
-void PvaClientMultiGetDouble::destroy()
+void PvaClientNTMultiGet::destroy()
 {
     {
         Lock xx(mutex);
@@ -66,10 +75,13 @@ void PvaClientMultiGetDouble::destroy()
     pvaClientChannelArray.clear();
 }
 
-void PvaClientMultiGetDouble::connect()
+void PvaClientNTMultiGet::connect()
 {
+    pvaClientGet.resize(nchannel);
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     string request = "value";
+    if(pvRequest->getSubField("field.alarm")) request += ",alarm";
+    if(pvRequest->getSubField("field.timeStamp")) request += ",timeStamp";
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -88,12 +100,12 @@ void PvaClientMultiGetDouble::connect()
                throw std::runtime_error(ss.str());
          }
     }
-    isGetConnected = true;
+    this->isConnected = true;
 }
 
-epics::pvData::shared_vector<double> PvaClientMultiGetDouble::get()
+void PvaClientNTMultiGet::get()
 {
-    if(!isGetConnected) connect();
+    if(!isConnected) connect();
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     
     for(size_t i=0; i<nchannel; ++i)
@@ -113,18 +125,19 @@ epics::pvData::shared_vector<double> PvaClientMultiGetDouble::get()
                throw std::runtime_error(ss.str());
          }
     }
-    
+    pvaClientNTMultiData->startDeltaTime();
     for(size_t i=0; i<nchannel; ++i)
     {
-        if(isConnected[i])
-        {
-            PVStructurePtr pvStructure = pvaClientGet[i]->getData()->getPVStructure();
-            doubleValue[i] = convert->toDouble(pvStructure->getSubField<PVScalar>("value"));
-        } else {
-            doubleValue[i] = nan("");
-        }
+         if(isConnected[i]) {
+              pvaClientNTMultiData->setPVStructure(pvaClientGet[i]->getData()->getPVStructure(),i);
+         }
     }
-    return doubleValue;
+    pvaClientNTMultiData->endDeltaTime();
+}
+
+PvaClientNTMultiDataPtr PvaClientNTMultiGet::getData()
+{
+    return pvaClientNTMultiData;
 }
 
 }}

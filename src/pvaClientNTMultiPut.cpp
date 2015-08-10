@@ -1,4 +1,4 @@
-/* pvaClientMultiPutDouble.cpp */
+/* PvaClientNTMultiPut.cpp */
 /**
  * Copyright - See the COPYRIGHT that is included with this distribution.
  * EPICS pvData is distributed subject to a Software License Agreement found
@@ -29,36 +29,35 @@ static PVDataCreatePtr pvDataCreate = getPVDataCreate();
 static StandardFieldPtr standardField = getStandardField();
 static CreateRequest::shared_pointer  createRequest = CreateRequest::create();
 
-
-PvaClientMultiPutDoublePtr PvaClientMultiPutDouble::create(
+PvaClientNTMultiPutPtr PvaClientNTMultiPut::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
     PvaClientChannelArray const &pvaClientChannelArray)
 {
-    PvaClientMultiPutDoublePtr pvaClientMultiPutDouble(
-         new PvaClientMultiPutDouble(pvaMultiChannel,pvaClientChannelArray));
-    return pvaClientMultiPutDouble;
+    PvaClientNTMultiPutPtr pvaClientNTMultiPut(
+         new PvaClientNTMultiPut(pvaMultiChannel,pvaClientChannelArray));
+    return pvaClientNTMultiPut;
 }
 
-PvaClientMultiPutDouble::PvaClientMultiPutDouble(
-     PvaClientMultiChannelPtr const &pvaClientMultiChannel,
-     PvaClientChannelArray const &pvaClientChannelArray)
+PvaClientNTMultiPut::PvaClientNTMultiPut(
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
   nchannel(pvaClientChannelArray.size()),
-  pvaClientPut(std::vector<PvaClientPutPtr>(nchannel,PvaClientPutPtr())),
-  isPutConnected(false),
+  unionValue(shared_vector<epics::pvData::PVUnionPtr>(nchannel,PVUnionPtr())),
+  value(shared_vector<epics::pvData::PVFieldPtr>(nchannel,PVFieldPtr())),
+  isConnected(false),
   isDestroyed(false)
 {
 }
 
 
-
-PvaClientMultiPutDouble::~PvaClientMultiPutDouble()
+PvaClientNTMultiPut::~PvaClientNTMultiPut()
 {
     destroy();
 }
 
-void PvaClientMultiPutDouble::destroy()
+void PvaClientNTMultiPut::destroy()
 {
     {
         Lock xx(mutex);
@@ -68,8 +67,9 @@ void PvaClientMultiPutDouble::destroy()
     pvaClientChannelArray.clear();
 }
 
-void PvaClientMultiPutDouble::connect()
+void PvaClientNTMultiPut::connect()
 {
+    pvaClientPut.resize(nchannel);
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
@@ -89,22 +89,49 @@ void PvaClientMultiPutDouble::connect()
                throw std::runtime_error(ss.str());
          }
     }
-    isPutConnected = true;
+    for(size_t i=0; i<nchannel; ++i)
+    {
+         if(isConnected[i]) {
+              pvaClientPut[i]->issueGet();
+         }
+    }
+    for(size_t i=0; i<nchannel; ++i)
+    {
+         if(isConnected[i]) {
+               Status status = pvaClientPut[i]->waitGet();
+               if(status.isOK()) continue;
+               stringstream ss;
+               string channelName = pvaClientChannelArray[i]->getChannelName();
+               ss << "channel " << channelName << " PvaChannelPut::waitGet " << status.getMessage();
+               throw std::runtime_error(ss.str());
+         }
+    }
+    for(size_t i=0; i<nchannel; ++i)
+    {
+         if(isConnected[i]) {
+             value[i] = pvaClientPut[i]->getData()->getValue();
+             FieldBuilderPtr builder = fieldCreate->createFieldBuilder();
+             builder->add("value",value[i]->getField());
+             unionValue[i] = pvDataCreate->createPVUnion(builder->createUnion());
+         }
+    }
+    this->isConnected = true;
 }
 
-void PvaClientMultiPutDouble::put(epics::pvData::shared_vector<double> const &data)
+shared_vector<epics::pvData::PVUnionPtr> PvaClientNTMultiPut::getValues()
 {
-    if(!isPutConnected) connect();
-    if(data.size()!=nchannel) {
-         throw std::runtime_error("data has wrong size");
-    }
+    if(!isConnected) connect();
+    return unionValue;
+}
+
+void PvaClientNTMultiPut::put()
+{
+    if(!isConnected) connect();
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
-               PVStructurePtr pvTop = pvaClientPut[i]->getData()->getPVStructure();
-               PVScalarPtr pvValue = pvTop->getSubField<PVScalar>("value");
-               convert->fromDouble(pvValue,data[i]);
+               value[i]->copy(*unionValue[i]->get());
                pvaClientPut[i]->issuePut();
          }
          if(isConnected[i]) {
@@ -117,5 +144,6 @@ void PvaClientMultiPutDouble::put(epics::pvData::shared_vector<double> const &da
          }
     }
 }
+
 
 }}
