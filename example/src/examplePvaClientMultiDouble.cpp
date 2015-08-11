@@ -33,7 +33,7 @@ cout << "num " << num << " names " << channelNames << endl;
     PvaClientMultiPutDoublePtr multiPut(multiChannel->createPut());
     PvaClientMultiMonitorDoublePtr multiMonitor(multiChannel->createMonitor());
     shared_vector<double> data(num,0);
-    for(double value = 0.0; value< 1.0; value+= .2) {
+    for(double value = 0.2; value< 2.3; value+= 1.0) {
         try {
             for(size_t i=0; i<num; ++i) data[i] = value + i;
             cout << "put " << data << endl;
@@ -57,7 +57,7 @@ int main(int argc,char *argv[])
     size_t num = 5;
     shared_vector<string> channelNames(num);
     channelNames[0] = "double01";
-    channelNames[1] = "double02";
+    channelNames[1] = "int01";
     channelNames[2] = "double03";
     channelNames[3] = "double04";
     channelNames[4] = "double05";
@@ -68,7 +68,7 @@ int main(int argc,char *argv[])
     example(pva,"ca",names);
     channelNames = shared_vector<string>(num);
     channelNames[0] = "exampleDouble01";
-    channelNames[1] = "exampleDouble02";
+    channelNames[1] = "exampleInt";
     channelNames[2] = "exampleDouble03";
     channelNames[3] = "exampleDouble04";
     channelNames[4] = "exampleDouble05";

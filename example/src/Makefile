@@ -40,6 +40,13 @@ examplePvaClientMultiDouble_LIBS += pvAccess
 examplePvaClientMultiDouble_LIBS += pvData
 examplePvaClientMultiDouble_LIBS += Com
 
+PROD_HOST += examplePvaClientNTMulti
+examplePvaClientNTMulti_SRCS += examplePvaClientNTMulti.cpp
+examplePvaClientNTMulti_LIBS += pvaClient
+examplePvaClientNTMulti_LIBS += pvAccess
+examplePvaClientNTMulti_LIBS += pvData
+examplePvaClientNTMulti_LIBS += Com
+
 PROD_HOST += helloWorldRPC
 helloWorldRPC_SRCS += helloWorldRPC.cpp
 helloWorldRPC_LIBS += pvaClient

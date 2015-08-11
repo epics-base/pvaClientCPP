@@ -15,7 +15,7 @@
 #include <pv/event.h>
 #include <pv/lock.h>
 #include <pv/pvaClientMultiChannel.h>
-#include <pv/createRequest.h>
+
 
 
 using std::tr1::static_pointer_cast;
@@ -52,7 +52,8 @@ PvaClientMultiChannel::PvaClientMultiChannel(
   numChannel(channelName.size()),
   numConnected(0),
   pvaClientChannelArray(PvaClientChannelArray(numChannel,PvaClientChannelPtr())),
-  isConnected(shared_vector<bool>(numChannel,false)),
+  isConnected(shared_vector<epics::pvData::boolean>(numChannel,false)),
+  createRequest(CreateRequest::create()),
   isDestroyed(false)
 {
 }
@@ -131,7 +132,7 @@ bool PvaClientMultiChannel::connectionChange()
     return false;
 }
 
-epics::pvData::shared_vector<bool>  PvaClientMultiChannel::getIsConnected()
+epics::pvData::shared_vector<epics::pvData::boolean>  PvaClientMultiChannel::getIsConnected()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     for(size_t i=0; i<numChannel; ++i) {
@@ -179,6 +180,48 @@ PvaClientMultiMonitorDoublePtr PvaClientMultiChannel::createMonitor()
 {
     checkConnected();
      return PvaClientMultiMonitorDouble::create(getPtrSelf(), pvaClientChannelArray);
+}
+
+PvaClientNTMultiPutPtr PvaClientMultiChannel::createNTPut()
+{
+    checkConnected();
+    return PvaClientNTMultiPut::create(getPtrSelf(), pvaClientChannelArray);
+}
+
+
+PvaClientNTMultiGetPtr PvaClientMultiChannel::createNTGet()
+{
+    return createNTGet("value,alarm,timeStamp");
+}
+
+PvaClientNTMultiGetPtr PvaClientMultiChannel::createNTGet(std::string const &request)
+{
+    checkConnected();
+    PVStructurePtr pvRequest = createRequest->createRequest(request);
+    if(!pvRequest) {
+        stringstream ss;
+        ss << " PvaClientMultiChannel::createNTGet invalid pvRequest: " + createRequest->getMessage();
+        throw std::runtime_error(ss.str());
+    }
+    return PvaClientNTMultiGet::create(getPtrSelf(), pvaClientChannelArray,pvRequest);
+}
+
+
+PvaClientNTMultiMonitorPtr PvaClientMultiChannel::createNTMonitor()
+{
+    return createNTMonitor("value,alarm,timeStamp");
+}
+
+PvaClientNTMultiMonitorPtr PvaClientMultiChannel::createNTMonitor(std::string const &request)
+{
+    checkConnected();
+    PVStructurePtr pvRequest = createRequest->createRequest(request);
+    if(!pvRequest) {
+        stringstream ss;
+        ss << " PvaClientMultiChannel::createNTMonitor invalid pvRequest: " + createRequest->getMessage();
+        throw std::runtime_error(ss.str());
+    }
+    return PvaClientNTMultiMonitor::create(getPtrSelf(), pvaClientChannelArray,pvRequest);
 }
 
 

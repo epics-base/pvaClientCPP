@@ -22,6 +22,10 @@ LIBSRCS += pvaClientMultiChannel.cpp
 LIBSRCS += pvaClientMultiGetDouble.cpp
 LIBSRCS += pvaClientMultiPutDouble.cpp
 LIBSRCS += pvaClientMultiMonitorDouble.cpp
+LIBSRCS += pvaClientNTMultiPut.cpp
+LIBSRCS += pvaClientNTMultiData.cpp
+LIBSRCS += pvaClientNTMultiGet.cpp
+LIBSRCS += pvaClientNTMultiMonitor.cpp
 
 pvaClient_LIBS += pvAccess pvData nt Com
 pvaClient_LIBS +=  $(EPICS_BASE_IOC_LIBS)
