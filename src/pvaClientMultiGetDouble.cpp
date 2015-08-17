@@ -121,7 +121,7 @@ epics::pvData::shared_vector<double> PvaClientMultiGetDouble::get()
             PVStructurePtr pvStructure = pvaClientGet[i]->getData()->getPVStructure();
             doubleValue[i] = convert->toDouble(pvStructure->getSubField<PVScalar>("value"));
         } else {
-            doubleValue[i] = nan("");
+            doubleValue[i] = epicsNAN;
         }
     }
     return doubleValue;
