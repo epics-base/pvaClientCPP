@@ -11,7 +11,6 @@
 #define epicsExportSharedSymbols
 
 #include <map>
-#include <sstream>
 #include <pv/event.h>
 #include <pv/lock.h>
 #include <pv/pvaClientMultiChannel.h>
@@ -34,9 +33,8 @@ PvaClientMultiChannelPtr PvaClientMultiChannel::create(
    string const & providerName,
    size_t maxNotConnected)
 {
-    PvaClientMultiChannelPtr channel(
+    return PvaClientMultiChannelPtr(
         new PvaClientMultiChannel(pvaClient,channelNames,providerName,maxNotConnected));
-    return channel;
 }
 
 
@@ -199,9 +197,9 @@ PvaClientNTMultiGetPtr PvaClientMultiChannel::createNTGet(std::string const &req
     checkConnected();
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << " PvaClientMultiChannel::createNTGet invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = " PvaClientMultiChannel::createNTGet invalid pvRequest: "
+             + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return PvaClientNTMultiGet::create(getPtrSelf(), pvaClientChannelArray,pvRequest);
 }
@@ -217,9 +215,9 @@ PvaClientNTMultiMonitorPtr PvaClientMultiChannel::createNTMonitor(std::string co
     checkConnected();
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << " PvaClientMultiChannel::createNTMonitor invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = " PvaClientMultiChannel::createNTMonitor invalid pvRequest: "
+             + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return PvaClientNTMultiMonitor::create(getPtrSelf(), pvaClientChannelArray,pvRequest);
 }

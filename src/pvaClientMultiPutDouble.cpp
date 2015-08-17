@@ -83,10 +83,9 @@ void PvaClientMultiPutDouble::connect()
          if(isConnected[i]) {
                Status status = pvaClientPut[i]->waitConnect();
                if(status.isOK()) continue;
-               stringstream ss;
-               string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelPut::waitConnect " << status.getMessage();
-               throw std::runtime_error(ss.str());
+               string message = string("channel ") + pvaClientChannelArray[i]->getChannelName()
+                   + " PvaChannelPut::waitConnect " + status.getMessage();
+               throw std::runtime_error(message);
          }
     }
     isPutConnected = true;
@@ -110,10 +109,9 @@ void PvaClientMultiPutDouble::put(epics::pvData::shared_vector<double> const &da
          if(isConnected[i]) {
               Status status = pvaClientPut[i]->waitPut();
               if(status.isOK())  continue;
-              stringstream ss;
-              string channelName = pvaClientChannelArray[i]->getChannelName();
-              ss << "channel " << channelName << " PvaChannelPut::waitConnect " << status.getMessage();
-              throw std::runtime_error(ss.str());
+              string message = string("channel ") + pvaClientChannelArray[i]->getChannelName()
+                   + " PvaChannelPut::waitPut " + status.getMessage();
+              throw std::runtime_error(message);
          }
     }
 }

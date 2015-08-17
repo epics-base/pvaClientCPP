@@ -103,12 +103,12 @@ static void example(
         multiPut->put();
         multiGet->get();
         PvaClientNTMultiDataPtr multiData = multiGet->getData();
-        PVStructurePtr pvStructure = multiData->getPVTop();
+        PVStructurePtr pvStructure = multiData->getNTMultiChannel()->getPVStructure();
         cout << "pvStructure\n" << pvStructure << endl;
         bool result = multiMonitor->waitEvent(.1);
         while(result) {
             multiData = multiMonitor->getData();
-            pvStructure = multiData->getPVTop();
+            pvStructure = multiData->getNTMultiChannel()->getPVStructure();
             cout << "monitor pvStructure\n" << pvStructure << endl;
             result = multiMonitor->poll();
         }

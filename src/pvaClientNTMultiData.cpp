@@ -11,8 +11,6 @@
 
 #define epicsExportSharedSymbols
 #include <pv/pvaClientMultiChannel.h>
-#include <pv/standardField.h>
-#include <pv/convert.h>
 #include <epicsMath.h>
 
 using std::tr1::static_pointer_cast;
@@ -23,10 +21,7 @@ using namespace std;
 
 namespace epics { namespace pvaClient { 
 
-static ConvertPtr convert = getConvert();
-static FieldCreatePtr fieldCreate = getFieldCreate();
 static PVDataCreatePtr pvDataCreate = getPVDataCreate();
-static StandardFieldPtr standardField = getStandardField();
 
 
 PvaClientNTMultiDataPtr PvaClientNTMultiData::create(
@@ -35,9 +30,8 @@ PvaClientNTMultiDataPtr PvaClientNTMultiData::create(
     PvaClientChannelArray const &pvaClientChannelArray,
     PVStructurePtr const &  pvRequest)
 {
-    PvaClientNTMultiDataPtr pvaClientNTMultiData(
+    return PvaClientNTMultiDataPtr(
          new PvaClientNTMultiData(u,pvaMultiChannel,pvaClientChannelArray,pvRequest));
-    return pvaClientNTMultiData;
 }
 
 PvaClientNTMultiData::PvaClientNTMultiData(
@@ -47,8 +41,6 @@ PvaClientNTMultiData::PvaClientNTMultiData(
          epics::pvData::PVStructurePtr const &  pvRequest)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
-  pvRequest(pvRequest),
-  u(u),
   nchannel(pvaClientChannelArray.size()),
   gotAlarm(false),
   gotTimeStamp(false),
@@ -88,8 +80,7 @@ PvaClientNTMultiData::PvaClientNTMultiData(
         nanoseconds.resize(nchannel);
         userTag.resize(nchannel);
     }
-    ntMultiChannel = builder->create();
-    ntMultiChannel->getChannelName()->replace(pvaClientMultiChannel->getChannelNames());
+    ntMultiChannelStructure = builder->createStructure();
 }
 
 
@@ -180,6 +171,19 @@ void PvaClientNTMultiData::endDeltaTime()
         }
              
     }
+}
+
+TimeStamp PvaClientNTMultiData::getTimeStamp()
+{
+    pvTimeStamp.get(timeStamp);
+    return timeStamp;
+}
+
+NTMultiChannelPtr PvaClientNTMultiData::getNTMultiChannel()
+{
+    PVStructurePtr pvStructure = pvDataCreate->createPVStructure(ntMultiChannelStructure);
+    NTMultiChannelPtr ntMultiChannel = NTMultiChannel::wrap(pvStructure);
+    ntMultiChannel->getChannelName()->replace(pvaClientMultiChannel->getChannelNames());
     shared_vector<epics::pvData::PVUnionPtr> val(nchannel);
     for(size_t i=0; i<nchannel; ++i) val[i] = unionValue[i];
     ntMultiChannel->getValue()->replace(freeze(val));
@@ -211,22 +215,7 @@ void PvaClientNTMultiData::endDeltaTime()
         for(size_t i=0; i<nchannel; ++i) tag[i] = userTag[i];
         ntMultiChannel->getUserTag()->replace(freeze(tag));
     }
-}
-
-TimeStamp PvaClientNTMultiData::getTimeStamp()
-{
-    pvTimeStamp.get(timeStamp);
-    return timeStamp;
-}
-
-NTMultiChannelPtr PvaClientNTMultiData::getNTMultiChannel()
-{
     return ntMultiChannel;
-}
-
-PVStructurePtr PvaClientNTMultiData::getPVTop()
-{
-    return ntMultiChannel->getPVStructure();
 }
 
 }}

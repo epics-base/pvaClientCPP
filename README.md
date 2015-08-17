@@ -1,9 +1,20 @@
-Status
-===========
+pvaClientCPP
+============
 
-* The API should be almost ready for feature freeze for release 4.5
-* Everything defined in pvaClient.h should be ready but see below for remaining work.
-* Everything defined in pvaClientMultiChannel.h is ready but see below for remaining work.
+pvaClient is a synchronous client interface to pvAccess,
+which is callback based.
+pvaClient is thus easier to use than pvAccess itself.
+
+Building
+--------
+
+If a proper RELEASE.local file exists one directory level above pvaClientCPP
+then just type:
+
+    make
+
+If RELEASE.local does not exists the look at <b>configure/RELEASE</b>
+for directions for how to build.
 
 Examples
 ------------
@@ -14,6 +25,14 @@ For example:
     mrk> pwd
     /home/epicsv4/pvaClientTestCPP/database/iocBoot/exampleDatabase
     mrk> ../../bin/linux-x86_64/exampleDatabase st.cmd 
+
+Status
+------
+
+* The API should ready for feature freeze for release 4.5
+* Everything defined in pvaClient.h should be ready but see below for remaining work.
+* Everything defined in pvaClientMultiChannel.h is ready but see below for remaining work.
+
 
 pvaClientChannel
 ---------------

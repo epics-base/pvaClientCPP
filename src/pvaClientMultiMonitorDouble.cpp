@@ -83,10 +83,9 @@ void PvaClientMultiMonitorDouble::connect()
          if(isConnected[i]) {
                Status status = pvaClientMonitor[i]->waitConnect();
                if(status.isOK()) continue;
-               stringstream ss;
-               string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelGet::waitConnect " << status.getMessage();
-               throw std::runtime_error(ss.str());
+               string message = string("channel ") + pvaClientChannelArray[i]->getChannelName()
+                   + " PvaChannelMonitor::waitConnect " + status.getMessage();
+               throw std::runtime_error(message);
          }
     }
      for(size_t i=0; i<nchannel; ++i)

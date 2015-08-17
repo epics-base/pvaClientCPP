@@ -417,10 +417,11 @@ private:
 
     PvaClientMultiChannelPtr pvaClientMultiChannel;
     PvaClientChannelArray pvaClientChannelArray;
+    epics::pvData::PVStructurePtr pvRequest;
     size_t nchannel;
     epics::pvData::Mutex mutex;
     
-    epics::pvData::PVStructurePtr pvRequest;
+    
     PvaClientNTMultiDataPtr pvaClientNTMultiData;
     std::vector<PvaClientGetPtr> pvaClientGet;
     bool isConnected;
@@ -550,10 +551,9 @@ private:
 
     PvaClientMultiChannelPtr pvaClientMultiChannel;
     PvaClientChannelArray pvaClientChannelArray;
+    epics::pvData::PVStructurePtr pvRequest;
     size_t nchannel;
     epics::pvData::Mutex mutex;
-    
-    epics::pvData::PVStructurePtr pvRequest;
     PvaClientNTMultiDataPtr pvaClientNTMultiData;
     std::vector<PvaClientMonitorPtr> pvaClientMonitor;
     bool isConnected;
@@ -612,12 +612,6 @@ public:
      * @return The value.
      */
     epics::nt::NTMultiChannelPtr getNTMultiChannel();
-
-    /**
-     * Get the top level structure.
-     * @return The top level structure.
-     */
-    epics::pvData::PVStructurePtr getPVTop();
     /** Get the shared pointer to self.
      * @return The shared pointer.
      */
@@ -632,15 +626,12 @@ private:
          PvaClientMultiChannelPtr const &pvaNTMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
-    static epics::pvData::PVStructurePtr createRequest(std::string const & request);
     void setStructure(epics::pvData::StructureConstPtr const & structure,size_t index);
     void setPVStructure(
         epics::pvData::PVStructurePtr const &pvStructure,size_t index);
 
     PvaClientMultiChannelPtr pvaClientMultiChannel;
     PvaClientChannelArray pvaClientChannelArray;
-    epics::pvData::PVStructurePtr pvRequest;
-    epics::pvData::UnionConstPtr u;
     size_t nchannel;
     epics::pvData::Mutex mutex;
 
@@ -649,8 +640,7 @@ private:
     bool gotTimeStamp;
     bool isDestroyed;
     
-    epics::nt::NTMultiChannelPtr ntMultiChannel;
-    epics::pvData::PVStructurePtr pvTop;
+    epics::pvData::StructureConstPtr ntMultiChannelStructure;
     epics::pvData::shared_vector<epics::pvData::PVUnionPtr> unionValue;
     epics::pvData::shared_vector<epics::pvData::int32> severity;
     epics::pvData::shared_vector<epics::pvData::int32> status;
@@ -659,7 +649,6 @@ private:
     epics::pvData::shared_vector<epics::pvData::int32> nanoseconds;
     epics::pvData::shared_vector<epics::pvData::int32> userTag;
     epics::pvData::Alarm alarm;
-    epics::pvData::PVAlarm pvAlarm;
     epics::pvData::TimeStamp timeStamp;;
     epics::pvData::PVTimeStamp pvTimeStamp;
     friend class PvaClientNTMultiGet;

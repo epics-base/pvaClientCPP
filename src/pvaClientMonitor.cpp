@@ -135,18 +135,18 @@ void PvaClientMonitor::connect()
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    stringstream ss;
-    ss << "channel " << channel->getChannelName() << " PvaClientMonitor::connect " << status.getMessage();
-    throw std::runtime_error(ss.str());
+    string message = string("channel ") + channel->getChannelName() 
+         + " PvaClientMonitor::connect " + status.getMessage();
+    throw std::runtime_error(message);
 }
 
 void PvaClientMonitor::issueConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientMonitor was destroyed");
     if(connectState!=connectIdle) {
-        stringstream ss;
-        ss << "channel " << channel->getChannelName() << " pvaClientMonitor already connected ";
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + channel->getChannelName() 
+            + " pvaClientMonitor already connected ";
+        throw std::runtime_error(message);
     }
     monitorRequester = ChannelMonitorRequester::shared_pointer(new ChannelMonitorRequester(this));
     connectState = connectActive;
@@ -157,9 +157,9 @@ Status PvaClientMonitor::waitConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientMonitor was destroyed");
     if(connectState!=connectActive) {
-        stringstream ss;
-        ss << "channel " << channel->getChannelName() << " pvaClientMonitor illegal connect state ";
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + channel->getChannelName() 
+            + " pvaClientMonitor illegal connect state ";
+        throw std::runtime_error(message);
     }
     waitForConnect.wait();
     connectState = connectStatus.isOK() ? connected : connectIdle;
