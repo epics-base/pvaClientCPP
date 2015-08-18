@@ -24,11 +24,7 @@ using namespace std;
 
 namespace epics { namespace pvaClient { 
 
-static ConvertPtr convert = getConvert();
 static FieldCreatePtr fieldCreate = getFieldCreate();
-static PVDataCreatePtr pvDataCreate = getPVDataCreate();
-static StandardFieldPtr standardField = getStandardField();
-
 
 PvaClientNTMultiMonitorPtr PvaClientNTMultiMonitor::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
@@ -48,8 +44,8 @@ PvaClientNTMultiMonitor::PvaClientNTMultiMonitor(
     PVStructurePtr const &  pvRequest)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
-  nchannel(pvaClientChannelArray.size()),
   pvRequest(pvRequest),
+  nchannel(pvaClientChannelArray.size()),
   pvaClientNTMultiData(
        PvaClientNTMultiData::create(
            u,
@@ -97,10 +93,9 @@ void PvaClientNTMultiMonitor::connect()
          if(isConnected[i]) {
                Status status = pvaClientMonitor[i]->waitConnect();
                if(status.isOK()) continue;
-               stringstream ss;
-               string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelMonitor::waitConnect " << status.getMessage();
-               throw std::runtime_error(ss.str());
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+                    + " PvaChannelMonitor::waitConnect " + status.getMessage();
+               throw std::runtime_error(message);
          }
     }
     for(size_t i=0; i<nchannel; ++i)

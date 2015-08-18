@@ -47,8 +47,8 @@ PvaClientNTMultiGet::PvaClientNTMultiGet(
          epics::pvData::PVStructurePtr const &  pvRequest)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
-  nchannel(pvaClientChannelArray.size()),
   pvRequest(pvRequest),
+  nchannel(pvaClientChannelArray.size()),
   pvaClientNTMultiData(
        PvaClientNTMultiData::create(
            u,
@@ -94,10 +94,9 @@ void PvaClientNTMultiGet::connect()
          if(isConnected[i]) {
                Status status = pvaClientGet[i]->waitConnect();
                if(status.isOK()) continue;
-               stringstream ss;
-               string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelGet::waitConnect " << status.getMessage();
-               throw std::runtime_error(ss.str());
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+                    + " PvaChannelGet::waitConnect " + status.getMessage();
+               throw std::runtime_error(message);
          }
     }
     this->isConnected = true;
@@ -119,10 +118,9 @@ void PvaClientNTMultiGet::get()
          if(isConnected[i]) {
                Status status = pvaClientGet[i]->waitGet();
                if(status.isOK()) continue;
-               stringstream ss;
-               string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelGet::waitConnect " << status.getMessage();
-               throw std::runtime_error(ss.str());
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+                    + " PvaChannelGet::waitGet " + status.getMessage();
+               throw std::runtime_error(message);
          }
     }
     pvaClientNTMultiData->startDeltaTime();

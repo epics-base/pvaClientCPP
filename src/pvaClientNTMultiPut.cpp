@@ -26,16 +26,13 @@ namespace epics { namespace pvaClient {
 static ConvertPtr convert = getConvert();
 static FieldCreatePtr fieldCreate = getFieldCreate();
 static PVDataCreatePtr pvDataCreate = getPVDataCreate();
-static StandardFieldPtr standardField = getStandardField();
-static CreateRequest::shared_pointer  createRequest = CreateRequest::create();
 
 PvaClientNTMultiPutPtr PvaClientNTMultiPut::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
     PvaClientChannelArray const &pvaClientChannelArray)
 {
-    PvaClientNTMultiPutPtr pvaClientNTMultiPut(
-         new PvaClientNTMultiPut(pvaMultiChannel,pvaClientChannelArray));
-    return pvaClientNTMultiPut;
+    return PvaClientNTMultiPutPtr(
+        new PvaClientNTMultiPut(pvaMultiChannel,pvaClientChannelArray));
 }
 
 PvaClientNTMultiPut::PvaClientNTMultiPut(
@@ -83,10 +80,9 @@ void PvaClientNTMultiPut::connect()
          if(isConnected[i]) {
                Status status = pvaClientPut[i]->waitConnect();
                if(status.isOK()) continue;
-               stringstream ss;
-               string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelPut::waitConnect " << status.getMessage();
-               throw std::runtime_error(ss.str());
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+                    + " PvaChannelPut::waitConnect " + status.getMessage();
+               throw std::runtime_error(message);
          }
     }
     for(size_t i=0; i<nchannel; ++i)
@@ -100,10 +96,9 @@ void PvaClientNTMultiPut::connect()
          if(isConnected[i]) {
                Status status = pvaClientPut[i]->waitGet();
                if(status.isOK()) continue;
-               stringstream ss;
-               string channelName = pvaClientChannelArray[i]->getChannelName();
-               ss << "channel " << channelName << " PvaChannelPut::waitGet " << status.getMessage();
-               throw std::runtime_error(ss.str());
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+                    + " PvaChannelPut::waitGet " + status.getMessage();
+               throw std::runtime_error(message);
          }
     }
     for(size_t i=0; i<nchannel; ++i)
@@ -137,10 +132,9 @@ void PvaClientNTMultiPut::put()
          if(isConnected[i]) {
               Status status = pvaClientPut[i]->waitPut();
               if(status.isOK())  continue;
-              stringstream ss;
-              string channelName = pvaClientChannelArray[i]->getChannelName();
-              ss << "channel " << channelName << " PvaChannelPut::waitConnect " << status.getMessage();
-              throw std::runtime_error(ss.str());
+              string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+                    + " PvaChannelPut::waitPut " + status.getMessage();
+              throw std::runtime_error(message); 
          }
     }
 }

@@ -11,7 +11,6 @@
 #define epicsExportSharedSymbols
 
 #include <map>
-#include <sstream>
 #include <pv/event.h>
 #include <pv/lock.h>
 #include <pv/pvaClient.h>
@@ -247,9 +246,9 @@ void PvaClientChannel::connect(double timeout)
     issueConnect();
     Status status = waitConnect(timeout);
     if(status.isOK()) return;
-    stringstream ss;
-    ss << "channel " << getChannelName() << " PvaClientChannel::connect " << status.getMessage();
-    throw std::runtime_error(ss.str());
+    string message = string("channel ") + getChannelName() 
+                    + " PvaClientChannel::connect " + status.getMessage();
+    throw std::runtime_error(message);
 }
 
 void PvaClientChannel::issueConnect()
@@ -302,10 +301,10 @@ PvaClientProcessPtr PvaClientChannel::createProcess(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << "channel " << getChannelName();
-        ss << " PvaClientChannel::createProcess invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + getChannelName() 
+            + " PvaClientChannel::createProcess invalid pvRequest: "
+            + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return createProcess(pvRequest);
 }
@@ -339,10 +338,10 @@ PvaClientGetPtr PvaClientChannel::createGet(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << "channel " << getChannelName();
-        ss << " PvaClientChannel::createGet invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + getChannelName() 
+            + " PvaClientChannel::createGet invalid pvRequest: "
+            + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return createGet(pvRequest);
 }
@@ -377,10 +376,10 @@ PvaClientPutPtr PvaClientChannel::createPut(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << "channel " << getChannelName();
-        ss << " PvaClientChannel::createPut invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + getChannelName() 
+            + " PvaClientChannel::createPut invalid pvRequest: "
+            + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return createPut(pvRequest);
 }
@@ -402,10 +401,10 @@ PvaClientPutGetPtr PvaClientChannel::createPutGet(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << "channel " << getChannelName();
-        ss << " PvaClientChannel::createPutGet invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + getChannelName() 
+            + " PvaClientChannel::createPutGet invalid pvRequest: "
+            + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return createPutGet(pvRequest);
 }
@@ -428,10 +427,10 @@ PvaClientArrayPtr PvaClientChannel::createArray(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << "channel " << getChannelName();
-        ss << " PvaClientChannel::createArray invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + getChannelName() 
+            + " PvaClientChannel::createArray invalid pvRequest: "
+            + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return createArray(pvRequest);
 }
@@ -477,10 +476,10 @@ PvaClientMonitorPtr PvaClientChannel::createMonitor(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        stringstream ss;
-        ss << "channel " << getChannelName();
-        ss << " PvaClientChannel::createMonitor invalid pvRequest: " + createRequest->getMessage();
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + getChannelName() 
+            + " PvaClientChannel::createMonitor invalid pvRequest: "
+            + createRequest->getMessage();
+        throw std::runtime_error(message);
     }
     return createMonitor(pvRequest);
 }

@@ -10,7 +10,6 @@
  */
 #define epicsExportSharedSymbols
 
-#include <sstream>
 #include <pv/event.h>
 #include <pv/pvaClient.h>
 
@@ -115,18 +114,18 @@ void PvaClientProcess::connect()
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    stringstream ss;
-    ss << "channel " << channel->getChannelName() << " PvaClientProcess::connect " << status.getMessage();
-    throw std::runtime_error(ss.str());
+    string message = string("channel ") + channel->getChannelName()
+        + " PvaClientProcess::connect " + status.getMessage();
+    throw std::runtime_error(message);
 }
 
 void PvaClientProcess::issueConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(connectState!=connectIdle) {
-        stringstream ss;
-        ss << "channel " << channel->getChannelName() << " pvaClientProcess already connected ";
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + channel->getChannelName()
+            + " pvaClientProcess already connected ";
+        throw std::runtime_error(message);
     }
     processRequester = ChannelProcessRequester::shared_pointer(new ChannelProcessRequesterImpl(this));
     connectState = connectActive;
@@ -137,9 +136,9 @@ Status PvaClientProcess::waitConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(connectState!=connectActive) {
-        stringstream ss;
-        ss << "channel " << channel->getChannelName() << " pvaClientProcess illegal connect state ";
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + channel->getChannelName()
+            + " pvaClientProcess illegal connect state ";
+        throw std::runtime_error(message);
     }
     waitForConnect.wait();
     connectState = channelProcessConnectStatus.isOK() ? connected : connectIdle;
@@ -152,9 +151,9 @@ void PvaClientProcess::process()
     issueProcess();
     Status status = waitProcess();
     if(status.isOK()) return;
-    stringstream ss;
-    ss << "channel " << channel->getChannelName() << " PvaClientProcess::process " << status.getMessage();
-    throw std::runtime_error(ss.str());
+    string message = string("channel ") + channel->getChannelName()
+        + " PvaClientProcess::process" + status.getMessage();
+    throw std::runtime_error(message);
 }
 
 void PvaClientProcess::issueProcess()
@@ -162,9 +161,9 @@ void PvaClientProcess::issueProcess()
     if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(connectState==connectIdle) connect();
     if(processState!=processIdle) {
-        stringstream ss;
-        ss << "channel " << channel->getChannelName() << " PvaClientProcess::issueProcess process aleady active ";
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + channel->getChannelName()
+            + " PvaClientProcess::issueProcess process aleady active ";
+        throw std::runtime_error(message);
     }
     processState = processActive;
     channelProcess->process();
@@ -174,9 +173,9 @@ Status PvaClientProcess::waitProcess()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
     if(processState!=processActive){
-        stringstream ss;
-        ss << "channel " << channel->getChannelName() << " PvaClientProcess::waitProcess llegal process state";
-        throw std::runtime_error(ss.str());
+        string message = string("channel ") + channel->getChannelName()
+            + " PvaClientProcess::waitProcess llegal process state";
+        throw std::runtime_error(message);
     }
     waitForProcess.wait();
     processState = processIdle;
