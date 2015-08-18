@@ -45,7 +45,7 @@ PvaClientMultiMonitorDouble::PvaClientMultiMonitorDouble(
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
   nchannel(pvaClientChannelArray.size()),
-  doubleValue(shared_vector<double>(nchannel,nan(""))),
+  doubleValue(shared_vector<double>(nchannel,epicsNAN)),
   pvaClientMonitor(std::vector<PvaClientMonitorPtr>(nchannel,PvaClientMonitorPtr())),
   isMonitorConnected(false),
   isDestroyed(false)
