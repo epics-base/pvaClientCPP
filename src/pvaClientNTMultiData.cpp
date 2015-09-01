@@ -57,7 +57,7 @@ PvaClientNTMultiData::PvaClientNTMultiData(
          unionValue[i] = pvDataCreate->createPVUnion(u);
     }
     NTMultiChannelBuilderPtr builder = NTMultiChannel::createBuilder();
-    builder->value(u);
+    builder->value(u)->addIsConnected();
     if(pvRequest->getSubField("field.alarm"))
     {
          gotAlarm = true;
