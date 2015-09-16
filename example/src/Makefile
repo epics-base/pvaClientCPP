@@ -45,6 +45,7 @@ examplePvaClientNTMulti_SRCS += examplePvaClientNTMulti.cpp
 examplePvaClientNTMulti_LIBS += pvaClient
 examplePvaClientNTMulti_LIBS += pvAccess
 examplePvaClientNTMulti_LIBS += pvData
+examplePvaClientNTMulti_LIBS += nt
 examplePvaClientNTMulti_LIBS += Com
 
 PROD_HOST += helloWorldRPC
