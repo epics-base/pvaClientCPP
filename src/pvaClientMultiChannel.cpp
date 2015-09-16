@@ -8,11 +8,13 @@
  * @author mrk
  * @date 2015.02
  */
-#define epicsExportSharedSymbols
 
 #include <map>
 #include <pv/event.h>
 #include <pv/lock.h>
+
+#define epicsExportSharedSymbols
+
 #include <pv/pvaClientMultiChannel.h>
 
 

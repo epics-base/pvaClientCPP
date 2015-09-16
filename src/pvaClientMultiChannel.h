@@ -12,13 +12,20 @@
 #define PVACLIENTMULTICHANNEL_H
 
 #ifdef epicsExportSharedSymbols
-#   define pvaClientEpicsExportSharedSymbols
+#   define pvaClientMultiChannelEpicsExportSharedSymbols
 #   undef epicsExportSharedSymbols
 #endif
 
-#include <pv/pvaClient.h>
 #include <pv/ntmultiChannel.h>
 #include <pv/createRequest.h>
+
+#ifdef pvaClientMultiChannelEpicsExportSharedSymbols
+#   define epicsExportSharedSymbols
+#	undef pvaClientMultiChannelEpicsExportSharedSymbols
+#endif
+
+
+#include <pv/pvaClient.h>
 
 
 namespace epics { namespace pvaClient { 
