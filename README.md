@@ -31,7 +31,7 @@ For example:
 Status
 ------
 
-* The API is for release 4.5.0-pre1
+* The API is for EPICS Version 4 release 4.5.0
 * Everything defined in pvaClient.h is ready but see below for remaining work.
 * Everything defined in pvaClientMultiChannel.h is ready but see below for remaining work.
 
@@ -47,5 +47,4 @@ pvaClientMultiChannel
 For release 4.5 support is available for multiDouble and NTMultiChannel.
 In the future additional support should be provided that at least includes NTScalarMultiChannel.
 
-Testing with some channels not connected have not been done.
-At least some testing with missing channels should be done before final release 4.5
+Testing with some channels not connected has not been done.
