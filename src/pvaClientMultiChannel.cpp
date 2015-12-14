@@ -75,7 +75,11 @@ void PvaClientMultiChannel::destroy()
 
 void PvaClientMultiChannel::checkConnected()
 {
-    if(numConnected==0) connect(3.0);
+    if(numConnected==0){
+        Status status = connect(3.0);
+        if(status.isOK()) return;
+        throw std::runtime_error("pvaClientMultiChannel connect failure");
+    }
 }
 
 epics::pvData::shared_vector<const string> PvaClientMultiChannel::getChannelNames()

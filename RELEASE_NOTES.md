@@ -1,5 +1,15 @@
-Release/4.1
-===========
+pvaClientCPP - Release/4.2
+==========================
+
+PvaClientMultiChannel
+---------------------
+
+checkConnected() now throws an exception if connect fails.
+
+
+
+pvaClientCPP - Release/4.1
+==========================
 
 This is for EPICS V4 release 4.5
 
