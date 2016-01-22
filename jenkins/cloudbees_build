@@ -65,7 +65,8 @@ make distclean all
 ###########################################
 # Test
 
-make runtests
+# no regression tests
+#make runtests
 
 ###########################################
 # Create distribution

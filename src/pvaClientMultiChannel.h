@@ -190,7 +190,7 @@ private:
 };
 
 /**
- *  This provides channelGet to multiple channels where each channel has a numeric scalar value field.
+ *  @brief Provides channelGet to multiple channels where each channel has a numeric scalar value field.
  */
 class epicsShareClass PvaClientMultiGetDouble :
     public std::tr1::enable_shared_from_this<PvaClientMultiGetDouble>
@@ -247,7 +247,7 @@ private:
 };
 
 /**
- * This provides channelPut to multiple channels where each channel has a numeric scalar value field.
+ * @brief Provides channelPut to multiple channels where each channel has a numeric scalar value field.
  */
 class epicsShareClass PvaClientMultiPutDouble :
     public std::tr1::enable_shared_from_this<PvaClientMultiPutDouble>
@@ -301,7 +301,7 @@ private:
 };
 
 /**
- * This provides a monitor to multiple channels where each channel has a numeric scalar value field.
+ * @brief Provides a monitor to multiple channels where each channel has a numeric scalar value field.
  */
 class epicsShareClass PvaClientMultiMonitorDouble :
     public std::tr1::enable_shared_from_this<PvaClientMultiMonitorDouble>
@@ -370,7 +370,7 @@ private:
 };
 
 /**
- *  This provides channelGet to multiple channels where the value field of each channel is presented as a union.
+ *  @brief Provides channelGet to multiple channels where the value field of each channel is presented as a union.
  */
 class epicsShareClass PvaClientNTMultiGet :
     public std::tr1::enable_shared_from_this<PvaClientNTMultiGet>
@@ -436,7 +436,7 @@ private:
 };
 
 /**
- *  This provides channelPut to multiple channels where the value field of each channel is presented as a union.
+ *  @brief Provides channelPut to multiple channels where the value field of each channel is presented as a union.
  */
 class epicsShareClass PvaClientNTMultiPut :
     public std::tr1::enable_shared_from_this<PvaClientNTMultiPut>
@@ -496,7 +496,7 @@ private:
 };
 
 /**
- *  This provides channel monitor to multiple channels where the value field of each channel is presented as a union.
+ *  @brief Provides channel monitor to multiple channels where the value field of each channel is presented as a union.
  */
 class epicsShareClass PvaClientNTMultiMonitor :
     public std::tr1::enable_shared_from_this<PvaClientNTMultiMonitor>
@@ -568,7 +568,7 @@ private:
 };
 
 /**
- *  This provides NTMultiChannel data for both PvaClientNTMultiGet and PvaClientNTMultiMonitor.
+ *  @brief Provides NTMultiChannel data for both PvaClientNTMultiGet and PvaClientNTMultiMonitor.
  */
 class epicsShareClass PvaClientNTMultiData :
     public std::tr1::enable_shared_from_this<PvaClientNTMultiData>
@@ -667,10 +667,4 @@ private:
 }}
 
 #endif  /* PVACLIENTMULTICHANNEL_H */
-
-/** @page Overview Documentation
- *
- * <a href = "../pvaClientOverview.html">pvaClientOverview.html</a>
- *
- */
 

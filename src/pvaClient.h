@@ -77,7 +77,7 @@ class PvaClientChannelCache;
 typedef std::tr1::shared_ptr<PvaClientChannelCache> PvaClientChannelCachePtr;
 
 /**
- * @brief PvaClient is a synchronous interface to pvAccess plus convenience methods.
+ * @brief A synchronous interface to pvAccess plus convenience methods.
  *
  * @author mrk
  */
@@ -180,7 +180,9 @@ typedef std::tr1::shared_ptr<PvaClientGetCache> PvaClientGetCachePtr;
 class PvaClientPutCache;
 typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
 class ChannelRequesterImpl;
-/** An easy to use alternative to directly calling the Channel methods of pvAccess.
+
+/** 
+ * @brief An easy to use alternative to directly calling the Channel methods of pvAccess.
  *
  * @author mrk
  */
@@ -412,7 +414,8 @@ private:
     friend class ChannelRequesterImpl;
 };
 
-/** This is a class that holds data returned by PvaClientGet or PvaClientPutGet
+/** 
+ *  @brief A class that holds data returned by PvaClientGet or PvaClientPutGet
  *
  */
 class epicsShareClass PvaClientGetData
@@ -529,7 +532,8 @@ private:
 };
 
 class PvaClientPostHandlerPvt; // private to PvaClientPutData
-/** This is a class that holds data given to  by PvaClientPut or PvaClientPutGet
+/** 
+ *  @brief A class that holds data given to  by PvaClientPut or PvaClientPutGet
  *
  */
 class epicsShareClass PvaClientPutData
@@ -654,7 +658,7 @@ private:
 };
 
 /**
- * This is a class that holds data returned by PvaClientMonitor
+ * @brief A class that holds data returned by PvaClientMonitor
  *
  */
 class epicsShareClass PvaClientMonitorData
@@ -785,7 +789,7 @@ private:
 
 class ChannelProcessRequesterImpl; // private to PvaClientProcess
 /**
- * An easy to use alternative to ChannelProcess.
+ * @brief An easy to use alternative to ChannelProcess.
  *
  * @author mrk
  */
@@ -870,7 +874,7 @@ private:
 
 class ChannelGetRequesterImpl; // private to PvaClientGet
 /**
- * An easy to use alternative to ChannelGet.
+ * @brief An easy to use alternative to ChannelGet.
  *
  * @author mrk
  */
@@ -968,7 +972,7 @@ private:
 
 class ChannelPutRequesterImpl; // private to PvaClientPut
 /**
- * An easy to use alternative to ChannelPut.
+ * @brief An easy to use alternative to ChannelPut.
  *
  * @author mrk
  */
@@ -1076,7 +1080,8 @@ private :
 };
 
 class ChannelPutGetRequesterImpl; // private to PvaClientPutGet
-/** An easy to use alternative to ChannelPutGet.
+/** 
+ * @brief An easy to use alternative to ChannelPutGet.
  *
  * @author mrk
  */
@@ -1210,7 +1215,7 @@ private :
 
 class ChannelMonitorRequester; // private to PvaClientMonitor
 /**
- * Optional client callback.
+ * @brief Optional client callback.
  *
  */
 class epicsShareClass PvaClientMonitorRequester
@@ -1227,7 +1232,7 @@ public:
 };
 
 /**
- * An easy to use alternative to Monitor.
+ * @brief An easy to use alternative to Monitor.
  *
  */
 class epicsShareClass PvaClientMonitor :
@@ -1342,7 +1347,7 @@ private:
 
 /** @page Overview Documentation
  *
- * <a href = "../pvaClientOverview.html">pvaClientOverview.html</a>
+ * <a href = "../pvaClientCPP.html">pvaClientCPP.html</a>
  *
  */
 
