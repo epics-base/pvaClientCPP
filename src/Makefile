@@ -5,8 +5,8 @@ include $(TOP)/configure/CONFIG
 
 LIBRARY += pvaClient
 
-INC += pvaClient.h
-INC += pvaClientMultiChannel.h
+INC += pv/pvaClient.h
+INC += pv/pvaClientMultiChannel.h
 
 LIBSRCS += pvaClient.cpp
 LIBSRCS += pvaClientPutData.cpp
