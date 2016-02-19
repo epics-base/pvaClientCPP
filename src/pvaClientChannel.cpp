@@ -173,6 +173,10 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
     if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
     if(status.isOK()) {
         this->channel = channel;
+        if(channel->isConnected()) {
+             connectState = connected;
+             channelConnectStatus = Status::Ok;
+        }
         return;
     }
     cout << "PvaClientChannel::channelCreated status " << status.getMessage() << " why??\n";
@@ -258,8 +262,7 @@ void PvaClientChannel::issueConnect()
     if(connectState!=connectIdle) {
        throw std::runtime_error("pvaClientChannel already connected");
     }
-    channelRequester = ChannelRequester::shared_pointer(new ChannelRequesterImpl(this));
-
+    
     channelConnectStatus = Status(
            Status::STATUSTYPE_ERROR,
            getChannelName() + " createChannel failed");
@@ -269,6 +272,7 @@ void PvaClientChannel::issueConnect()
     if(!provider) {
         throw std::runtime_error(getChannelName() + " provider " + providerName + " not registered");
     }
+    channelRequester = ChannelRequester::shared_pointer(new ChannelRequesterImpl(this));
     channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
     if(!channel) {
          throw std::runtime_error(getChannelName() + " channelCreate failed ");
@@ -278,6 +282,7 @@ void PvaClientChannel::issueConnect()
 Status PvaClientChannel::waitConnect(double timeout)
 {
     if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
+    if(channel->isConnected()) return Status::Ok;
     waitForConnect.wait(timeout);
     return channelConnectStatus;
 }
