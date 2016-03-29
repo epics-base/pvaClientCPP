@@ -170,12 +170,16 @@ PvaClientChannel::~PvaClientChannel()
 
 void PvaClientChannel::channelCreated(const Status& status, Channel::shared_pointer const & channel)
 {
+    Lock xx(mutex);
     if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
     if(status.isOK()) {
         this->channel = channel;
         if(channel->isConnected()) {
+             bool waitingForConnect = false;
+             if(connectState==connectActive) waitingForConnect = true;
              connectState = connected;
              channelConnectStatus = Status::Ok;
+             if(waitingForConnect) waitForConnect.signal();
         }
         return;
     }
@@ -258,15 +262,18 @@ void PvaClientChannel::connect(double timeout)
 
 void PvaClientChannel::issueConnect()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
-    if(connectState!=connectIdle) {
-       throw std::runtime_error("pvaClientChannel already connected");
-    }
+    {
+        Lock xx(mutex);
+        if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
+        if(connectState!=connectIdle) {
+           throw std::runtime_error("pvaClientChannel already connected");
+        }
     
-    channelConnectStatus = Status(
-           Status::STATUSTYPE_ERROR,
-           getChannelName() + " createChannel failed");
-    connectState = connectActive;
+        channelConnectStatus = Status(
+             Status::STATUSTYPE_ERROR,
+             getChannelName() + " createChannel failed");
+        connectState = connectActive;
+    }
     ChannelProviderRegistry::shared_pointer reg = getChannelProviderRegistry();
     ChannelProvider::shared_pointer provider = reg->getProvider(providerName);
     if(!provider) {
@@ -281,8 +288,11 @@ void PvaClientChannel::issueConnect()
 
 Status PvaClientChannel::waitConnect(double timeout)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
-    if(channel->isConnected()) return Status::Ok;
+    {
+        Lock xx(mutex);
+        if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
+        if(channel->isConnected()) return Status::Ok;
+    }
     waitForConnect.wait(timeout);
     return channelConnectStatus;
 }
