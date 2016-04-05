@@ -293,7 +293,11 @@ Status PvaClientChannel::waitConnect(double timeout)
         if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
         if(channel->isConnected()) return Status::Ok;
     }
-    waitForConnect.wait(timeout);
+    if(timeout>0.0) {
+        waitForConnect.wait(timeout);
+    } else {
+        waitForConnect.wait();
+    }
     return channelConnectStatus;
 }
 
@@ -458,7 +462,10 @@ PvaClientArrayPtr PvaClientChannel::createArray(PVStructurePtr const &  pvReques
 }
 
 
-PvaClientMonitorPtr PvaClientChannel::monitor() {return monitor("value,alarm,timeStamp");}
+PvaClientMonitorPtr PvaClientChannel::monitor()
+{
+    return monitor("value,alarm,timeStamp");
+}
 
 PvaClientMonitorPtr PvaClientChannel::monitor(string const & request)
 {

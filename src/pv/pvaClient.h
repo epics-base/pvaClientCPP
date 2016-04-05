@@ -68,6 +68,7 @@ class PvaClientMonitor;
 typedef std::tr1::shared_ptr<PvaClientMonitor> PvaClientMonitorPtr;
 class PvaClientMonitorRequester;
 typedef std::tr1::shared_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterPtr;
+typedef std::tr1::weak_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterWPtr;
 class PvaClientArray;
 typedef std::tr1::shared_ptr<PvaClientArray> PvaClientArrayPtr;
 
@@ -114,32 +115,36 @@ public:
     void destroy();
     /** Get a cached channel or create and connect to a new channel.
      *
-     * The provider is pvaClient. The timeout is 5 seconds.
-     * If connection can not be made an exception is thrown.
+     * The provider is pva. The timeout is 0 seconds.
      * @param channelName The channelName.
      * @return The interface.
+     * @throw runtime_error if connection fails.
      */
     PvaClientChannelPtr channel(std::string const & channelName)
     { return channel(channelName,"pva", 5.0); }
     /** Get a cached channel or create and connect to a new channel.
-     * If connection can not be made an exception is thrown.
      * @param channelName The channelName.
+     * @param providerName The providerName.
+     * @param timeOut The number of seconds to wait for connection. 0.0 means forever.
      * @return The interface.
+     * @throw runtime_error if connection fails.
      */
     PvaClientChannelPtr channel(
         std::string const & channelName,
         std::string const &providerName,
         double timeOut);
-    /** Create an PvaClientChannel. The provider is pvaClient.
+    /** Create an PvaClientChannel. The provider is pva.
      * @param channelName The channelName.
      * @return The interface.
+     * @throw runtime_error if connection fails.
      */
     PvaClientChannelPtr createChannel(std::string const & channelName)
     { return createChannel(channelName,"pva");}
     /** Create an PvaClientChannel with the specified provider.
      * @param channelName The channelName.
      * @param providerName The provider.
-     * @return The interface or null if the provider does not exist.
+     * @return The interface.
+     * @throw runtime_error if connection fails.
      */
     PvaClientChannelPtr createChannel(
        std::string const & channelName,
@@ -214,15 +219,15 @@ public:
     epics::pvAccess::Channel::shared_pointer getChannel();
     /** Connect to the channel.
      * This calls issueConnect and waitConnect.
-     * An exception is thrown if connect fails.
-     * @param timeout The time to wait for connecting to the channel.
+     * @param timeout The time to wait for connecting to the channel. The defaut is 5 seconds.
+     * @throw runtime_error if connection fails.
      */
     void connect(double timeout=5.0);
     /** Issue a connect request and return immediately.
      */
     void issueConnect();
     /** Wait until the connection completes or for timeout.
-     * @param timeout The time in second to wait.
+     * @param timeout The time in seconds to wait. A value of 0 means forever.
      * @return status.
      */
     epics::pvData::Status waitConnect(double timeout);
@@ -237,20 +242,24 @@ public:
     PvaClientFieldPtr createField(std::string const & subField);
     /** Calls the next method with request = "";
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientProcessPtr createProcess();
     /** First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientProcessPtr createProcess(std::string const & request);
     /** Creates an PvaClientProcess. 
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientProcessPtr createProcess(epics::pvData::PVStructurePtr const &  pvRequest);
     /** Call the next method with request =  "field(value,alarm,timeStamp)" 
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientGetPtr get();
     /** Get a cached PvaClientGet or create and connect to a new PvaClientGet.
@@ -258,40 +267,47 @@ public:
      * If connection can not be made an exception is thrown.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientGetPtr get(std::string const & request);
     /** Call the next method with request =  "field(value,alarm,timeStamp)" 
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientGetPtr createGet();
     /** First call createRequest as implemented by pvDataJava and then call the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientGetPtr createGet(std::string const & request);
     /** Creates an PvaClientGet.
      * @param pvRequest The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientGetPtr createGet(epics::pvData::PVStructurePtr const &  pvRequest);
     /** Call the next method with request =  "field(value)" 
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientPutPtr put();
     /** get a cached PvaClientPut or create and connect to a new PvaClientPut.
      *  Then call it's get method.
-     *  If connection can not be made an exception is thrown.
      *  @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if connection fails
      */
     PvaClientPutPtr put(std::string const & request);
     /** Call the next method with request = "field(value)" 
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientPutPtr createPut();
     /** First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientPutPtr createPut(std::string const & request);
     /** Create an PvaClientPut.
@@ -301,11 +317,13 @@ public:
     PvaClientPutPtr createPut(epics::pvData::PVStructurePtr const & pvRequest);
     /** Call the next method with request = "record[process=true]putField(argument)getField(result)".
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientPutGetPtr createPutGet();
     /** First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientPutGetPtr createPutGet(std::string const & request);
     /** Create an PvaClientPutGet.
@@ -320,6 +338,7 @@ public:
     /** First call createRequest as implemented by pvDataJava and then call the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientArrayPtr createArray(std::string const & request);
     /** Create an PvaClientArray.
@@ -329,6 +348,7 @@ public:
     PvaClientArrayPtr createArray(epics::pvData::PVStructurePtr const &  pvRequest);
     /** Call the next method with request =  "field(value,alarm,timeStamp)" 
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientMonitorPtr monitor();
     /** Get a cached PvaClientMonitor or create and connect to a new PvaClientMonitor.
@@ -341,6 +361,7 @@ public:
     /** Call the next method with request =  "field(value,alarm,timeStamp)" 
       * @param pvaClientMonitorRequester The client callback.
       * @return The interface.
+      * @throw runtime_error if failure.
       */
     PvaClientMonitorPtr monitor(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester);
 
@@ -350,6 +371,7 @@ public:
      * @param request The request as described in package org.epics.pvdata.copy
      * @param pvaClientMonitorRequester The client callback.
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientMonitorPtr monitor(
         std::string const & request,
@@ -362,11 +384,13 @@ public:
      * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
      * @param request The request as described in package org.epics.pvdata.copy
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientMonitorPtr createMonitor(std::string const & request);
     /** Create an PvaClientMonitor.
      * @param pvRequest  The syntax of pvRequest is described in package org.epics.pvdata.copy.
      * @return The interface.
+     * @throw runtime_error if failure.
      */
     PvaClientMonitorPtr createMonitor(epics::pvData::PVStructurePtr const &  pvRequest);
      /** Show the list of cached gets and puts.
@@ -473,37 +497,37 @@ public:
     /**
      * @brief Return the interface to a scalar value field.
      * @return The interface for a scalar value field.
-     * An exception is thown if no scalar value field.
+     * @throw runtime_error if failure.
      */
     epics::pvData::PVScalarPtr getScalarValue();
     /** Getthe interface to an array value field.
      * @return The interface.
-     * An exception is thown if no array value field.
+     * @throw runtime_error if failure.
      */
     std::tr1::shared_ptr<epics::pvData::PVArray> getArrayValue();
     /** Get the interface to a scalar array value field.
      * @return Return the interface.
-     * An exception is thown if no scalar array value field.
+     * @throw runtime_error if failure.
      */
     std::tr1::shared_ptr<epics::pvData::PVScalarArray> getScalarArrayValue();
     /** Get the value as a double.
-     * If value is not a numeric scalar an exception is thrown.
+     * @throw runtime_error if failure.
      * @return The value.
      */
     double getDouble();
     /** Get the value as a string.
-     * If value is not a scalar an exception is thrown
      * @return The value.
+     * @throw runtime_error if failure.
      */
     std::string getString();
     /** Get the value as a double array.
-     * If the value is not a numeric array an exception is thrown.
      * @return The value.
+     * @throw runtime_error if failure.
      */
     epics::pvData::shared_vector<const double>  getDoubleArray();
     /** Get the value as a string array.
-     * If the value is not a string array an exception is thrown.
      * @return The value.
+     * @throw runtime_error if failure.
      */
     epics::pvData::shared_vector<const std::string>  getStringArray();
     /** Get the alarm.
@@ -585,7 +609,7 @@ public:
     epics::pvData::PVFieldPtr getValue();
     /** Get the interface to a scalar value field.
      * @return The interface for a scalar value field.
-     * An exception is thown if no scalar value field.
+     * @throw runtime_error if failure.
      */
     epics::pvData::PVScalarPtr getScalarValue();
     /** Get the interface to an array value field.
@@ -595,7 +619,7 @@ public:
     std::tr1::shared_ptr<epics::pvData::PVArray> getArrayValue();
     /** Get the interface to a scalar array value field.
      * @return Return the interface.
-     * An exception is thown if no scalar array value field.
+     * @throw runtime_error if failure.
      */
     std::tr1::shared_ptr<epics::pvData::PVScalarArray> getScalarArrayValue();
     /** Get the value as a double.
@@ -604,8 +628,8 @@ public:
      */
     double getDouble();
     /** Get the value as a string.
-     * If value is not a string an exception is thrown
      * @return The value.
+     * @throw runtime_error if failure.
      */
     std::string getString();
     /** Get the value as a double array.
@@ -614,13 +638,14 @@ public:
      */
     epics::pvData::shared_vector<const double>  getDoubleArray();
     /** Get the value as a string array.
-     * If the value is not a string array an exception is thrown.
      * @return The value.
+     * @throw runtime_error if failure.
      */
     epics::pvData::shared_vector<const std::string>  getStringArray();
     /** Put the value as a double.
+     * @param value The new value.
      * An exception is also thrown if the actualy type can cause an overflow.
-     * If value is not a numeric scalar an exception is thrown.
+     * @throw runtime_error if failure.
      */
     void putDouble(double value);
     /** Put the value as a string.
@@ -628,18 +653,18 @@ public:
      */
     void putString(std::string const & value);
     /** Copy the array to the value field.
-     * If the value field is not a double array field an exception is thrown.
      * @param value The place where data is copied.
+     * @throw runtime_error if failure.
      */
     void putDoubleArray(epics::pvData::shared_vector<const double> const & value);
     /** Copy array to the value field.
-     * If the value field is not a string array field an exception is thrown.
      * @param value data source
+     * @throw runtime_error if failure.
      */
     void putStringArray(epics::pvData::shared_vector<const std::string> const & value);
     /** Copy array to the value field.
-     * If the value field is not a scalarArray field an exception is thrown.
      * @param value data source
+     * @throw runtime_error if failure.
      */
     void putStringArray(std::vector<std::string> const & value);
 private:
@@ -720,16 +745,19 @@ public:
     epics::pvData::PVFieldPtr getValue();
     /** Get the interface to a scalar value field.
      * @return The interface for a scalar value field.
+     * @throw runtime_error if failure.
      * An exception is thown if no scalar value field.
      */
     epics::pvData::PVScalarPtr getScalarValue();
     /** Get the interface to an array value field.
      * @return The interface.
+     * @throw runtime_error if failure.
      * An exception is thown if no array value field.
      */
     std::tr1::shared_ptr<epics::pvData::PVArray> getArrayValue();
     /** Get the interface to a scalar array value field.
      * @return Return the interface.
+     * @throw runtime_error if failure.
      * An exception is thown if no scalar array value field.
      */
     std::tr1::shared_ptr<epics::pvData::PVScalarArray> getScalarArrayValue();
@@ -741,22 +769,26 @@ public:
     /** Get the value as a string.
      * If value is not a scalar an exception is thrown
      * @return The value.
+     * @throw runtime_error if failure.
      */
     std::string getString();
     /** Get the value as a double array.
      * If the value is not a numeric array an exception is thrown.
      * @return The value.
+     * @throw runtime_error if failure.
      */
     epics::pvData::shared_vector<const double>  getDoubleArray();
     /** Get the value as a string array.
      * If the value is not a string array an exception is thrown.
      * @return The value.
+     * @throw runtime_error if failure.
      */
     epics::pvData::shared_vector<const std::string>  getStringArray();
     /** Get the alarm.
      * If the pvStructure as an alarm field it's values are returned.
      * If no then alarm shows that not alarm defined.
      * @return The alarm.
+     * @throw runtime_error if failure.
      */
     epics::pvData::Alarm getAlarm();
     /** Get the timeStamp.
@@ -816,6 +848,7 @@ public:
     void destroy();
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
+     * @throw runtime_error if failure.
      */
     void connect();
     /** Issue the channelProcess connection to the channel.
@@ -902,6 +935,7 @@ public:
     void destroy();
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
+     * @throw runtime_error if failure.
      */
     void connect();
     /**
@@ -1000,6 +1034,7 @@ public:
     void destroy();
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
+     * @throw runtime_error if failure.
      */
     void connect();
     /** Issue the channelPut connection to the channel.
@@ -1012,6 +1047,7 @@ public:
     epics::pvData::Status waitConnect();
     /** Call issueGet and then waitGet.
      * An exception is thrown if get fails.
+     * @throw runtime_error if failure.
      */
     void get();
     /** Issue a get and return immediately.
@@ -1108,6 +1144,7 @@ public:
     void destroy();
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
+     * @throw runtime_error if failure.
      */
     void connect();
     /** Issue the channelPutGet connection to the channel.
@@ -1222,13 +1259,10 @@ class epicsShareClass PvaClientMonitorRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientMonitorRequester);
-    /** Destructor
-     */
-    virtual ~PvaClientMonitorRequester(){}
     /** A monitor event has occurred.
      * @param monitor The PvaClientMonitor that received the event.
      */
-    virtual void event(PvaClientMonitorPtr monitor) = 0;
+    virtual void event(PvaClientMonitorPtr const & monitor) = 0;
 };
 
 /**
@@ -1236,7 +1270,8 @@ public:
  *
  */
 class epicsShareClass PvaClientMonitor :
-     public std::tr1::enable_shared_from_this<PvaClientMonitor>
+    public epics::pvData::MonitorRequester,
+    public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
 public:
     POINTER_DEFINITIONS(PvaClientMonitor);
@@ -1254,6 +1289,38 @@ public:
     /** Destructor
      */
     ~PvaClientMonitor();
+    /** epics::pvData::MonitorRequester method
+     * The requester must have a name.
+     * @return The requester's name.
+     */
+    virtual std::string getRequesterName();
+    /**  epics::pvData::MonitorRequester method
+     * A message for the requester.
+     * @param message The message.
+     * @param messageType The type of message:
+     */
+    virtual void message(std::string const & message,epics::pvData::MessageType messageType);
+    /**  epics::pvData::MonitorRequester method
+     * @param status Completion status.
+     * @param monitor The monitor
+     * @param structure The structure defining the data.
+     */
+    virtual void monitorConnect(
+        const epics::pvData::Status& status,
+        epics::pvData::MonitorPtr const & monitor,
+        epics::pvData::StructureConstPtr const & structure);
+    /**  epics::pvData::MonitorRequester method
+     * The client and server have both completed the createMonitor request.
+     * The data source is no longer available.
+     * @param monitor The monitor.
+     */
+    virtual void unlisten(epics::pvData::MonitorPtr const & monitor);
+    /** epics::pvData::MonitorRequester method
+     * A monitor event has occurred.
+     * The requester must call Monitor.poll to get data.
+     * @param monitor The monitor.
+     */
+    virtual void monitorEvent(epics::pvData::MonitorPtr const & monitor);
     /** Destroy all resources used.
      */
     void destroy();
@@ -1264,6 +1331,7 @@ public:
     /** Issue the channelMonitor connection to the channel.
      * This can only be called once.
      * An exception is thrown if connect fails.
+     * @throw runtime_error if failure.
      */
     void issueConnect();
     /** Wait until the channelMonitor connection to the channel is complete.
@@ -1309,21 +1377,13 @@ private:
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
-    std::string getRequesterName();
-    void message(std::string const & message,epics::pvData::MessageType messageType);
-    void monitorConnect(
-        const epics::pvData::Status& status,
-        epics::pvData::MonitorPtr const & monitor,
-        epics::pvData::StructureConstPtr const & structure);
-    void monitorEvent(epics::pvData::MonitorPtr const & monitor);
-    void unlisten();
+
     void checkMonitorState();
     enum MonitorConnectState {connectIdle,connectActive,connected,monitorStarted};
 
     PvaClient::weak_pointer pvaClient;
     epics::pvAccess::Channel::shared_pointer channel;
     epics::pvData::PVStructurePtr pvRequest;
-    epics::pvData::MonitorRequester::shared_pointer monitorRequester;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForEvent;
@@ -1333,7 +1393,7 @@ private:
     epics::pvData::Status connectStatus;
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;
-    PvaClientMonitorRequester::weak_pointer pvaClientMonitorRequester;
+    PvaClientMonitorRequesterWPtr pvaClientMonitorRequester;
 
     MonitorConnectState connectState;
     bool userPoll;
