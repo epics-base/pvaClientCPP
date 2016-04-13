@@ -1259,6 +1259,7 @@ class epicsShareClass PvaClientMonitorRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientMonitorRequester);
+    virtual ~PvaClientMonitorRequester() {}
     /** A monitor event has occurred.
      * @param monitor The PvaClientMonitor that received the event.
      */
