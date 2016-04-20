@@ -93,10 +93,25 @@ public:
      * Destructor
      */
     ~PvaClient();
-    /** Create an instance of PvaClient
-     * @return shared_ptr to new instance.
+    /** Get the single instance of PvaClient.
+     * @param providerNames Space separated list of provider names.
+     * @return shared pointer to the single instance.
      */
-    static PvaClientPtr create();
+    static PvaClientPtr get(std::string const & providerNames);
+    /** Get the single instance of PvaClient.
+     * calls get with providerNames "pva ca".
+     * @return shared pointer to the single instance.
+     */
+    static PvaClientPtr get() {return get("pva ca");}
+    /** Create an instance of PvaClient with providerName "pva ca".
+     * \deprecated This method will go away in future versions. Use get instead.
+     * @return shared pointer to the single instance
+     */
+    static PvaClientPtr create()
+     {
+         std::cerr << "create is deprecated. Use get instead\n";
+         return get("pva ca");
+     }
     /** Get the requester name.
      * @return The name.
      */
@@ -171,11 +186,13 @@ public:
         return shared_from_this();
     }
 private:
-    PvaClient();
+    PvaClient(std::string const & providerNames);
     PvaClientChannelCachePtr pvaClientChannelCache;
 
     epics::pvData::Requester::weak_pointer requester;
     bool isDestroyed;
+    bool pvaStarted;
+    bool caStarted;
     epics::pvData::Mutex mutex;
 };
 
