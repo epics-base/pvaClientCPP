@@ -18,6 +18,7 @@
 
 #include <list>
 #include <iostream>
+#include <compilerDependencies.h>
 #include <pv/requester.h>
 #include <pv/status.h>
 #include <pv/event.h>
@@ -107,11 +108,10 @@ public:
      * \deprecated This method will go away in future versions. Use get instead.
      * @return shared pointer to the single instance
      */
-    static PvaClientPtr create()
-     {
-         std::cerr << "create is deprecated. Use get instead\n";
-         return get("pva ca");
-     }
+    static PvaClientPtr create() EPICS_DEPRECATED
+    {
+        return get("pva ca");
+    }
     /** Get the requester name.
      * @return The name.
      */
