@@ -57,19 +57,19 @@ PvaClientNTMultiMonitor::PvaClientNTMultiMonitor(
   isConnected(false),
   isDestroyed(false)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientNTMultiMonitor::PvaClientNTMultiMonitor()\n";
 }
 
 
 PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor()
 {
-    destroy();
-}
-
-void PvaClientNTMultiMonitor::destroy()
-{
+    if(PvaClient::getDebug()) cout<< "PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor() called more then once????\n";
+             return;
+        }
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

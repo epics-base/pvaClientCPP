@@ -48,19 +48,19 @@ PvaClientNTMultiPut::PvaClientNTMultiPut(
   isConnected(false),
   isDestroyed(false)
 {
+     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiPut::PvaClientNTMultiPut()\n";
 }
 
 
 PvaClientNTMultiPut::~PvaClientNTMultiPut()
 {
-    destroy();
-}
-
-void PvaClientNTMultiPut::destroy()
-{
+    if(PvaClient::getDebug()) cout<< "PvaClientNTMultiPut::~PvaClientNTMultiPut()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientNTMultiPut::~PvaClientNTMultiPut() called more then once????\n";
+             return;
+        }
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

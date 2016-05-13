@@ -56,18 +56,18 @@ PvaClientMultiChannel::PvaClientMultiChannel(
   createRequest(CreateRequest::create()),
   isDestroyed(false)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientMultiChannel::PvaClientMultiChannel()\n";
 }
 
 PvaClientMultiChannel::~PvaClientMultiChannel()
 {
-    destroy();
-}
-
-void PvaClientMultiChannel::destroy()
-{
+    if(PvaClient::getDebug()) cout<< "PvaClientMultiChannel::~PvaClientMultiChannel()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientMultiChannel::~PvaClientMultiChannel() called more then once????\n";
+             return;
+        }
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();
@@ -75,11 +75,7 @@ void PvaClientMultiChannel::destroy()
 
 void PvaClientMultiChannel::checkConnected()
 {
-    if(numConnected==0){
-        Status status = connect(3.0);
-        if(status.isOK()) return;
-        throw std::runtime_error("pvaClientMultiChannel connect failure");
-    }
+    if(numConnected==0) connect();
 }
 
 epics::pvData::shared_vector<const string> PvaClientMultiChannel::getChannelNames()

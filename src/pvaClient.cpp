@@ -37,11 +37,9 @@ class PvaClientChannelCache
 public:
     PvaClientChannelCache(){}
     ~PvaClientChannelCache(){
-         destroy();
+         if(PvaClient::getDebug()) cout << "PvaClientChannelCache::~PvaClientChannelCache\n";
+         pvaClientChannelMap.clear();
      }
-    void destroy() {
-       pvaClientChannelMap.clear();
-    }
     PvaClientChannelPtr getChannel(
         string const & channelName,
         string const & providerName);
@@ -68,17 +66,12 @@ void PvaClientChannelCache::addChannel(PvaClientChannelPtr const & pvaClientChan
      Channel::shared_pointer channel = pvaClientChannel->getChannel();
      string name = channel->getChannelName()
          + channel->getProvider()->getProviderName();
-     pvaClientChannelMap.insert(std::pair<string,PvaClientChannelPtr>(
-         name,pvaClientChannel));
-}
-
-void PvaClientChannelCache::removeChannel(
-        string const & channelName,
-        string const & providerName)
-{
-    string name = channelName + providerName;
     map<string,PvaClientChannelPtr>::iterator iter = pvaClientChannelMap.find(name);
-    if(iter!=pvaClientChannelMap.end()) pvaClientChannelMap.erase(iter);
+    if(iter!=pvaClientChannelMap.end()) {
+        throw std::runtime_error("pvaClientChannelCache::addChannel channel already cached");
+    }
+    pvaClientChannelMap.insert(std::pair<string,PvaClientChannelPtr>(
+         name,pvaClientChannel));
 }
 
 void PvaClientChannelCache::showCache()
@@ -102,6 +95,8 @@ size_t PvaClientChannelCache::cacheSize()
     return pvaClientChannelMap.size();
 
 }
+
+bool PvaClient::debug = false;
 
 PvaClientPtr PvaClient::get(std::string const & providerNames)
 {
@@ -141,16 +136,16 @@ PvaClient::PvaClient(std::string const & providerNames)
 }
 
 PvaClient::~PvaClient() {
-    destroy();
-}
-
-void PvaClient::destroy()
-{
+    if(PvaClient::debug) cout<< "PvaClient::~PvaClient()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) {
+             cerr<< "Why was PvaClient::~PvaClient() called more then once????\n";
+             return;
+        }
         isDestroyed = true;
     }
+    if(PvaClient::debug) showCache();
     pvaClientChannelCache.reset();
     if(pvaStarted) ClientFactory::stop();
     if(caStarted) CAClientFactory::stop();

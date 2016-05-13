@@ -54,11 +54,21 @@ PvaClientProcess::PvaClientProcess(
   connectState(connectIdle),
   processState(processIdle)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientProcess::PvaClientProcess()\n";
 }
 
 PvaClientProcess::~PvaClientProcess()
 {
-    destroy();
+    if(PvaClient::getDebug()) cout<< "PvaClientProcess::~PvaClientProcess()\n";
+    {
+        Lock xx(mutex);
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientProcess::~PvaClientProcess() called more then once????\n";
+             return;
+        }
+        isDestroyed = true;
+    }
+    channelProcess->destroy();
 }
 
 // from ChannelProcessRequester
@@ -97,19 +107,6 @@ void PvaClientProcess::processDone(
     waitForProcess.signal();
 }
 
-
-// from PvaClientProcess
-void PvaClientProcess::destroy()
-{
-    {
-        Lock xx(mutex);
-        if(isDestroyed) return;
-        isDestroyed = true;
-    }
-    if(channelProcess) channelProcess->destroy();
-    channelProcess.reset();
-}
-
 void PvaClientProcess::connect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
@@ -129,7 +126,8 @@ void PvaClientProcess::issueConnect()
             + " pvaClientProcess already connected ";
         throw std::runtime_error(message);
     }
-    processRequester = ChannelProcessRequester::shared_pointer(new ChannelProcessRequesterImpl(this));
+    ChannelProcessRequester::shared_pointer processRequester(
+        ChannelProcessRequester::shared_pointer(this));
     connectState = connectActive;
     channelProcess = channel->createChannelProcess(processRequester,pvRequest);
 }

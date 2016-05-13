@@ -51,18 +51,18 @@ PvaClientMultiGetDouble::PvaClientMultiGetDouble(
   isGetConnected(false),
   isDestroyed(false)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientMultiGetDouble::PvaClientMultiGetDouble()\n";
 }
 
 PvaClientMultiGetDouble::~PvaClientMultiGetDouble()
 {
-    destroy();
-}
-
-void PvaClientMultiGetDouble::destroy()
-{
+    if(PvaClient::getDebug()) cout<< "PvaClientMultiGetDouble::~PvaClientMultiGetDouble()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientMultiGetDouble::~PvaClientMultiGetDouble() called more then once????\n";
+             return;
+        }
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

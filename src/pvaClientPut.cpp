@@ -60,11 +60,21 @@ PvaClientPut::PvaClientPut(
   connectState(connectIdle),
   putState(putIdle)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientPut::PvaClientPut()\n";
 }
 
 PvaClientPut::~PvaClientPut()
 {
-    destroy();
+    if(PvaClient::getDebug()) cout<< "PvaClientPut::~PvaClientPut()\n";
+    {
+        Lock xx(mutex);
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientPut::~PvaClientPut() called more then once????\n";
+             return;
+        }
+        isDestroyed = true;
+    }
+    if(channelPut) channelPut->destroy();
 }
 
 void PvaClientPut::checkPutState()
@@ -116,6 +126,7 @@ void PvaClientPut::getDone(
 {
     if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     channelGetPutStatus = status;
+    connectState = connected;
     if(status.isOK()) {
         PVStructurePtr pvs = pvaClientData->getPVStructure();
         pvs->copyUnchecked(*pvStructure,*bitSet);
@@ -135,27 +146,16 @@ void PvaClientPut::putDone(
     waitForGetPut.signal();
 }
 
-
-// from PvaClientPut
-void PvaClientPut::destroy()
-{
-    {
-        Lock xx(mutex);
-        if(isDestroyed) return;
-        isDestroyed = true;
-    }
-    if(channelPut) channelPut->destroy();
-    channelPut.reset();
-}
-
 void PvaClientPut::connect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    string message = string("channel ") + channel->getChannelName()
-        + " PvaClientPut::connect " + status.getMessage();
+    string message = string("channel ") 
+        + channel->getChannelName()
+        + " PvaClientPut::connect "
+        + status.getMessage();
     throw std::runtime_error(message);
 }
 
@@ -167,7 +167,7 @@ void PvaClientPut::issueConnect()
             + " pvaClientPut already connected ";
         throw std::runtime_error(message);
     }
-    putRequester = ChannelPutRequester::shared_pointer(new ChannelPutRequesterImpl(this));
+    ChannelPutRequester::shared_pointer putRequester(ChannelPutRequester::shared_pointer(this));
     connectState = connectActive;
     channelPut = channel->createChannelPut(putRequester,pvRequest);
 }
@@ -175,13 +175,17 @@ void PvaClientPut::issueConnect()
 Status PvaClientPut::waitConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
+    if(connectState==connected) {
+         if(!channelPutConnectStatus.isOK()) connectState = connectIdle;
+         return channelPutConnectStatus;
+    }
     if(connectState!=connectActive) {
         string message = string("channel ") + channel->getChannelName()
             + " pvaClientPut illegal connect state ";
         throw std::runtime_error(message);
     }
     waitForConnect.wait();
-    connectState = channelPutConnectStatus.isOK() ? connected : connectIdle;
+    if(!channelPutConnectStatus.isOK()) connectState = connectIdle;
     return channelPutConnectStatus;
 }
 
@@ -191,8 +195,10 @@ void PvaClientPut::get()
     issueGet();
     Status status = waitGet();
     if(status.isOK()) return;
-    string message = string("channel ") + channel->getChannelName()
-        + " PvaClientPut::get " + status.getMessage();
+    string message = string("channel ") 
+        + channel->getChannelName()
+        + " PvaClientPut::get " 
+        + status.getMessage();
     throw std::runtime_error(message);
 }
 
@@ -201,12 +207,12 @@ void PvaClientPut::issueGet()
     if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(connectState==connectIdle) connect();
     if(putState!=putIdle) {
-        string message = string("channel ") + channel->getChannelName()
+        string message = string("channel ")
+            + channel->getChannelName()
             +  "PvaClientPut::issueGet get or put aleady active ";
         throw std::runtime_error(message);
     }
     putState = getActive;
-    pvaClientData->getChangedBitSet()->clear();
     channelPut->get();
 }
 
@@ -215,7 +221,7 @@ Status PvaClientPut::waitGet()
     if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(putState!=getActive){
         string message = string("channel ") + channel->getChannelName()
-            +  " PvaClientPut::waitGet llegal put state";
+            +  " PvaClientPut::waitGet illegal put state";
         throw std::runtime_error(message);
     }
     waitForGetPut.wait();
@@ -229,8 +235,10 @@ void PvaClientPut::put()
     issuePut();
     Status status = waitPut();
     if(status.isOK()) return;
-    string message = string("channel ") + channel->getChannelName()
-        + " PvaClientPut::put " + status.getMessage();
+    string message = string("channel ")
+        + channel->getChannelName()
+        + " PvaClientPut::put "
+        + status.getMessage();
     throw std::runtime_error(message);
 }
 
@@ -252,7 +260,7 @@ Status PvaClientPut::waitPut()
     if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
     if(putState!=putActive){
         string message = string("channel ") + channel->getChannelName()
-            +  " PvaClientPut::waitPut llegal put state";
+            +  " PvaClientPut::waitPut illegal put state";
         throw std::runtime_error(message);
     }
     waitForGetPut.wait();

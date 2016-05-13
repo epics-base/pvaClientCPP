@@ -60,18 +60,18 @@ PvaClientNTMultiGet::PvaClientNTMultiGet(
   isConnected(false),
   isDestroyed(false)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientNTMultiGet::PvaClientNTMultiGet()\n";
 }
 
 PvaClientNTMultiGet::~PvaClientNTMultiGet()
 {
-    destroy();
-}
-
-void PvaClientNTMultiGet::destroy()
-{
+    if(PvaClient::getDebug()) cout<< "PvaClientNTMultiGet::~PvaClientNTMultiGet()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientNTMultiGet::~PvaClientNTMultiGet() called more then once????\n";
+             return;
+        }
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

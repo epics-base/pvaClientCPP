@@ -79,9 +79,7 @@ public:
      * Destructor
      */
     ~PvaClientMultiChannel();
-    /** Destroy the pvAccess connections.
-     */
-    void destroy();
+    
     /** Get the channelNames.
      * @return The names.
      */
@@ -164,13 +162,16 @@ public:
     {
         return shared_from_this();
     }
+     /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiChannel(
         PvaClientPtr const &pvaClient,
         epics::pvData::shared_vector<const std::string> const & channelName,
         std::string const & providerName,
         size_t maxNotConnected);
-
     void checkConnected();
     
     PvaClientPtr pvaClient;
@@ -211,9 +212,6 @@ public:
 
     ~PvaClientMultiGetDouble();
 
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
      /**
      * Create a channelGet for each channel.
      */
@@ -230,6 +228,10 @@ public:
     {
         return shared_from_this();
     }
+    /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiGetDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -266,10 +268,6 @@ public:
          PvaClientMultiChannelPtr const &pvaMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
     ~PvaClientMultiPutDouble();
-
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
      /**
      * Create a channelPut for each channel.
      */
@@ -285,6 +283,10 @@ public:
     {
         return shared_from_this();
     }
+    /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiPutDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -320,10 +322,6 @@ public:
          PvaClientMultiChannelPtr const &pvaMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
     ~PvaClientMultiMonitorDouble();
-
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
      /**
      * Create a channel monitor for each channel.
      */
@@ -336,11 +334,11 @@ public:
     bool poll();
     /**
      * Wait until poll returns true.
-     * @param waitForEvent The time to keep trying.
+     * @param secondsToWait The time to keep trying.
      * A thread sleep of .1 seconds occurs between each call to poll.
      * @return (false,true) if (timeOut, poll returned true).
      */
-    bool waitEvent(double waitForEvent);
+    bool waitEvent(double secondsToWait);
     /**
      * get the data.
      *  @return The double[] where each element is the value field of the corresponding channel.
@@ -353,6 +351,10 @@ public:
     {
         return shared_from_this();
     }
+    /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiMonitorDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -391,10 +393,6 @@ public:
          epics::pvData::PVStructurePtr const &  pvRequest);
 
     ~PvaClientNTMultiGet();
-
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
      /**
      * Create a channelGet for each channel.
      */
@@ -415,6 +413,10 @@ public:
     {
         return shared_from_this();
     }
+    /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiGet(
          epics::pvData::UnionConstPtr const & u,
@@ -453,11 +455,8 @@ public:
     static PvaClientNTMultiPutPtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
+     
     ~PvaClientNTMultiPut();
-
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
      /**
      * Create a channelPut for each channel.
      */
@@ -478,6 +477,10 @@ public:
     {
         return shared_from_this();
     }
+    /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiPut(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -516,10 +519,6 @@ public:
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
     ~PvaClientNTMultiMonitor();
-
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
      /**
      * Create a channel monitor for each channel.
      */
@@ -532,11 +531,11 @@ public:
     bool poll();
     /**
      * Wait until poll returns true.
-     * @param waitForEvent The time to keep trying.
+     * @param secondsToWait The time to keep trying.
      * A thread sleep of .1 seconds occurs between each call to poll.
      * @return (false,true) if (timeOut, poll returned true).
      */
-    bool waitEvent(double waitForEvent);
+    bool waitEvent(double secondsToWait);
      /**
      * get the data.
      * @return the pvaClientNTMultiData.
@@ -549,6 +548,10 @@ public:
     {
         return shared_from_this();
     }
+    /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiMonitor(
          epics::pvData::UnionConstPtr const & u,
@@ -590,10 +593,7 @@ public:
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
     ~PvaClientNTMultiData();
-    /** Destroy the pvAccess connection.
-     */
-    void destroy();
-
+    
     /**
      * Get the number of channels.
      * @return The number of channels.
@@ -626,7 +626,10 @@ public:
     {
         return shared_from_this();
     }
-   
+    /** Deprecated method
+     * \deprecated This method will go away in future versions. 
+     */
+    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiData(
          epics::pvData::UnionConstPtr const & u,

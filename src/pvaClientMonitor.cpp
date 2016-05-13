@@ -37,11 +37,23 @@ PvaClientMonitor::PvaClientMonitor(
   userPoll(false),
   userWait(false)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientMonitor::PvaClientMonitor()\n";
 }
 
 PvaClientMonitor::~PvaClientMonitor()
 {
-    destroy();
+    if(PvaClient::getDebug()) cout<< "PvaClientMonitor::~PvaClientMonitor()\n";
+    {
+        Lock xx(mutex);
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientMonitor::~PvaClientMonitor() called more then once????\n";
+             return;
+        }
+        isDestroyed = true;
+    }
+    if(monitor) monitor->destroy();
+    monitor.reset();
+    monitorElement.reset();
 }
 
 void PvaClientMonitor::checkMonitorState()
@@ -74,6 +86,7 @@ void PvaClientMonitor::monitorConnect(
 {
     if(isDestroyed) throw std::runtime_error("pvaClientMonitor was destroyed");
     connectStatus = status;
+    connectState = connected;
     this->monitor = monitor;
     if(status.isOK()) {
         pvaClientData = PvaClientMonitorData::create(structure);
@@ -93,19 +106,16 @@ void PvaClientMonitor::monitorEvent(MonitorPtr const & monitor)
 
 void PvaClientMonitor::unlisten(MonitorPtr const & monitor)
 {
-    destroy();
-}
-
-void PvaClientMonitor::destroy()
-{
+    if(PvaClient::getDebug()) cout << "PvaClientMonitor::unlisten\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
-        isDestroyed = true;
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientMonitor::unlisten called when PvaClientMonitor was destroyed?\n";
+             return;
+        }
     }
-    if(monitor) monitor->destroy();
-    monitor.reset();
-    monitorElement.reset();
+    this->monitor.reset();
+    this->monitorElement.reset();
 }
 
 void PvaClientMonitor::connect()
@@ -137,6 +147,10 @@ void PvaClientMonitor::issueConnect()
 Status PvaClientMonitor::waitConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientMonitor was destroyed");
+    if(connectState==connected) {
+         if(connectStatus.isOK()) connectState = connectIdle;
+         return connectStatus;
+    }
     if(connectState!=connectActive) {
         string message = string("channel ") + channel->getChannelName() 
             + " pvaClientMonitor illegal connect state ";

@@ -36,7 +36,6 @@ public:
     void postPut() { easyData->postPut(fieldNumber);}
 };
 
-
 typedef std::tr1::shared_ptr<PVArray> PVArrayPtr;
 static ConvertPtr convert = getConvert();
 static string noValue("no value field");

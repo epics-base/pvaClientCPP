@@ -76,11 +76,21 @@ PvaClientPutGet::PvaClientPutGet(
   connectState(connectIdle),
   putGetState(putGetIdle)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientPutGet::PvaClientPutGet()\n";
 }
 
 PvaClientPutGet::~PvaClientPutGet()
 {
-    destroy();
+    if(PvaClient::getDebug()) cout<< "PvaClientPutGet::~PvaClientPutGet()\n";
+    {
+        Lock xx(mutex);
+        if(isDestroyed) {
+             cerr<< "Why was PvaClientPutGet::~PvaClientPutGet() called more then once????\n";
+             return;
+        }
+        isDestroyed = true;
+    }
+    channelPutGet->destroy();
 }
 
 void PvaClientPutGet::checkPutGetState()
@@ -173,20 +183,6 @@ void PvaClientPutGet::getGetDone(
     waitForPutGet.signal();
 }
 
-
-
-// from PvaClientPutGet
-void PvaClientPutGet::destroy()
-{
-    {
-        Lock xx(mutex);
-        if(isDestroyed) return;
-        isDestroyed = true;
-    }
-    if(channelPutGet) channelPutGet->destroy();
-    channelPutGet.reset();
-}
-
 void PvaClientPutGet::connect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
@@ -206,7 +202,7 @@ void PvaClientPutGet::issueConnect()
             + " pvaClientPutGet already connected ";
         throw std::runtime_error(message);
     }
-    putGetRequester = ChannelPutGetRequester::shared_pointer(new ChannelPutGetRequesterImpl(this));
+    ChannelPutGetRequester::shared_pointer putGetRequester(ChannelPutGetRequester::shared_pointer(this));
     connectState = connectActive;
     channelPutGet = channel->createChannelPutGet(putGetRequester,pvRequest);
 }
