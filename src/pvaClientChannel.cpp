@@ -233,8 +233,8 @@ void PvaClientChannel::channelStateChange(
 string PvaClientChannel::getRequesterName()
 {
     PvaClientPtr yyy = pvaClient.lock();
-     if(!yyy) throw std::runtime_error(
-         "PvaClientChannel::getRequesterName() PvaClientChannel isDestroyed");
+    if(!yyy) throw std::runtime_error(
+         "PvaClientChannel::getRequesterName() PvaClient isDestroyed");
     return yyy->getRequesterName();
 }
 
@@ -243,8 +243,8 @@ void PvaClientChannel::message(
     MessageType messageType)
 {
     PvaClientPtr yyy = pvaClient.lock();
-    if(isDestroyed) throw std::runtime_error(
-        "PvaClientChannel::message() pvaClientChannel isDestroyed");
+    if(!yyy) throw std::runtime_error(
+        "PvaClientChannel::message() pvaClient isDestroyed");
     yyy->message(channelName + " " + message, messageType);
 }
 
