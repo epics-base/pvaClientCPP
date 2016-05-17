@@ -107,7 +107,8 @@ void PvaClientGet::channelGetConnect(
         this->channelGet = channelGet;
         if(status.isOK()) {
             pvaClientData = PvaClientGetData::create(structure);
-            pvaClientData->setMessagePrefix(channel->getChannelName());
+            Channel::shared_pointer chan(channel.lock());
+            if(chan) pvaClientData->setMessagePrefix(chan->getChannelName());
         }
     }
     waitForConnect.signal();
@@ -138,7 +139,10 @@ void PvaClientGet::connect()
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    string message = string("channel ") + channel->getChannelName() 
+    Channel::shared_pointer chan(channel.lock());
+    string channelName("disconnected");
+    if(chan) channelName = chan->getChannelName();
+    string message = string("channel ") + channelName 
          + " PvaClientGet::connect " + status.getMessage();
     throw std::runtime_error(message);
 }
@@ -147,13 +151,21 @@ void PvaClientGet::issueConnect()
 {
     if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState!=connectIdle) {
-        string message = string("channel ") + channel->getChannelName() 
+        Channel::shared_pointer chan(channel.lock());
+        string channelName("disconnected");
+        if(chan) channelName = chan->getChannelName();
+        string message = string("channel ") + channelName
             + " pvaClientGet already connected ";
         throw std::runtime_error(message);
     }
     ChannelGetRequester::shared_pointer getRequester(shared_from_this());
     connectState = connectActive;
-    channelGet = channel->createChannelGet(getRequester,pvRequest);
+    Channel::shared_pointer chan(channel.lock());
+    if(chan) {
+        channelGet = chan->createChannelGet(getRequester,pvRequest);
+        return;
+    }
+    throw std::runtime_error("PvaClientGet::issueConnect channel was destroyed");
 }
 
 Status PvaClientGet::waitConnect()
@@ -166,7 +178,10 @@ Status PvaClientGet::waitConnect()
              return channelGetConnectStatus;
         }
         if(connectState!=connectActive) {
-            string message = string("channel ") + channel->getChannelName() 
+            Channel::shared_pointer chan(channel.lock());
+            string channelName("disconnected");
+            if(chan) channelName = chan->getChannelName();
+            string message = string("channel ") + channelName
                 + " pvaClientGet illegal connect state ";
             throw std::runtime_error(message);
         }
@@ -182,7 +197,10 @@ void PvaClientGet::get()
     issueGet();
     Status status = waitGet();
     if(status.isOK()) return;
-    string message = string("channel ") + channel->getChannelName() 
+    Channel::shared_pointer chan(channel.lock());
+    string channelName("disconnected");
+    if(chan) channelName = chan->getChannelName();
+    string message = string("channel ") + channelName
             + " PvaClientGet::get " + status.getMessage();
     throw std::runtime_error(message);
 }
@@ -192,7 +210,10 @@ void PvaClientGet::issueGet()
     if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState==connectIdle) connect();
     if(getState!=getIdle) {
-        string message = string("channel ") + channel->getChannelName() 
+        Channel::shared_pointer chan(channel.lock());
+        string channelName("disconnected");
+        if(chan) channelName = chan->getChannelName();
+        string message = string("channel ") + channelName
             + " PvaClientGet::issueGet get aleady active ";
         throw std::runtime_error(message);
     }
@@ -210,7 +231,10 @@ Status PvaClientGet::waitGet()
             return channelGetStatus;
         }
         if(getState!=getActive){
-            string message = string("channel ") + channel->getChannelName() 
+            Channel::shared_pointer chan(channel.lock());
+            string channelName("disconnected");
+            if(chan) channelName = chan->getChannelName();
+            string message = string("channel ") + channelName 
                 + " PvaClientGet::waitGet llegal get state";
             throw std::runtime_error(message);
         }

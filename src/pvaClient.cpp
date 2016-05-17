@@ -38,7 +38,13 @@ public:
     PvaClientChannelCache(){}
     ~PvaClientChannelCache(){
          if(PvaClient::getDebug()) cout << "PvaClientChannelCache::~PvaClientChannelCache\n";
-         pvaClientChannelMap.clear();
+         map<string,PvaClientChannelPtr>::iterator iter;
+         for(iter = pvaClientChannelMap.begin(); iter != pvaClientChannelMap.end(); ++iter)
+         {
+             PvaClientChannelPtr pvaChannel = iter->second;
+             pvaChannel->destroy();
+         }
+//         pvaClientChannelMap.clear();
      }
     PvaClientChannelPtr getChannel(
         string const & channelName,

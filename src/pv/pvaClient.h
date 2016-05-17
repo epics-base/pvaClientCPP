@@ -236,6 +236,10 @@ class epicsShareClass PvaClientChannel :
 public:
     POINTER_DEFINITIONS(PvaClientChannel);
     ~PvaClientChannel();
+    /** Destroy the connection to the server.
+     *
+     */
+    void destroy();
     /** ChannelRequester method
      * @param status The status
      * @param channel The channel
@@ -455,10 +459,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     
     static PvaClientChannelPtr create(
@@ -1035,7 +1035,10 @@ public:
     /** Deprecated method
      * \deprecated This method will go away in future versions. 
      */
-    void destroy()  EPICS_DEPRECATED {}   
+    void destroy()  EPICS_DEPRECATED
+    {
+channelGet->destroy();
+    }   
 private:
     PvaClientGet(
         PvaClientPtr const &pvaClient,
@@ -1046,7 +1049,7 @@ private:
     enum GetConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
-    epics::pvAccess::Channel::shared_pointer channel;
+    epics::pvAccess::Channel::weak_pointer channel;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;

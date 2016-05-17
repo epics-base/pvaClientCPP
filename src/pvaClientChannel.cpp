@@ -149,17 +149,27 @@ PvaClientChannel::~PvaClientChannel()
              << " this " << this << " channel " << channel
             << endl;
     }
-    {
+    destroy();
+}
+
+void PvaClientChannel::destroy()
+{
+     {
         Lock xx(mutex);
         if(isDestroyed) return;
         isDestroyed = true;
     }
+    if(PvaClient::getDebug()) {
+        cout  << "PvaClientChannel::destroy() "
+             << " channelName " << channelName
+             << " this " << this << " channel " << channel
+            << endl;
+    }
     if(PvaClient::getDebug()) showCache();
     if(channel) channel->destroy();
-if(channel) channel.reset();
+    if(channel) channel.reset();
     pvaClientGetCache.reset();
     pvaClientPutCache.reset();
-
 }
 
 
