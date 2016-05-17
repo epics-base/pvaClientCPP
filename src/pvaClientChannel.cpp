@@ -290,7 +290,7 @@ void PvaClientChannel::issueConnect()
     if(!provider) {
         throw std::runtime_error(channelName + " provider " + providerName + " not registered");
     }
-    ChannelRequester::shared_pointer channelRequester(ChannelRequester::shared_pointer(this));
+    ChannelRequester::shared_pointer channelRequester(shared_from_this());
     if(PvaClient::getDebug()) cout << "PvaClientChannel::issueConnect calling provider->createChannel\n";
     channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
     if(!channel) {

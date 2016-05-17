@@ -223,7 +223,6 @@ class PvaClientGetCache;
 typedef std::tr1::shared_ptr<PvaClientGetCache> PvaClientGetCachePtr;
 class PvaClientPutCache;
 typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
-class ChannelRequesterImpl;
 
 /** 
  * @brief An easy to use alternative to directly calling the Channel methods of pvAccess.
@@ -288,12 +287,12 @@ public:
      * @return The interface.
      */
     PvaClientFieldPtr createField();
-    /** Create an PvaClientField for the specified subField.
+    /** Calls the next method with request = "";
      * @param subField The syntax for subField is defined in package org.epics.pvdata.copy
      * @return The interface.
      */
     PvaClientFieldPtr createField(std::string const & subField);
-    /** Calls the next method with request = "";
+    /** Create an PvaClientField for the specified subField.
      * @return The interface.
      * @throw runtime_error if failure.
      */
@@ -886,7 +885,8 @@ private:
  * @author mrk
  */
 class epicsShareClass PvaClientProcess :
-    public epics::pvAccess::ChannelProcessRequester
+    public epics::pvAccess::ChannelProcessRequester,
+    public std::tr1::enable_shared_from_this<PvaClientProcess>
 {
 public:
     POINTER_DEFINITIONS(PvaClientProcess);
@@ -972,7 +972,8 @@ private:
  * @author mrk
  */
 class epicsShareClass PvaClientGet :
-    public epics::pvAccess::ChannelGetRequester
+    public epics::pvAccess::ChannelGetRequester,
+    public std::tr1::enable_shared_from_this<PvaClientGet>
 {
 public:
     POINTER_DEFINITIONS(PvaClientGet);
@@ -1071,7 +1072,8 @@ private:
  * @author mrk
  */
 class epicsShareClass PvaClientPut :
-    public epics::pvAccess::ChannelPutRequester
+    public epics::pvAccess::ChannelPutRequester,
+    public std::tr1::enable_shared_from_this<PvaClientPut>
 {
 public:
     POINTER_DEFINITIONS(PvaClientPut);
@@ -1182,7 +1184,8 @@ private :
  * @author mrk
  */
 class epicsShareClass PvaClientPutGet :
-    public epics::pvAccess::ChannelPutGetRequester
+    public epics::pvAccess::ChannelPutGetRequester,
+    public std::tr1::enable_shared_from_this<PvaClientPutGet>
 {
 public:
     POINTER_DEFINITIONS(PvaClientPutGet);

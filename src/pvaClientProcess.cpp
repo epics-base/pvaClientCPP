@@ -126,8 +126,7 @@ void PvaClientProcess::issueConnect()
             + " pvaClientProcess already connected ";
         throw std::runtime_error(message);
     }
-    ChannelProcessRequester::shared_pointer processRequester(
-        ChannelProcessRequester::shared_pointer(this));
+    ChannelProcessRequester::shared_pointer processRequester(shared_from_this());
     connectState = connectActive;
     channelProcess = channel->createChannelProcess(processRequester,pvRequest);
 }

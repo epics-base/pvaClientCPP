@@ -151,7 +151,7 @@ void PvaClientGet::issueConnect()
             + " pvaClientGet already connected ";
         throw std::runtime_error(message);
     }
-    ChannelGetRequester::shared_pointer getRequester(ChannelGetRequester::shared_pointer(this));
+    ChannelGetRequester::shared_pointer getRequester(shared_from_this());
     connectState = connectActive;
     channelGet = channel->createChannelGet(getRequester,pvRequest);
 }
