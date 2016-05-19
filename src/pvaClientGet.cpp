@@ -68,7 +68,6 @@ PvaClientGet::~PvaClientGet()
         if(isDestroyed) return;
         isDestroyed = true;
     }
-//    if(channelGet) channelGet->destroy();
 }
 
 void PvaClientGet::checkGetState()
@@ -81,14 +80,13 @@ void PvaClientGet::checkGetState()
 // from ChannelGetRequester
 string PvaClientGet::getRequesterName()
 {
-     PvaClientPtr yyy = pvaClient.lock();
-     if(!yyy) return string();
-     return yyy->getRequesterName();
+    PvaClientPtr yyy = pvaClient.lock();
+    if(!yyy) return string("PvaClientGet::getRequesterName() PvaClient isDestroyed");
+    return yyy->getRequesterName();
 }
 
 void PvaClientGet::message(string const & message,MessageType messageType)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) return;
     yyy->message(message, messageType);
@@ -99,6 +97,11 @@ void PvaClientGet::channelGetConnect(
     ChannelGet::shared_pointer const & channelGet,
     StructureConstPtr const & structure)
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientGet::channelGetConnect"
+           << " status.isOK " << (status.isOK() ? "true" : "false")
+           << endl;
+    }
     if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     {
         Lock xx(mutex);
@@ -121,6 +124,11 @@ void PvaClientGet::getDone(
     PVStructurePtr const & pvStructure,
     BitSetPtr const & bitSet)
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientGet::getDone"
+           << " status.isOK " << (status.isOK() ? "true" : "false")
+           << endl;
+    }
     if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     {
         Lock xx(mutex);

@@ -149,25 +149,12 @@ PvaClientChannel::~PvaClientChannel()
              << " this " << this << " channel " << channel
             << endl;
     }
-    destroy();
-}
-
-void PvaClientChannel::destroy()
-{
-     {
+    {
         Lock xx(mutex);
         if(isDestroyed) return;
         isDestroyed = true;
     }
-    if(PvaClient::getDebug()) {
-        cout  << "PvaClientChannel::destroy() "
-             << " channelName " << channelName
-             << " this " << this << " channel " << channel
-            << endl;
-    }
     if(PvaClient::getDebug()) showCache();
-    if(channel) channel->destroy();
-    if(channel) channel.reset();
     pvaClientGetCache.reset();
     pvaClientPutCache.reset();
 }
@@ -233,8 +220,7 @@ void PvaClientChannel::channelStateChange(
 string PvaClientChannel::getRequesterName()
 {
     PvaClientPtr yyy = pvaClient.lock();
-    if(!yyy) throw std::runtime_error(
-         "PvaClientChannel::getRequesterName() PvaClient isDestroyed");
+    if(!yyy) return string("PvaClientChannel::getRequesterName() PvaClient isDestroyed");
     return yyy->getRequesterName();
 }
 
@@ -243,8 +229,7 @@ void PvaClientChannel::message(
     MessageType messageType)
 {
     PvaClientPtr yyy = pvaClient.lock();
-    if(!yyy) throw std::runtime_error(
-        "PvaClientChannel::message() pvaClient isDestroyed");
+    if(!yyy) return;
     yyy->message(channelName + " " + message, messageType);
 }
 

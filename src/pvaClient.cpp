@@ -38,13 +38,6 @@ public:
     PvaClientChannelCache(){}
     ~PvaClientChannelCache(){
          if(PvaClient::getDebug()) cout << "PvaClientChannelCache::~PvaClientChannelCache\n";
-         map<string,PvaClientChannelPtr>::iterator iter;
-         for(iter = pvaClientChannelMap.begin(); iter != pvaClientChannelMap.end(); ++iter)
-         {
-             PvaClientChannelPtr pvaChannel = iter->second;
-             pvaChannel->destroy();
-         }
-//         pvaClientChannelMap.clear();
      }
     PvaClientChannelPtr getChannel(
         string const & channelName,
@@ -153,8 +146,16 @@ PvaClient::~PvaClient() {
     }
     if(PvaClient::debug) showCache();
     pvaClientChannelCache.reset();
-    if(pvaStarted) ClientFactory::stop();
-    if(caStarted) CAClientFactory::stop();
+    if(pvaStarted){
+        if(PvaClient::debug) cout<< "calling ClientFactory::stop()\n";
+        ClientFactory::stop();
+        if(PvaClient::debug) cout<< "after calling ClientFactory::stop()\n";
+    }
+    if(caStarted) {
+        if(PvaClient::debug) cout<< "calling CAClientFactory::stop()\n";
+        CAClientFactory::stop();
+        if(PvaClient::debug) cout<< "after calling CAClientFactory::stop()\n";
+    }
 }
 
 string PvaClient:: getRequesterName()
