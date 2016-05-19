@@ -167,7 +167,6 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
            << " channelName " << channelName
            << " isConnected " << (channel->isConnected() ? "true" : "false")
            << " status.isOK " << (status.isOK() ? "true" : "false")
-           << " this " << this
            << endl;
     }
     Lock xx(mutex);
@@ -196,9 +195,7 @@ void PvaClientChannel::channelStateChange(
     if(PvaClient::getDebug()) {
         cout << " PvaClientChannel::channelStateChange "
         << " channelName " << channelName
-        << " is connected " << (connectionState==Channel::CONNECTED ? "true" : "false")
-        << " isDestroyed " << isDestroyed
-        << " this " << this
+        << " " << Channel::ConnectionStateNames[connectionState]
         << endl;
     }
     Lock xx(mutex);
