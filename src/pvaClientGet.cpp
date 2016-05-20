@@ -22,29 +22,66 @@ using namespace std;
 
 namespace epics { namespace pvaClient {
 
-
 class ChannelGetRequesterImpl : public ChannelGetRequester
 {
-    PvaClientGet * pvaClientGet;
+    PvaClientGet::weak_pointer pvaClientGet;
+    PvaClient::weak_pointer pvaClient;
 public:
-    ChannelGetRequesterImpl(PvaClientGet * pvaClientGet)
-    : pvaClientGet(pvaClientGet) {}
-    string getRequesterName()
-    {return pvaClientGet->getRequesterName();}
-    void message(string const & message,MessageType messageType)
-    {pvaClientGet->message(message,messageType);}
-    void channelGetConnect(
+    ChannelGetRequesterImpl(
+        PvaClientGetPtr const & pvaClientGet,
+        PvaClientPtr const &pvaClient)
+    : pvaClientGet(pvaClientGet),
+      pvaClient(pvaClient)
+    {}
+    virtual ~ChannelGetRequesterImpl() {
+        if(PvaClient::getDebug()) std::cout << "~ChannelGetRequesterImpl" << std::endl;
+    }
+
+    virtual std::string getRequesterName() {
+        PvaClientGetPtr clientGet(pvaClientGet.lock());
+        if(!clientGet) return string("clientGet is null");
+        return clientGet->getRequesterName();
+    }
+
+    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
+        PvaClientGetPtr clientGet(pvaClientGet.lock());
+        if(!clientGet) return;
+        clientGet->message(message,messageType);
+    }
+
+    virtual void channelGetConnect(
         const Status& status,
         ChannelGet::shared_pointer const & channelGet,
-        StructureConstPtr const & structure)
-    {pvaClientGet->channelGetConnect(status,channelGet,structure);}
-    void getDone(
+        Structure::const_shared_pointer const & structure)
+    {
+        PvaClientGetPtr clientGet(pvaClientGet.lock());
+        if(!clientGet) return;
+        clientGet->channelGetConnect(status,channelGet,structure);  
+    }
+
+    virtual void getDone(
         const Status& status,
         ChannelGet::shared_pointer const & channelGet,
         PVStructurePtr const & pvStructure,
-        BitSetPtr const & bitSet)
-    {pvaClientGet->getDone(status,channelGet,pvStructure,bitSet);}
+        BitSet::shared_pointer const & bitSet)
+    {
+        PvaClientGetPtr clientGet(pvaClientGet.lock());
+        if(!clientGet) return;
+        clientGet->getDone(status,channelGet,pvStructure,bitSet);
+    }
 };
+
+PvaClientGetPtr PvaClientGet::create(
+        PvaClientPtr const &pvaClient,
+        Channel::shared_pointer const & channel,
+        PVStructurePtr const &pvRequest)
+{
+    PvaClientGetPtr epv(new PvaClientGet(pvaClient,channel,pvRequest));
+    epv->channelGetRequester = ChannelGetRequesterImplPtr(
+        new ChannelGetRequesterImpl(epv,pvaClient));
+    return epv;
+}
+
 
 PvaClientGet::PvaClientGet(
         PvaClientPtr const &pvaClient,
@@ -166,11 +203,11 @@ void PvaClientGet::issueConnect()
             + " pvaClientGet already connected ";
         throw std::runtime_error(message);
     }
-    ChannelGetRequester::shared_pointer getRequester(shared_from_this());
+//    ChannelGetRequester::shared_pointer channelGetRequester(shared_from_this());
     connectState = connectActive;
     Channel::shared_pointer chan(channel.lock());
     if(chan) {
-        channelGet = chan->createChannelGet(getRequester,pvRequest);
+        channelGet = chan->createChannelGet(channelGetRequester,pvRequest);
         return;
     }
     throw std::runtime_error("PvaClientGet::issueConnect channel was destroyed");
@@ -257,13 +294,5 @@ PvaClientGetDataPtr PvaClientGet::getData()
     return pvaClientData;
 }
 
-PvaClientGetPtr PvaClientGet::create(
-        PvaClientPtr const &pvaClient,
-        Channel::shared_pointer const & channel,
-        PVStructurePtr const &pvRequest)
-{
-    PvaClientGetPtr epv(new PvaClientGet(pvaClient,channel,pvRequest));
-    return epv;
-}
 
 }}

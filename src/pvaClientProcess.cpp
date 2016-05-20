@@ -22,27 +22,6 @@ using namespace std;
 
 namespace epics { namespace pvaClient {
 
-
-class ChannelProcessRequesterImpl : public ChannelProcessRequester
-{
-    PvaClientProcess * pvaClientProcess;
-public:
-    ChannelProcessRequesterImpl(PvaClientProcess * pvaClientProcess)
-    : pvaClientProcess(pvaClientProcess) {}
-    string getRequesterName()
-    {return pvaClientProcess->getRequesterName();}
-    void message(string const & message,MessageType messageType)
-    {pvaClientProcess->message(message,messageType);}
-    void channelProcessConnect(
-        const Status& status,
-        ChannelProcess::shared_pointer const & channelProcess)
-    {pvaClientProcess->channelProcessConnect(status,channelProcess);}
-    void processDone(
-        const Status& status,
-        ChannelProcess::shared_pointer const & channelProcess)
-    {pvaClientProcess->processDone(status,channelProcess);}
-};
-
 PvaClientProcess::PvaClientProcess(
         PvaClientPtr const &pvaClient,
         Channel::shared_pointer const & channel,

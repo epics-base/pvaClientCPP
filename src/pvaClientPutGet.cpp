@@ -21,50 +21,6 @@ using namespace std;
 
 namespace epics { namespace pvaClient {
 
-class ChannelPutGetRequesterImpl : public ChannelPutGetRequester
-{
-    PvaClientPutGet * pvaClientPutGet;
-public:
-    ChannelPutGetRequesterImpl(PvaClientPutGet * pvaClientPutGet)
-    : pvaClientPutGet(pvaClientPutGet) {}
-    string getRequesterName()
-    {return pvaClientPutGet->getRequesterName();}
-    void message(string const & message,MessageType messageType)
-    {pvaClientPutGet->message(message,messageType);}
-    void channelPutGetConnect(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::StructureConstPtr const & putStructure,
-        epics::pvData::StructureConstPtr const & getStructure)
-    {
-         pvaClientPutGet->channelPutGetConnect(status,channelPutGet,putStructure,getStructure);
-    }
-    void putGetDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::PVStructurePtr const & getPVStructure,
-        epics::pvData::BitSetPtr const & getChangedBitSet)
-    {
-        pvaClientPutGet->putGetDone(status,channelPutGet,getPVStructure,getChangedBitSet);
-    }
-    void getPutDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::PVStructurePtr const & putPVStructure,
-        epics::pvData::BitSet::shared_pointer const & putBitSet)
-    {
-        pvaClientPutGet->getPutDone(status,channelPutGet,putPVStructure,putBitSet);
-    }
-    void getGetDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::PVStructurePtr const & getPVStructure,
-        epics::pvData::BitSet::shared_pointer const & getChangedBitSet)
-    {
-        pvaClientPutGet->getGetDone(status,channelPutGet,getPVStructure,getChangedBitSet);
-    }
-};
-
 PvaClientPutGet::PvaClientPutGet(
         PvaClientPtr const &pvaClient,
         Channel::shared_pointer const & channel,

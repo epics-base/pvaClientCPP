@@ -22,33 +22,6 @@ using namespace std;
 
 namespace epics { namespace pvaClient {
 
-class ChannelPutRequesterImpl : public ChannelPutRequester
-{
-    PvaClientPut * pvaClientPut;
-public:
-    ChannelPutRequesterImpl(PvaClientPut * pvaClientPut)
-    : pvaClientPut(pvaClientPut) {}
-    string getRequesterName()
-    {return pvaClientPut->getRequesterName();}
-    void message(string const & message,MessageType messageType)
-    {pvaClientPut->message(message,messageType);}
-    void channelPutConnect(
-        const Status& status,
-        ChannelPut::shared_pointer const & channelPut,
-        StructureConstPtr const & structure)
-    {pvaClientPut->channelPutConnect(status,channelPut,structure);}
-    void getDone(
-        const Status& status,
-        ChannelPut::shared_pointer const & channelPut,
-        PVStructurePtr const & pvStructure,
-        BitSetPtr const & bitSet)
-    {pvaClientPut->getDone(status,channelPut,pvStructure,bitSet);}
-    void putDone(
-        const Status& status,
-        ChannelPut::shared_pointer const & channelPut)
-    {pvaClientPut->putDone(status,channelPut);}
-};
-
 PvaClientPut::PvaClientPut(
         PvaClientPtr const &pvaClient,
         Channel::shared_pointer const & channel,

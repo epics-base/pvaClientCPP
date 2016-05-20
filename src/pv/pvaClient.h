@@ -223,15 +223,17 @@ class PvaClientGetCache;
 typedef std::tr1::shared_ptr<PvaClientGetCache> PvaClientGetCachePtr;
 class PvaClientPutCache;
 typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
+class ChannelRequesterImpl;
+typedef std::tr1::shared_ptr<ChannelRequesterImpl> ChannelRequesterImplPtr;
 
 /** 
  * @brief An easy to use alternative to directly calling the Channel methods of pvAccess.
  *
  * @author mrk
  */
-class epicsShareClass PvaClientChannel :
-    public epics::pvAccess::ChannelRequester,
-    public std::tr1::enable_shared_from_this<PvaClientChannel>
+class epicsShareClass PvaClientChannel //:
+//    public epics::pvAccess::ChannelRequester,
+//    public std::tr1::enable_shared_from_this<PvaClientChannel>
 {
 public:
     POINTER_DEFINITIONS(PvaClientChannel);
@@ -451,10 +453,6 @@ public:
      /** Get the number of cached gets and puts.
      */
     size_t cacheSize();
-    PvaClientChannelPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
     /** Deprecated method
      * \deprecated This method will go away in future versions. 
      */
@@ -485,6 +483,7 @@ private:
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvAccess::Channel::shared_pointer channel;
+    ChannelRequesterImplPtr channelRequester;
     friend class PvaClient;
 };
 
@@ -971,9 +970,11 @@ private:
  *
  * @author mrk
  */
-class epicsShareClass PvaClientGet :
-    public epics::pvAccess::ChannelGetRequester,
-    public std::tr1::enable_shared_from_this<PvaClientGet>
+class ChannelGetRequesterImpl;
+typedef std::tr1::shared_ptr<ChannelGetRequesterImpl> ChannelGetRequesterImplPtr;
+class epicsShareClass PvaClientGet //:
+//    public epics::pvAccess::ChannelGetRequester,
+//    public std::tr1::enable_shared_from_this<PvaClientGet>
 {
 public:
     POINTER_DEFINITIONS(PvaClientGet);
@@ -1063,7 +1064,7 @@ private:
 
     enum GetState {getIdle,getActive,getComplete};
     GetState getState;
-    friend class ChannelGetRequesterImpl;
+    ChannelGetRequesterImplPtr channelGetRequester;
 };
 
 /**
@@ -1175,7 +1176,6 @@ private :
 
     enum PutState {putIdle,getActive,putActive};
     PutState putState;
-    friend class ChannelPutRequesterImpl;
 };
 
 /** 
@@ -1311,7 +1311,6 @@ private :
 
     enum PutGetState {putGetIdle,putGetActive,putGetComplete};
     PutGetState putGetState;
-    friend class ChannelPutGetRequesterImpl;
 };
 
 //class ChannelMonitorRequester; // private to PvaClientMonitor
@@ -1464,7 +1463,6 @@ private:
     MonitorConnectState connectState;
     bool userPoll;
     bool userWait;
-    friend class ChannelMonitorRequester;
 };
 
 }}
