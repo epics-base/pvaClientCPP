@@ -26,11 +26,6 @@ using namespace std;
 
 namespace epics { namespace pvaClient { 
 
-static FieldCreatePtr fieldCreate = getFieldCreate(); 
-static const string pvaClientName = "pvaClient";
-static const string defaultProvider = "pva";
-static UnionConstPtr variantUnion = fieldCreate->createVariantUnion();
-
 
 class PvaClientChannelCache
 {
@@ -43,7 +38,6 @@ public:
         string const & channelName,
         string const & providerName);
     void addChannel(PvaClientChannelPtr const & pvaClientChannel);
-    void removeChannel(string const & channelName,string const & providerName);
     void showCache();
     size_t cacheSize();
 private:
@@ -83,7 +77,6 @@ void PvaClientChannelCache::showCache()
          string channelName = channel->getChannelName();
          string providerName = channel->getProvider()->getProviderName();
          cout << "channel " << channelName << " provider " << providerName << endl;
-         cout << "  get and put cacheSize " << pvaChannel->cacheSize() << endl;
          pvaChannel->showCache();
     }
     
@@ -138,14 +131,13 @@ PvaClient::~PvaClient() {
     if(PvaClient::debug) cout<< "PvaClient::~PvaClient()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClient::~PvaClient() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClient was destroyed");
         isDestroyed = true;
     }
-    if(PvaClient::debug) showCache();
-    pvaClientChannelCache.reset();
+    if(PvaClient::debug) {
+        cout << "pvaChannel cache:\n";
+        showCache();
+    }
     if(pvaStarted){
         if(PvaClient::debug) cout<< "calling ClientFactory::stop()\n";
         ClientFactory::stop();
@@ -206,12 +198,16 @@ void PvaClient::setRequester(RequesterPtr const & requester)
 
 void PvaClient::clearRequester()
 {
-    requester = Requester::weak_pointer();
+    requester.reset();
 }
 
 void PvaClient::showCache()
 {
-    pvaClientChannelCache->showCache();
+    if(pvaClientChannelCache->cacheSize()>=1) {
+        pvaClientChannelCache->showCache();
+    } else {
+         cout << "pvaClientChannelCache is empty\n";
+    }
 }
 
 

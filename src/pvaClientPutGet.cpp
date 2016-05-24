@@ -21,6 +21,90 @@ using namespace std;
 
 namespace epics { namespace pvaClient {
 
+class ChannelPutGetRequesterImpl : public ChannelPutGetRequester
+{
+    PvaClientPutGet::weak_pointer pvaClientPutGet;
+    PvaClient::weak_pointer pvaClient;
+public:
+    ChannelPutGetRequesterImpl(
+        PvaClientPutGetPtr const & pvaClientPutGet,
+        PvaClientPtr const &pvaClient)
+    : pvaClientPutGet(pvaClientPutGet),
+      pvaClient(pvaClient)
+    {}
+    virtual ~ChannelPutGetRequesterImpl() {
+        if(PvaClient::getDebug()) std::cout << "~ChannelPutGetRequesterImpl" << std::endl;
+    }
+
+    virtual std::string getRequesterName() {
+        PvaClientPutGetPtr clientPutGet(pvaClientPutGet.lock());
+        if(!clientPutGet) return string("clientPutGet is null");
+        return clientPutGet->getRequesterName();
+    }
+
+    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
+        PvaClientPutGetPtr clientPutGet(pvaClientPutGet.lock());
+        if(!clientPutGet) return;
+        clientPutGet->message(message,messageType);
+    }
+
+    virtual void channelPutGetConnect(
+        const Status& status,
+        ChannelPutGet::shared_pointer const & channelPutGet,
+        Structure::const_shared_pointer const & putStructure,
+        Structure::const_shared_pointer const & getStructure)
+    {
+        PvaClientPutGetPtr clientPutGet(pvaClientPutGet.lock());
+        if(!clientPutGet) return;
+        clientPutGet->channelPutGetConnect(status,channelPutGet,putStructure,getStructure);  
+    }
+
+    virtual void putGetDone(
+        const Status& status,
+        ChannelPutGet::shared_pointer const & channelPutGet,
+        PVStructurePtr const & getPVStructure,
+        BitSet::shared_pointer const & getBitSet)
+    {
+        PvaClientPutGetPtr clientPutGet(pvaClientPutGet.lock());
+        if(!clientPutGet) return;
+        clientPutGet->putGetDone(status,channelPutGet,getPVStructure,getBitSet);
+    }
+
+    virtual void getPutDone(
+        const Status& status,
+        ChannelPutGet::shared_pointer const & channelPutGet,
+        PVStructurePtr const & putPVStructure,
+        BitSet::shared_pointer const & putBitSet)
+    {
+        PvaClientPutGetPtr clientPutGet(pvaClientPutGet.lock());
+        if(!clientPutGet) return;
+        clientPutGet->getPutDone(status,channelPutGet,putPVStructure,putBitSet);
+    }
+
+
+    virtual void getGetDone(
+        const Status& status,
+        ChannelPutGet::shared_pointer const & channelPutGet,
+        PVStructurePtr const & getPVStructure,
+        BitSet::shared_pointer const & getBitSet)
+    {
+        PvaClientPutGetPtr clientPutGet(pvaClientPutGet.lock());
+        if(!clientPutGet) return;
+        clientPutGet->getGetDone(status,channelPutGet,getPVStructure,getBitSet);
+    }
+};
+
+PvaClientPutGetPtr PvaClientPutGet::create(
+        PvaClientPtr const &pvaClient,
+        Channel::shared_pointer const & channel,
+        PVStructurePtr const &pvRequest)
+{
+    PvaClientPutGetPtr epv(new PvaClientPutGet(pvaClient,channel,pvRequest));
+    epv->channelPutGetRequester = ChannelPutGetRequesterImplPtr(
+        new ChannelPutGetRequesterImpl(epv,pvaClient));
+    return epv;
+}
+
 PvaClientPutGet::PvaClientPutGet(
         PvaClientPtr const &pvaClient,
         Channel::shared_pointer const & channel,
@@ -40,10 +124,7 @@ PvaClientPutGet::~PvaClientPutGet()
     if(PvaClient::getDebug()) cout<< "PvaClientPutGet::~PvaClientPutGet()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClientPutGet::~PvaClientPutGet() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
         isDestroyed = true;
     }
     channelPutGet->destroy();
@@ -51,14 +132,12 @@ PvaClientPutGet::~PvaClientPutGet()
 
 void PvaClientPutGet::checkPutGetState()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(connectState==connectIdle){
         connect();
         getPut();
     }
 }
 
-// from ChannelPutGetRequester
 string PvaClientPutGet::getRequesterName()
 {
      PvaClientPtr yyy = pvaClient.lock();
@@ -68,7 +147,6 @@ string PvaClientPutGet::getRequesterName()
 
 void PvaClientPutGet::message(string const & message,MessageType messageType)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("pvaClient was destroyed");
     yyy->message(message, messageType);
@@ -80,7 +158,6 @@ void PvaClientPutGet::channelPutGetConnect(
     StructureConstPtr const & putStructure,
     StructureConstPtr const & getStructure)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     channelPutGetConnectStatus = status;
     this->channelPutGet = channelPutGet;
     if(status.isOK()) {
@@ -99,7 +176,6 @@ void PvaClientPutGet::putGetDone(
         PVStructurePtr const & getPVStructure,
         BitSetPtr const & getChangedBitSet)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     channelPutGetStatus = status;
     if(status.isOK()) {
         pvaClientGetData->setData(getPVStructure,getChangedBitSet);
@@ -113,7 +189,6 @@ void PvaClientPutGet::getPutDone(
     PVStructurePtr const & putPVStructure,
     BitSetPtr const & putBitSet)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     channelPutGetStatus = status;
     if(status.isOK()) {
         PVStructurePtr pvs = pvaClientPutData->getPVStructure();
@@ -131,7 +206,6 @@ void PvaClientPutGet::getGetDone(
         PVStructurePtr const & getPVStructure,
         BitSetPtr const & getChangedBitSet)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     channelPutGetStatus = status;
     if(status.isOK()) {
         pvaClientGetData->setData(getPVStructure,getChangedBitSet);
@@ -141,7 +215,6 @@ void PvaClientPutGet::getGetDone(
 
 void PvaClientPutGet::connect()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
@@ -152,20 +225,17 @@ void PvaClientPutGet::connect()
 
 void PvaClientPutGet::issueConnect()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(connectState!=connectIdle) {
         string message = string("channel ") + channel->getChannelName()
             + " pvaClientPutGet already connected ";
         throw std::runtime_error(message);
     }
-    ChannelPutGetRequester::shared_pointer putGetRequester(shared_from_this());
     connectState = connectActive;
-    channelPutGet = channel->createChannelPutGet(putGetRequester,pvRequest);
+    channelPutGet = channel->createChannelPutGet(channelPutGetRequester,pvRequest);
 }
 
 Status PvaClientPutGet::waitConnect()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(connectState!=connectActive) {
         string message = string("channel ") + channel->getChannelName()
             + " pvaClientPutGet illegal connect state ";
@@ -179,7 +249,6 @@ Status PvaClientPutGet::waitConnect()
 
 void PvaClientPutGet::putGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     issuePutGet();
     Status status = waitPutGet();
     if(status.isOK()) return;
@@ -190,7 +259,6 @@ void PvaClientPutGet::putGet()
 
 void PvaClientPutGet::issuePutGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(connectState==connectIdle) connect();
     if(putGetState!=putGetIdle) {
         string message = string("channel ") + channel->getChannelName()
@@ -204,7 +272,6 @@ void PvaClientPutGet::issuePutGet()
 
 Status PvaClientPutGet::waitPutGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(putGetState!=putGetActive){
         string message = string("channel ") + channel->getChannelName()
             + " PvaClientPutGet::waitPutGet llegal put state";
@@ -217,7 +284,6 @@ Status PvaClientPutGet::waitPutGet()
 
 void PvaClientPutGet::getGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     issueGetGet();
     Status status = waitGetGet();
     if(status.isOK()) return;
@@ -228,7 +294,6 @@ void PvaClientPutGet::getGet()
 
 void PvaClientPutGet::issueGetGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(connectState==connectIdle) connect();
     if(putGetState!=putGetIdle) {
         string message = string("channel ") + channel->getChannelName()
@@ -241,7 +306,6 @@ void PvaClientPutGet::issueGetGet()
 
 Status PvaClientPutGet::waitGetGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(putGetState!=putGetActive){
         string message = string("channel ") + channel->getChannelName()
             + " PvaClientPutGet::waitGetGet illegal state";
@@ -254,7 +318,6 @@ Status PvaClientPutGet::waitGetGet()
 
 void PvaClientPutGet::getPut()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     issueGetPut();
     Status status = waitGetPut();
     if(status.isOK()) return;
@@ -265,7 +328,6 @@ void PvaClientPutGet::getPut()
 
 void PvaClientPutGet::issueGetPut()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(connectState==connectIdle) connect();
     if(putGetState!=putGetIdle) {
         string message = string("channel ") + channel->getChannelName()
@@ -278,7 +340,6 @@ void PvaClientPutGet::issueGetPut()
 
 Status PvaClientPutGet::waitGetPut()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientPutGet was destroyed");
     if(putGetState!=putGetActive){
          string message = string("channel ") + channel->getChannelName()
             + " PvaClientPutGet::waitGetPut illegal state";
@@ -300,15 +361,5 @@ PvaClientPutDataPtr PvaClientPutGet::getPutData()
     checkPutGetState();
     return pvaClientPutData;
 }
-
-PvaClientPutGetPtr PvaClientPutGet::create(
-        PvaClientPtr const &pvaClient,
-        Channel::shared_pointer const & channel,
-        PVStructurePtr const &pvRequest)
-{
-    PvaClientPutGetPtr epv(new PvaClientPutGet(pvaClient,channel,pvRequest));
-    return epv;
-}
-
 
 }}

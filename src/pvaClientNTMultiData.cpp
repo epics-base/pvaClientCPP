@@ -92,10 +92,7 @@ PvaClientNTMultiData::~PvaClientNTMultiData()
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiData::~PvaClientNTMultiData()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClientNTMultiData::~PvaClientNTMultiData() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClientNTMultiData was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

@@ -64,10 +64,7 @@ PvaClientMultiChannel::~PvaClientMultiChannel()
     if(PvaClient::getDebug()) cout<< "PvaClientMultiChannel::~PvaClientMultiChannel()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClientMultiChannel::~PvaClientMultiChannel() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();
@@ -80,13 +77,11 @@ void PvaClientMultiChannel::checkConnected()
 
 epics::pvData::shared_vector<const string> PvaClientMultiChannel::getChannelNames()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     return channelName;
 }
 
 Status PvaClientMultiChannel::connect(double timeout)
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     for(size_t i=0; i< numChannel; ++i) {
         pvaClientChannelArray[i] = pvaClient->createChannel(channelName[i],providerName);
         pvaClientChannelArray[i]->issueConnect();
@@ -115,13 +110,11 @@ Status PvaClientMultiChannel::connect(double timeout)
 
 bool PvaClientMultiChannel::allConnected()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     return (numConnected==numChannel) ? true : false;
 }
 
 bool PvaClientMultiChannel::connectionChange()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     for(size_t i=0; i<numChannel; ++i) {
          PvaClientChannelPtr pvaClientChannel = pvaClientChannelArray[i];
          Channel::shared_pointer channel = pvaClientChannel->getChannel();
@@ -134,7 +127,6 @@ bool PvaClientMultiChannel::connectionChange()
 
 epics::pvData::shared_vector<epics::pvData::boolean>  PvaClientMultiChannel::getIsConnected()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     for(size_t i=0; i<numChannel; ++i) {
          PvaClientChannelPtr pvaClientChannel = pvaClientChannelArray[i];
          if(!pvaClientChannel) {
@@ -150,13 +142,11 @@ epics::pvData::shared_vector<epics::pvData::boolean>  PvaClientMultiChannel::get
 
 PvaClientChannelArray PvaClientMultiChannel::getPvaClientChannelArray()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     return pvaClientChannelArray;
 }
 
 PvaClientPtr PvaClientMultiChannel::getPvaClient()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientMultiChannel was destroyed");
     return pvaClient;
 }
 

@@ -126,27 +126,6 @@ public:
         std::string const & message,
         epics::pvData::MessageType messageType);
     /** Get a cached channel or create and connect to a new channel.
-     *
-     * The provider is pva. The timeout is 5 seconds.
-     * @param channelName The channelName.
-     * @return The interface.
-     * @throw runtime_error if connection fails.
-     */
-    PvaClientChannelPtr channel(std::string const & channelName)
-    { return channel(channelName,"pva", 5.0); }
-    /** Get a cached channel or create and connect to a new channel.
-     *
-     * The timeout is 5 seconds.
-     * @param channelName The channelName.
-     * @param providerName The providerName.
-     * @return The interface.
-     * @throw runtime_error if connection fails.
-     */
-    PvaClientChannelPtr channel(
-        std::string const & channelName,
-        std::string const &providerName)
-    { return channel(channelName,providerName, 5.0); }
-    /** Get a cached channel or create and connect to a new channel.
      * @param channelName The channelName.
      * @param providerName The providerName.
      * @param timeOut The number of seconds to wait for connection. 0.0 means forever.
@@ -155,8 +134,8 @@ public:
      */
     PvaClientChannelPtr channel(
         std::string const & channelName,
-        std::string const &providerName,
-        double timeOut);
+        std::string const &providerName = "pva",
+        double timeOut = 5.0);
     /** Create an PvaClientChannel. The provider is pva.
      * @param channelName The channelName.
      * @return The interface.
@@ -223,6 +202,9 @@ class PvaClientGetCache;
 typedef std::tr1::shared_ptr<PvaClientGetCache> PvaClientGetCachePtr;
 class PvaClientPutCache;
 typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
+
+// NOTE: must use seprate class that implements ChannelRequester,
+// because pvAccess holds a shared_ptr to ChannelRequester instead of weak_pointer
 class ChannelRequesterImpl;
 typedef std::tr1::shared_ptr<ChannelRequesterImpl> ChannelRequesterImplPtr;
 
@@ -231,9 +213,8 @@ typedef std::tr1::shared_ptr<ChannelRequesterImpl> ChannelRequesterImplPtr;
  *
  * @author mrk
  */
-class epicsShareClass PvaClientChannel //:
-//    public epics::pvAccess::ChannelRequester,
-//    public std::tr1::enable_shared_from_this<PvaClientChannel>
+
+class epicsShareClass PvaClientChannel 
 {
 public:
     POINTER_DEFINITIONS(PvaClientChannel);
@@ -883,9 +864,11 @@ private:
  *
  * @author mrk
  */
-class epicsShareClass PvaClientProcess :
-    public epics::pvAccess::ChannelProcessRequester,
-    public std::tr1::enable_shared_from_this<PvaClientProcess>
+// NOTE: must use seprate class that implements ChannelProcessRequester,
+// because pvAccess holds a shared_ptr to ChannelProcessRequester instead of weak_pointer
+class ChannelProcessRequesterImpl;
+typedef std::tr1::shared_ptr<ChannelProcessRequesterImpl> ChannelProcessRequesterImplPtr;
+class epicsShareClass PvaClientProcess 
 {
 public:
     POINTER_DEFINITIONS(PvaClientProcess);
@@ -903,14 +886,7 @@ public:
     /** Destructor
      */
     ~PvaClientProcess();
-    std::string getRequesterName();
-    void message(std::string const & message,epics::pvData::MessageType messageType);
-    void channelProcessConnect(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelProcess::shared_pointer const & channelProcess);
-    void processDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelProcess::shared_pointer const & channelProcess);
+    
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
      * @throw runtime_error if failure.
@@ -940,6 +916,15 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}
 private:
+    std::string getRequesterName();
+    void message(std::string const & message,epics::pvData::MessageType messageType);
+    void channelProcessConnect(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelProcess::shared_pointer const & channelProcess);
+    void processDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelProcess::shared_pointer const & channelProcess);
+
     PvaClientProcess(
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
@@ -963,6 +948,8 @@ private:
 
     enum ProcessState {processIdle,processActive,processComplete};
     ProcessState processState;
+    ChannelProcessRequesterImplPtr channelProcessRequester;
+    friend class ChannelProcessRequesterImpl;
 };
 
 /**
@@ -970,11 +957,11 @@ private:
  *
  * @author mrk
  */
+// NOTE: must use seprate class that implements ChannelGetRequester,
+// because pvAccess holds a shared_ptr to ChannelGetRequester instead of weak_pointer
 class ChannelGetRequesterImpl;
 typedef std::tr1::shared_ptr<ChannelGetRequesterImpl> ChannelGetRequesterImplPtr;
-class epicsShareClass PvaClientGet //:
-//    public epics::pvAccess::ChannelGetRequester,
-//    public std::tr1::enable_shared_from_this<PvaClientGet>
+class epicsShareClass PvaClientGet 
 {
 public:
     POINTER_DEFINITIONS(PvaClientGet);
@@ -992,17 +979,6 @@ public:
     /** Destructor
      */
     ~PvaClientGet();
-    std::string getRequesterName();
-    void message(std::string const & message,epics::pvData::MessageType messageType);
-    void channelGetConnect(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelGet::shared_pointer const & channelGet,
-        epics::pvData::StructureConstPtr const & structure);
-    void getDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelGet::shared_pointer const & channelGet,
-        epics::pvData::PVStructurePtr const & pvStructure,
-        epics::pvData::BitSetPtr const & bitSet);
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
      * @throw runtime_error if failure.
@@ -1038,6 +1014,18 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}
 private:
+        std::string getRequesterName();
+    void message(std::string const & message,epics::pvData::MessageType messageType);
+    void channelGetConnect(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelGet::shared_pointer const & channelGet,
+        epics::pvData::StructureConstPtr const & structure);
+    void getDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelGet::shared_pointer const & channelGet,
+        epics::pvData::PVStructurePtr const & pvStructure,
+        epics::pvData::BitSetPtr const & bitSet);
+
     PvaClientGet(
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
@@ -1065,6 +1053,7 @@ private:
     enum GetState {getIdle,getActive,getComplete};
     GetState getState;
     ChannelGetRequesterImplPtr channelGetRequester;
+    friend class ChannelGetRequesterImpl;
 };
 
 /**
@@ -1072,9 +1061,11 @@ private:
  *
  * @author mrk
  */
-class epicsShareClass PvaClientPut :
-    public epics::pvAccess::ChannelPutRequester,
-    public std::tr1::enable_shared_from_this<PvaClientPut>
+// NOTE: must use seprate class that implements ChannelPutRequester,
+// because pvAccess holds a shared_ptr to ChannelPutRequester instead of weak_pointer
+class ChannelPutRequesterImpl;
+typedef std::tr1::shared_ptr<ChannelPutRequesterImpl> ChannelPutRequesterImplPtr;
+class epicsShareClass PvaClientPut 
 {
 public:
     POINTER_DEFINITIONS(PvaClientPut);
@@ -1092,20 +1083,7 @@ public:
     /** Destructor
      */
     ~PvaClientPut();
-    std::string getRequesterName();
-    void message(std::string const & message,epics::pvData::MessageType messageType);
-    void channelPutConnect(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPut::shared_pointer const & channelPut,
-        epics::pvData::StructureConstPtr const & structure);
-    void getDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPut::shared_pointer const & channelPut,
-        epics::pvData::PVStructurePtr const & pvStructure,
-        epics::pvData::BitSetPtr const & bitSet);
-    void putDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPut::shared_pointer const & channelPut);
+
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
      * @throw runtime_error if failure.
@@ -1152,6 +1130,20 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}   
 private :
+    std::string getRequesterName();
+    void message(std::string const & message,epics::pvData::MessageType messageType);
+    void channelPutConnect(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelPut::shared_pointer const & channelPut,
+        epics::pvData::StructureConstPtr const & structure);
+    void getDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelPut::shared_pointer const & channelPut,
+        epics::pvData::PVStructurePtr const & pvStructure,
+        epics::pvData::BitSetPtr const & bitSet);
+    void putDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelPut::shared_pointer const & channelPut);
     PvaClientPut(
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
@@ -1176,6 +1168,8 @@ private :
 
     enum PutState {putIdle,getActive,putActive};
     PutState putState;
+    ChannelPutRequesterImplPtr channelPutRequester;
+    friend class ChannelPutRequesterImpl;
 };
 
 /** 
@@ -1183,9 +1177,11 @@ private :
  *
  * @author mrk
  */
-class epicsShareClass PvaClientPutGet :
-    public epics::pvAccess::ChannelPutGetRequester,
-    public std::tr1::enable_shared_from_this<PvaClientPutGet>
+// NOTE: must use seprate class that implements ChannelPutGetRequester,
+// because pvAccess holds a shared_ptr to ChannelPutGetRequester instead of weak_pointer
+class ChannelPutGetRequesterImpl;
+typedef std::tr1::shared_ptr<ChannelPutGetRequesterImpl> ChannelPutGetRequesterImplPtr;
+class epicsShareClass PvaClientPutGet 
 {
 public:
     POINTER_DEFINITIONS(PvaClientPutGet);
@@ -1203,28 +1199,7 @@ public:
     /** Destructor
      */
     ~PvaClientPutGet();
-    std::string getRequesterName();
-    void message(std::string const & message,epics::pvData::MessageType messageType);
-    void channelPutGetConnect(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::StructureConstPtr const & putStructure,
-        epics::pvData::StructureConstPtr const & getStructure);
-    void putGetDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::PVStructurePtr const & getPVStructure,
-        epics::pvData::BitSetPtr const & getBitSet);
-    void getPutDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::PVStructurePtr const & putPVStructure,
-        epics::pvData::BitSet::shared_pointer const & putBitSet);
-    void getGetDone(
-        const epics::pvData::Status& status,
-        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
-        epics::pvData::PVStructurePtr const & getPVStructure,
-        epics::pvData::BitSet::shared_pointer const & getBitSet);
+
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
      * @throw runtime_error if failure.
@@ -1287,6 +1262,29 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}  
 private :
+    std::string getRequesterName();
+    void message(std::string const & message,epics::pvData::MessageType messageType);
+    void channelPutGetConnect(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
+        epics::pvData::StructureConstPtr const & putStructure,
+        epics::pvData::StructureConstPtr const & getStructure);
+    void putGetDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
+        epics::pvData::PVStructurePtr const & getPVStructure,
+        epics::pvData::BitSetPtr const & getBitSet);
+    void getPutDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
+        epics::pvData::PVStructurePtr const & putPVStructure,
+        epics::pvData::BitSet::shared_pointer const & putBitSet);
+    void getGetDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelPutGet::shared_pointer const & channelPutGet,
+        epics::pvData::PVStructurePtr const & getPVStructure,
+        epics::pvData::BitSet::shared_pointer const & getBitSet);
+
     PvaClientPutGet(
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
@@ -1311,6 +1309,8 @@ private :
 
     enum PutGetState {putGetIdle,putGetActive,putGetComplete};
     PutGetState putGetState;
+    ChannelPutGetRequesterImplPtr channelPutGetRequester;
+    friend class ChannelPutGetRequesterImpl;
 };
 
 //class ChannelMonitorRequester; // private to PvaClientMonitor
@@ -1333,8 +1333,11 @@ public:
  * @brief An easy to use alternative to Monitor.
  *
  */
+// NOTE: must use seprate class that implements MonitorRequester,
+// because pvAccess holds a shared_ptr to MonitorRequester instead of weak_pointer
+class MonitorRequesterImpl;
+typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
 class epicsShareClass PvaClientMonitor :
-    public epics::pvData::MonitorRequester,
     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
 public:
@@ -1353,38 +1356,8 @@ public:
     /** Destructor
      */
     ~PvaClientMonitor();
-    /** epics::pvData::MonitorRequester method
-     * The requester must have a name.
-     * @return The requester's name.
-     */
-    virtual std::string getRequesterName();
-    /**  epics::pvData::MonitorRequester method
-     * A message for the requester.
-     * @param message The message.
-     * @param messageType The type of message:
-     */
-    virtual void message(std::string const & message,epics::pvData::MessageType messageType);
-    /**  epics::pvData::MonitorRequester method
-     * @param status Completion status.
-     * @param monitor The monitor
-     * @param structure The structure defining the data.
-     */
-    virtual void monitorConnect(
-        const epics::pvData::Status& status,
-        epics::pvData::MonitorPtr const & monitor,
-        epics::pvData::StructureConstPtr const & structure);
-    /**  epics::pvData::MonitorRequester method
-     * The client and server have both completed the createMonitor request.
-     * The data source is no longer available.
-     * @param monitor The monitor.
-     */
-    virtual void unlisten(epics::pvData::MonitorPtr const & monitor);
-    /** epics::pvData::MonitorRequester method
-     * A monitor event has occurred.
-     * The requester must call Monitor.poll to get data.
-     * @param monitor The monitor.
-     */
-    virtual void monitorEvent(epics::pvData::MonitorPtr const & monitor);
+
+    
     /** Call issueConnect and then waitConnect.
      * An exception is thrown if connect fails.
      */
@@ -1427,17 +1400,20 @@ public:
      * @return The interface.
      */
     PvaClientMonitorDataPtr getData();   
-    /** Get shared pointer to this
-     */
-    PvaClientMonitorPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
     /** Deprecated method
      * \deprecated This method will go away in future versions. 
      */
     void destroy()  EPICS_DEPRECATED {}
 private:
+    virtual std::string getRequesterName();
+    virtual void message(std::string const & message,epics::pvData::MessageType messageType);
+    virtual void monitorConnect(
+        const epics::pvData::Status& status,
+        epics::pvData::MonitorPtr const & monitor,
+        epics::pvData::StructureConstPtr const & structure);
+    virtual void unlisten(epics::pvData::MonitorPtr const & monitor);
+    virtual void monitorEvent(epics::pvData::MonitorPtr const & monitor);
+
     PvaClientMonitor(
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
@@ -1463,6 +1439,8 @@ private:
     MonitorConnectState connectState;
     bool userPoll;
     bool userWait;
+    MonitorRequesterImplPtr monitorRequester;
+    friend class MonitorRequesterImpl;
 };
 
 }}

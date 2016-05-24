@@ -32,7 +32,7 @@ public:
     PvaClientGetCache(){}
     ~PvaClientGetCache()
     {
-        pvaClientGetMap.clear();
+        if(PvaClient::getDebug()) cout << "PvaClientGetCache::~PvaClientGetCache\n";
     }
     PvaClientGetPtr getGet(string const & request);
     void addGet(string const & request,PvaClientGetPtr const & pvaClientGet);
@@ -79,7 +79,7 @@ public:
     PvaClientPutCache(){}
     ~PvaClientPutCache()
     {
-         pvaClientPutMap.clear();
+         if(PvaClient::getDebug()) cout << "PvaClientPutCache::~PvaClientPutCache\n";
     }
     PvaClientPutPtr getPut(string const & request);
     void addPut(string const & request,PvaClientPutPtr const & pvaClientPut);
@@ -208,7 +208,7 @@ PvaClientChannel::~PvaClientChannel()
     }
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
         isDestroyed = true;
     }
     if(PvaClient::getDebug()) showCache();
@@ -227,7 +227,6 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
            << endl;
     }
     Lock xx(mutex);
-    if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
     if(connectState!=connectActive) {
          string message("PvaClientChannel::channelCreated");
          message += " channel " + channelName
@@ -256,7 +255,6 @@ void PvaClientChannel::channelStateChange(
         << endl;
     }
     Lock xx(mutex);
-    if(isDestroyed) return;
     bool waitingForConnect = false;
     if(connectState==connectActive) waitingForConnect = true;
     if(connectionState!=Channel::CONNECTED) {
@@ -289,22 +287,16 @@ void PvaClientChannel::message(
 
 string PvaClientChannel::getChannelName()
 {
-    if(isDestroyed) throw std::runtime_error(
-        "PvaClientChannel::getChannelName() pvaClientChannel was destroyed");
     return channelName;
 }
 
 Channel::shared_pointer PvaClientChannel::getChannel()
 {
-    if(isDestroyed) throw std::runtime_error(
-        "PvaClientChannel::getChannel() pvaClientChannel was destroyed");
     return channel;
 }
 
 void PvaClientChannel::connect(double timeout)
 {
-    if(isDestroyed) throw std::runtime_error(
-        "PvaClientChannel::connect() pvaClientChannel was destroyed");
     if(PvaClient::getDebug()) {
         cout << "PvaClientChannel::connect"
         << " channelName " << channelName << endl;
@@ -320,15 +312,12 @@ void PvaClientChannel::connect(double timeout)
 
 void PvaClientChannel::issueConnect()
 {
-    if(isDestroyed) throw std::runtime_error(
-        "PvaClientChannel::issueConnect() pvaClientChannel was destroyed");
     if(PvaClient::getDebug()) {
         cout << "PvaClientChannel::issueConnect"
         << " channelName " << channelName << endl;
     }
     {
         Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
         if(connectState!=connectIdle) {
            throw std::runtime_error("pvaClientChannel already connected");
         }
@@ -339,7 +328,6 @@ void PvaClientChannel::issueConnect()
     if(!provider) {
         throw std::runtime_error(channelName + " provider " + providerName + " not registered");
     }
-//    ChannelRequester::shared_pointer channelRequester(shared_from_this());
     if(PvaClient::getDebug()) cout << "PvaClientChannel::issueConnect calling provider->createChannel\n";
     channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
     if(!channel) {
@@ -349,15 +337,12 @@ void PvaClientChannel::issueConnect()
 
 Status PvaClientChannel::waitConnect(double timeout)
 {
-    if(isDestroyed) throw std::runtime_error(
-        "PvaClientChannel::waitConnect() pvaClientChannel was destroyed");
     if(PvaClient::getDebug()) {
         cout << "PvaClientChannel::waitConnect"
         << " channelName " << channelName << endl;
     }
     {
         Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
         if(channel->isConnected()) return Status::Ok;
     }
     if(timeout>0.0) {
@@ -585,10 +570,18 @@ PvaClientMonitorPtr  PvaClientChannel::createMonitor(PVStructurePtr const &  pvR
 
 void PvaClientChannel::showCache()
 {
-     cout << "    pvaClientGet" << endl;
-     pvaClientGetCache->showCache();
-     cout << "    pvaClientPut" << endl;
-     pvaClientPutCache->showCache();
+     if(pvaClientGetCache->cacheSize()>=1) {
+         cout << "    pvaClientGet cache" << endl;
+         pvaClientGetCache->showCache();
+     } else {
+         cout << "    pvaClientGet cache is empty\n";
+     }
+     if(pvaClientPutCache->cacheSize()>=1) {
+         cout << "    pvaClientPut cache" << endl;
+         pvaClientPutCache->showCache();
+     } else {
+        cout << "    pvaClientPut cache is empty\n";
+     }
 }
 
 size_t PvaClientChannel::cacheSize()

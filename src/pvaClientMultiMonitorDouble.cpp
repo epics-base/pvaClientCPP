@@ -60,10 +60,7 @@ PvaClientMultiMonitorDouble::~PvaClientMultiMonitorDouble()
     if(PvaClient::getDebug()) cout<< "PvaClientMultiMonitorDouble::~PvaClientMultiMonitorDouble()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClientMultiMonitorDouble::~PvaClientMultiMonitorDouble() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClientMultiMonitorDouble was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

@@ -66,10 +66,7 @@ PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor()
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClientNTMultiMonitor was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

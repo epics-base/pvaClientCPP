@@ -68,10 +68,7 @@ PvaClientNTMultiGet::~PvaClientNTMultiGet()
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiGet::~PvaClientNTMultiGet()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClientNTMultiGet::~PvaClientNTMultiGet() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClientNTMultiGet was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

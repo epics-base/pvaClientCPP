@@ -59,10 +59,7 @@ PvaClientMultiGetDouble::~PvaClientMultiGetDouble()
     if(PvaClient::getDebug()) cout<< "PvaClientMultiGetDouble::~PvaClientMultiGetDouble()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) {
-             cerr<< "Why was PvaClientMultiGetDouble::~PvaClientMultiGetDouble() called more then once????\n";
-             return;
-        }
+        if(isDestroyed) throw std::runtime_error("pvaClientMultiGetDouble was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();

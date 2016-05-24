@@ -102,14 +102,13 @@ PvaClientGet::~PvaClientGet()
     if(PvaClient::getDebug()) cout<< "PvaClientGet::~PvaClientGet()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
         isDestroyed = true;
     }
 }
 
 void PvaClientGet::checkGetState()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState==connectIdle) connect();
     if(getState==getIdle) get();
 }
@@ -139,7 +138,6 @@ void PvaClientGet::channelGetConnect(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     {
         Lock xx(mutex);
         channelGetConnectStatus = status;
@@ -166,7 +164,6 @@ void PvaClientGet::getDone(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     {
         Lock xx(mutex);
         channelGetStatus = status;
@@ -180,7 +177,6 @@ void PvaClientGet::getDone(
 
 void PvaClientGet::connect()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
@@ -194,7 +190,6 @@ void PvaClientGet::connect()
 
 void PvaClientGet::issueConnect()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState!=connectIdle) {
         Channel::shared_pointer chan(channel.lock());
         string channelName("disconnected");
@@ -203,7 +198,6 @@ void PvaClientGet::issueConnect()
             + " pvaClientGet already connected ";
         throw std::runtime_error(message);
     }
-//    ChannelGetRequester::shared_pointer channelGetRequester(shared_from_this());
     connectState = connectActive;
     Channel::shared_pointer chan(channel.lock());
     if(chan) {
@@ -215,7 +209,6 @@ void PvaClientGet::issueConnect()
 
 Status PvaClientGet::waitConnect()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     {
         Lock xx(mutex);
         if(connectState==connected) {
@@ -238,7 +231,6 @@ Status PvaClientGet::waitConnect()
 
 void PvaClientGet::get()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     issueGet();
     Status status = waitGet();
     if(status.isOK()) return;
@@ -252,7 +244,6 @@ void PvaClientGet::get()
 
 void PvaClientGet::issueGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     if(connectState==connectIdle) connect();
     if(getState!=getIdle) {
         Channel::shared_pointer chan(channel.lock());
@@ -268,7 +259,6 @@ void PvaClientGet::issueGet()
 
 Status PvaClientGet::waitGet()
 {
-    if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
     {
         Lock xx(mutex);
         if(getState==getComplete) {
