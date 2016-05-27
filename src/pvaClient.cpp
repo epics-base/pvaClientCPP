@@ -128,14 +128,14 @@ PvaClient::PvaClient(std::string const & providerNames)
 }
 
 PvaClient::~PvaClient() {
-    if(PvaClient::debug) cout<< "PvaClient::~PvaClient()\n";
     {
         Lock xx(mutex);
         if(isDestroyed) throw std::runtime_error("pvaClient was destroyed");
         isDestroyed = true;
     }
     if(PvaClient::debug) {
-        cout << "pvaChannel cache:\n";
+        cout<< "PvaClient::~PvaClient()\n"
+            << "pvaChannel cache:\n";
         showCache();
     }
     if(pvaStarted){
@@ -188,7 +188,7 @@ PvaClientChannelPtr PvaClient::channel(
 
 PvaClientChannelPtr PvaClient::createChannel(string const & channelName, string const & providerName)
 {
-     return PvaClientChannel::create(getPtrSelf(),channelName,providerName);
+     return PvaClientChannel::create(shared_from_this(),channelName,providerName);
 }
 
 void PvaClient::setRequester(RequesterPtr const & requester)

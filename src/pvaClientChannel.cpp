@@ -200,16 +200,15 @@ PvaClientChannel::PvaClientChannel(
 
 PvaClientChannel::~PvaClientChannel()
 {
-    if(PvaClient::getDebug()) {
-        cout  << "PvaClientChannel::~PvaClientChannel() "
-             << " channelName " << channelName
-             << " this " << this << " channel " << channel
-            << endl;
-    }
     {
         Lock xx(mutex);
         if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
         isDestroyed = true;
+    }
+    if(PvaClient::getDebug()) {
+        cout  << "PvaClientChannel::~PvaClientChannel() "
+             << " channelName " << channelName
+            << endl;
     }
     if(PvaClient::getDebug()) showCache();
     pvaClientGetCache.reset();
@@ -354,20 +353,11 @@ Status PvaClientChannel::waitConnect(double timeout)
     return Status(Status::STATUSTYPE_ERROR,channelName + " not connected");
 }
 
-PvaClientFieldPtr PvaClientChannel::createField()
-{
-    return createField("");
-}
 
 PvaClientFieldPtr PvaClientChannel::createField(string const & subField)
 {
     if(connectState!=connected) connect(5.0);
     throw std::runtime_error("PvaClientChannel::createField not implemented");
-}
-
-PvaClientProcessPtr PvaClientChannel::createProcess()
-{
-    return createProcess("");
 }
 
 PvaClientProcessPtr PvaClientChannel::createProcess(string const & request)
@@ -390,7 +380,6 @@ PvaClientProcessPtr PvaClientChannel::createProcess(PVStructurePtr const &  pvRe
     return PvaClientProcess::create(yyy,channel,pvRequest);
 }
 
-PvaClientGetPtr PvaClientChannel::get() {return get("value,alarm,timeStamp");}
 
 PvaClientGetPtr PvaClientChannel::get(string const & request)
 {
@@ -402,10 +391,6 @@ PvaClientGetPtr PvaClientChannel::get(string const & request)
     return pvaClientGet;
 }
 
-PvaClientGetPtr PvaClientChannel::createGet()
-{
-    return PvaClientChannel::createGet("value,alarm,timeStamp");
-}
 
 PvaClientGetPtr PvaClientChannel::createGet(string const & request)
 {
@@ -427,7 +412,6 @@ PvaClientGetPtr PvaClientChannel::createGet(PVStructurePtr const &  pvRequest)
     return PvaClientGet::create(yyy,channel,pvRequest);
 }
 
-PvaClientPutPtr PvaClientChannel::put() {return put("value");}
 
 PvaClientPutPtr PvaClientChannel::put(string const & request)
 {
@@ -440,10 +424,6 @@ PvaClientPutPtr PvaClientChannel::put(string const & request)
     return pvaClientPut;
 }
 
-PvaClientPutPtr PvaClientChannel::createPut()
-{
-    return createPut("value");
-}
 
 PvaClientPutPtr PvaClientChannel::createPut(string const & request)
 {
@@ -463,11 +443,6 @@ PvaClientPutPtr PvaClientChannel::createPut(PVStructurePtr const & pvRequest)
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
     return PvaClientPut::create(yyy,channel,pvRequest);
-}
-
-PvaClientPutGetPtr PvaClientChannel::createPutGet()
-{
-    return createPutGet("putField(argument)getField(result)");
 }
 
 PvaClientPutGetPtr PvaClientChannel::createPutGet(string const & request)
@@ -491,10 +466,6 @@ PvaClientPutGetPtr PvaClientChannel::createPutGet(PVStructurePtr const & pvReque
 }
 
 
-PvaClientArrayPtr PvaClientChannel::createArray()
-{
-    return createArray("value");
-}
 
 PvaClientArrayPtr PvaClientChannel::createArray(string const & request)
 {
@@ -514,11 +485,6 @@ PvaClientArrayPtr PvaClientChannel::createArray(PVStructurePtr const &  pvReques
     throw std::runtime_error("PvaClientChannel::createArray not implemented");
 }
 
-
-PvaClientMonitorPtr PvaClientChannel::monitor()
-{
-    return monitor("value,alarm,timeStamp");
-}
 
 PvaClientMonitorPtr PvaClientChannel::monitor(string const & request)
 {
@@ -541,11 +507,6 @@ PvaClientMonitorPtr PvaClientChannel::monitor(string const & request,
     pvaClientMonitor->setRequester(pvaClientMonitorRequester);
     pvaClientMonitor->start();
     return pvaClientMonitor;
-}
-
-PvaClientMonitorPtr PvaClientChannel::createMonitor()
-{
-    return createMonitor("value,alarm,timeStamp");
 }
 
 PvaClientMonitorPtr PvaClientChannel::createMonitor(string const & request)

@@ -155,34 +155,29 @@ PvaClientPtr PvaClientMultiChannel::getPvaClient()
 PvaClientMultiGetDoublePtr PvaClientMultiChannel::createGet()
 {
     checkConnected();
-    return PvaClientMultiGetDouble::create(getPtrSelf(),pvaClientChannelArray);
+    return PvaClientMultiGetDouble::create(shared_from_this(),pvaClientChannelArray);
 }
 
 
 PvaClientMultiPutDoublePtr PvaClientMultiChannel::createPut()
 {
     checkConnected();
-    return PvaClientMultiPutDouble::create(getPtrSelf(),pvaClientChannelArray);
+    return PvaClientMultiPutDouble::create(shared_from_this(),pvaClientChannelArray);
 }
 
 
 PvaClientMultiMonitorDoublePtr PvaClientMultiChannel::createMonitor()
 {
     checkConnected();
-     return PvaClientMultiMonitorDouble::create(getPtrSelf(), pvaClientChannelArray);
+     return PvaClientMultiMonitorDouble::create(shared_from_this(), pvaClientChannelArray);
 }
 
 PvaClientNTMultiPutPtr PvaClientMultiChannel::createNTPut()
 {
     checkConnected();
-    return PvaClientNTMultiPut::create(getPtrSelf(), pvaClientChannelArray);
+    return PvaClientNTMultiPut::create(shared_from_this(), pvaClientChannelArray);
 }
 
-
-PvaClientNTMultiGetPtr PvaClientMultiChannel::createNTGet()
-{
-    return createNTGet("value,alarm,timeStamp");
-}
 
 PvaClientNTMultiGetPtr PvaClientMultiChannel::createNTGet(std::string const &request)
 {
@@ -193,13 +188,7 @@ PvaClientNTMultiGetPtr PvaClientMultiChannel::createNTGet(std::string const &req
              + createRequest->getMessage();
         throw std::runtime_error(message);
     }
-    return PvaClientNTMultiGet::create(getPtrSelf(), pvaClientChannelArray,pvRequest);
-}
-
-
-PvaClientNTMultiMonitorPtr PvaClientMultiChannel::createNTMonitor()
-{
-    return createNTMonitor("value,alarm,timeStamp");
+    return PvaClientNTMultiGet::create(shared_from_this(), pvaClientChannelArray,pvRequest);
 }
 
 PvaClientNTMultiMonitorPtr PvaClientMultiChannel::createNTMonitor(std::string const &request)
@@ -211,7 +200,7 @@ PvaClientNTMultiMonitorPtr PvaClientMultiChannel::createNTMonitor(std::string co
              + createRequest->getMessage();
         throw std::runtime_error(message);
     }
-    return PvaClientNTMultiMonitor::create(getPtrSelf(), pvaClientChannelArray,pvRequest);
+    return PvaClientNTMultiMonitor::create(shared_from_this(), pvaClientChannelArray,pvRequest);
 }
 
 

@@ -79,7 +79,6 @@ public:
      * Destructor
      */
     ~PvaClientMultiChannel();
-    
     /** Get the channelNames.
      * @return The names.
      */
@@ -132,36 +131,19 @@ public:
      */
     PvaClientNTMultiPutPtr createNTPut();
     /**
-     * Create a pvaClientNTMultiGet.
-     * This calls the next method with request = "value,alarm,timeStamp"
-     * @return The interface.
-     */
-    PvaClientNTMultiGetPtr createNTGet();
-    /**
      * Create a pvaClientNTMultiGet;
      * @param request The request for each channel.
      * @return The interface.
      */
-    PvaClientNTMultiGetPtr createNTGet(std::string const &request);
-    /**
-     * Create a pvaClientNTMultiMonitor.
-     * This calls the next method with request = "value,alarm,timeStamp"
-     * @return The interface.
-     */
-    PvaClientNTMultiMonitorPtr createNTMonitor();
+    PvaClientNTMultiGetPtr createNTGet(
+        std::string const &request = "field(value,alarm,timeStamp)");
     /**
      * Create a pvaClientNTMultiPut.
      * @param request The request for each channel.
      * @return The interface.
      */
-    PvaClientNTMultiMonitorPtr createNTMonitor(std::string const &request);
-    /** Get the shared pointer to self.
-     * @return The shared pointer.
-     */
-    PvaClientMultiChannelPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
+    PvaClientNTMultiMonitorPtr createNTMonitor(
+        std::string const &request= "field(value,alarm,timeStamp)");
      /** Deprecated method
      * \deprecated This method will go away in future versions. 
      */
@@ -258,14 +240,13 @@ class epicsShareClass PvaClientMultiPutDouble :
 public:
     POINTER_DEFINITIONS(PvaClientMultiPutDouble);
    
-    /**
-     * Factory method that creates a PvaClientMultiPutDouble.
+    /** Factory method that creates a PvaClientMultiPutDouble.
      * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
      * @param pvaClientChannelArray The PvaClientChannel array.
      * @return The interface.
      */
     static PvaClientMultiPutDoublePtr create(
-         PvaClientMultiChannelPtr const &pvaMultiChannel,
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
     ~PvaClientMultiPutDouble();
      /**
@@ -312,14 +293,13 @@ class epicsShareClass PvaClientMultiMonitorDouble :
 public:
     POINTER_DEFINITIONS(PvaClientMultiMonitorDouble);
     
-    /**
-     * Factory method that creates a PvaClientMultiMonitorDouble.
+    /** Factory method that creates a PvaClientMultiMonitorDouble.
      * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
      * @param pvaClientChannelArray The PvaClientChannel array.
      * @return The interface.
      */
     static PvaClientMultiMonitorDoublePtr create(
-         PvaClientMultiChannelPtr const &pvaMultiChannel,
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
     ~PvaClientMultiMonitorDouble();
      /**
@@ -507,15 +487,14 @@ class epicsShareClass PvaClientNTMultiMonitor :
 
 public:
     POINTER_DEFINITIONS(PvaClientNTMultiMonitor);
-    /**
-     * Factory method that creates a PvaClientNTMultiMonitor.
+    /** Factory method that creates a PvaClientNTMultiMonitor.
      * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
      * @param pvaClientChannelArray The PvaClientChannel array.
      * @param pvRequest The pvRequest for each channel.
      * @return The interface.
      */
     static PvaClientNTMultiMonitorPtr create(
-         PvaClientMultiChannelPtr const &pvaNTMultiChannel,
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
     ~PvaClientNTMultiMonitor();
@@ -589,7 +568,7 @@ public:
      */
     static PvaClientNTMultiDataPtr create(
          epics::pvData::UnionConstPtr const & u,
-         PvaClientMultiChannelPtr const &pvaNTMultiChannel,
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
     ~PvaClientNTMultiData();
