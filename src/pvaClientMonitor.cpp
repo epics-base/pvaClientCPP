@@ -172,6 +172,9 @@ void PvaClientMonitor::monitorConnect(
         pvaClientData = PvaClientMonitorData::create(structure);
         pvaClientData->setMessagePrefix(chan->getChannelName());
     }
+    if(PvaClient::getDebug()) {
+         cout << "PvaClientMonitor::monitorConnect calling waitForConnect.signal\n";
+    }
     waitForConnect.signal();
     
 }
@@ -199,6 +202,7 @@ void PvaClientMonitor::unlisten(MonitorPtr const & monitor)
 
 void PvaClientMonitor::connect()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientMonitor::connect\n";
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
@@ -214,6 +218,7 @@ void PvaClientMonitor::connect()
 
 void PvaClientMonitor::issueConnect()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientMonitor::issueConnect\n";
     Channel::shared_pointer chan(channel.lock());
     if(connectState!=connectIdle) {
         string channelName("disconnected");
@@ -233,6 +238,7 @@ void PvaClientMonitor::issueConnect()
 
 Status PvaClientMonitor::waitConnect()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientMonitor::waitConnect\n";
     if(connectState==connected) {
          if(connectStatus.isOK()) connectState = connectIdle;
          return connectStatus;
@@ -246,8 +252,15 @@ Status PvaClientMonitor::waitConnect()
             + " PvaClientMonitor::waitConnect illegal connect state ";
         throw std::runtime_error(message);
     }
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientMonitor::waitConnect calling waitForConnect.wait\n";
+    }
     waitForConnect.wait();
     connectState = connectStatus.isOK() ? connected : connectIdle;
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientMonitor::waitConnect"
+             << " connectStatus " << (connectStatus.isOK() ? "connected" : "not connected");
+    }
     return connectStatus;
 }
 
