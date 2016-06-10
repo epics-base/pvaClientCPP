@@ -150,7 +150,7 @@ void PvaClientGet::channelGetConnect(
         Channel::shared_pointer chan(channel.lock());
         if(chan) channelName = chan->getChannelName();
         cout << "PvaClientGet::channelGetConnect"
-           << " channelName " << channelGet->getChannel()->getChannelName()
+           << " channelName " << channelName
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
@@ -208,17 +208,16 @@ void PvaClientGet::connect()
 
 void PvaClientGet::issueConnect()
 {
+    Channel::shared_pointer chan(channel.lock());
     if(connectState!=connectIdle) {
-        Channel::shared_pointer chan(channel.lock());
         string channelName("disconnected");
         if(chan) channelName = chan->getChannelName();
         string message = string("channel ") + channelName
             + " pvaClientGet already connected ";
         throw std::runtime_error(message);
     }
-    connectState = connectActive;
-    Channel::shared_pointer chan(channel.lock());
     if(chan) {
+        connectState = connectActive;
         channelGet = chan->createChannelGet(channelGetRequester,pvRequest);
         return;
     }

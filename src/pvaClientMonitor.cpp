@@ -240,7 +240,7 @@ Status PvaClientMonitor::waitConnect()
 {
     if(PvaClient::getDebug()) cout << "PvaClientMonitor::waitConnect\n";
     if(connectState==connected) {
-         if(connectStatus.isOK()) connectState = connectIdle;
+         if(!connectStatus.isOK()) connectState = connectIdle;
          return connectStatus;
     }
     if(connectState!=connectActive) {
@@ -264,7 +264,7 @@ Status PvaClientMonitor::waitConnect()
     return connectStatus;
 }
 
-void PvaClientMonitor::setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorrRequester)
+void PvaClientMonitor::setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester)
 {
     if(PvaClient::getDebug()) {
         string channelName("disconnected");
@@ -274,7 +274,7 @@ void PvaClientMonitor::setRequester(PvaClientMonitorRequesterPtr const & pvaClie
            << " channelName " << channelName
            << endl;
     }
-    this->pvaClientMonitorRequester = pvaClientMonitorrRequester;
+    this->pvaClientMonitorRequester = pvaClientMonitorRequester;
 }
 
 void PvaClientMonitor::start()

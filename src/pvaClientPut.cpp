@@ -157,16 +157,22 @@ void PvaClientPut::channelPutConnect(
     StructureConstPtr const & structure)
 {
     if(PvaClient::getDebug()) {
+        string channelName("disconnected");
+        Channel::shared_pointer chan(channel.lock());
+        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientPut::channelPutConnect"
-           << " channelName " << channelPut->getChannel()->getChannelName()
+           << " channelName " << channelName
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    channelPutConnectStatus = status;
-    this->channelPut = channelPut;
-    if(status.isOK()) {
-        pvaClientData = PvaClientPutData::create(structure);
-        pvaClientData->setMessagePrefix(channelPut->getChannel()->getChannelName());
+    {
+        Lock xx(mutex);
+        channelPutConnectStatus = status;
+        this->channelPut = channelPut;
+        if(status.isOK()) {
+            pvaClientData = PvaClientPutData::create(structure);
+            pvaClientData->setMessagePrefix(channelPut->getChannel()->getChannelName());
+        }
     }
     waitForConnect.signal();
     
@@ -251,17 +257,20 @@ void PvaClientPut::issueConnect()
 
 Status PvaClientPut::waitConnect()
 {
-    if(connectState==connected) {
-         if(!channelPutConnectStatus.isOK()) connectState = connectIdle;
-         return channelPutConnectStatus;
-    }
-    if(connectState!=connectActive) {
-        Channel::shared_pointer chan(channel.lock());
-        string channelName("disconnected");
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ") + channelName
-            + " PvaClientPut::waitConnect illegal connect state ";
-        throw std::runtime_error(message);
+    {
+        Lock xx(mutex);
+        if(connectState==connected) {
+             if(!channelPutConnectStatus.isOK()) connectState = connectIdle;
+             return channelPutConnectStatus;
+        }
+        if(connectState!=connectActive) {
+            Channel::shared_pointer chan(channel.lock());
+            string channelName("disconnected");
+            if(chan) channelName = chan->getChannelName();
+            string message = string("channel ") + channelName
+                + " PvaClientPut::waitConnect illegal connect state ";
+            throw std::runtime_error(message);
+        }
     }
     waitForConnect.wait();
     if(!channelPutConnectStatus.isOK()) connectState = connectIdle;
