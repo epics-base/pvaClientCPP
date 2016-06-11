@@ -211,8 +211,6 @@ PvaClientChannel::~PvaClientChannel()
             << endl;
     }
     if(PvaClient::getDebug()) showCache();
-    pvaClientGetCache.reset();
-    pvaClientPutCache.reset();
 }
 
 

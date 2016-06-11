@@ -78,8 +78,7 @@ void PvaClientChannelCache::showCache()
          string providerName = channel->getProvider()->getProviderName();
          cout << "channel " << channelName << " provider " << providerName << endl;
          pvaChannel->showCache();
-    }
-    
+    } 
 }
 
 size_t PvaClientChannelCache::cacheSize()

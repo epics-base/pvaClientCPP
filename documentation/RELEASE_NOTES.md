@@ -1,4 +1,4 @@
-pvaClientCPP - Release/4.2
+EPICS V4 release 4.6
 ==========================
 
 PvaClientMultiChannel
@@ -8,10 +8,9 @@ checkConnected() now throws an exception if connect fails.
 
 
 
-pvaClientCPP - Release/4.1
+EPICS V4 release 4.5
 ==========================
 
-This is for EPICS V4 release 4.5
 
 pvaClient is a synchronous API for pvAccess.
 

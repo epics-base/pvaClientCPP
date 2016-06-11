@@ -5,7 +5,8 @@ include $(TOP)/configure/CONFIG
 
 LIBRARY += pvaClient
 
-SHRLIB_VERSION=4.1.1
+# shared library ABI version.
+SHRLIB_VERSION ?= 4.2-DEV
 
 INC += pv/pvaClient.h
 INC += pv/pvaClientMultiChannel.h
