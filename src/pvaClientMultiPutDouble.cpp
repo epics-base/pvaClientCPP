@@ -51,24 +51,22 @@ PvaClientMultiPutDouble::PvaClientMultiPutDouble(
   isPutConnected(false),
   isDestroyed(false)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientMultiPutDouble::PvaClientMultiPutDouble()\n";
 }
 
 
 
 PvaClientMultiPutDouble::~PvaClientMultiPutDouble()
 {
-    destroy();
-}
-
-void PvaClientMultiPutDouble::destroy()
-{
+    if(PvaClient::getDebug()) cout<< "PvaClientMultiPutDouble::~PvaClientMultiPutDouble()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) throw std::runtime_error("pvaClientMultiPutDouble was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();
 }
+
 
 void PvaClientMultiPutDouble::connect()
 {

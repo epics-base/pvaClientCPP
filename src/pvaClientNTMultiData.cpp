@@ -48,6 +48,7 @@ PvaClientNTMultiData::PvaClientNTMultiData(
   gotTimeStamp(false),
   isDestroyed(false)
 {
+    if(PvaClient::getDebug()) cout<< "PvaClientNTMultiData::PvaClientNTMultiData()\n";
     PVFieldPtr pvValue = pvRequest->getSubField("field.value");
     if(!pvValue) {
         throw std::runtime_error("pvRequest did not specify value");
@@ -88,18 +89,15 @@ PvaClientNTMultiData::PvaClientNTMultiData(
 
 PvaClientNTMultiData::~PvaClientNTMultiData()
 {
-    destroy();
-}
-
-void PvaClientNTMultiData::destroy()
-{
+    if(PvaClient::getDebug()) cout<< "PvaClientNTMultiData::~PvaClientNTMultiData()\n";
     {
         Lock xx(mutex);
-        if(isDestroyed) return;
+        if(isDestroyed) throw std::runtime_error("pvaClientNTMultiData was destroyed");
         isDestroyed = true;
     }
     pvaClientChannelArray.clear();
 }
+
 
 void PvaClientNTMultiData::setStructure(StructureConstPtr const & structure,size_t index)
 {
