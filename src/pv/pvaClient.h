@@ -1290,7 +1290,7 @@ public:
 
 // NOTE: must use separate class that implements MonitorRequester,
 // because pvAccess holds a shared_ptr to MonitorRequester instead of weak_pointer
-class MonitorRequesterImpl;
+class epicsShareClass MonitorRequesterImpl;
 typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
 
 /**
