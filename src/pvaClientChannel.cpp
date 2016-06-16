@@ -122,7 +122,7 @@ size_t PvaClientPutCache::cacheSize()
 
 }
 
-class ChannelRequesterImpl : public ChannelRequester
+class epicsShareClass ChannelRequesterImpl : public ChannelRequester
 {
     PvaClientChannel::weak_pointer pvaClientChannel;
     PvaClient::weak_pointer pvaClient;
