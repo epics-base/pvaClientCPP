@@ -1378,7 +1378,7 @@ private:
         epics::pvData::PVStructurePtr const &pvRequest);
 
     void checkMonitorState();
-    enum MonitorConnectState {connectIdle,connectActive,connected,monitorStarted};
+    enum MonitorConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
     epics::pvAccess::Channel::weak_pointer channel;
@@ -1389,6 +1389,7 @@ private:
     PvaClientMonitorDataPtr pvaClientData;
 
     bool isDestroyed;
+    bool isStarted;
     epics::pvData::Status connectStatus;
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;

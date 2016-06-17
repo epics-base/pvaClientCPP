@@ -224,6 +224,7 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
            << endl;
     }
     Lock xx(mutex);
+    if(connectState==connected) return;
     if(connectState!=connectActive) {
          string message("PvaClientChannel::channelCreated");
          message += " channel " + channelName
