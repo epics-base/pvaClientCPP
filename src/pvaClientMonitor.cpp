@@ -97,6 +97,7 @@ PvaClientMonitor::PvaClientMonitor(
   channel(channel),
   pvRequest(pvRequest),
   isDestroyed(false),
+  isStarted(false),
   connectState(connectIdle),
   userPoll(false),
   userWait(false)
@@ -125,15 +126,24 @@ PvaClientMonitor::~PvaClientMonitor()
            << endl;
     }
     if(monitor) {
-       if(connectState==monitorStarted) monitor->stop();
+       if(isStarted) monitor->stop();
        monitor->destroy();
     }
 }
 
 void PvaClientMonitor::checkMonitorState()
 {
+    if(PvaClient::getDebug()) {
+        string channelName("disconnected");
+        Channel::shared_pointer chan(channel.lock());
+        if(chan) channelName = chan->getChannelName();
+        cout << "PvaClientMonitor::checkMonitorState"
+           << " channelName " << channelName
+           << " connectState " << connectState
+           << endl;
+    }
     if(connectState==connectIdle) connect();
-    if(connectState==connected) start();
+    if(connectState==connected && !isStarted) start();
 }
 
 string PvaClientMonitor::getRequesterName()
@@ -168,6 +178,18 @@ void PvaClientMonitor::monitorConnect(
     connectStatus = status;
     connectState = connected;
     this->monitor = monitor;
+    if(isStarted) {
+        if(PvaClient::getDebug()) {
+            string channelName("disconnected");
+            Channel::shared_pointer chan(channel.lock());
+            if(chan) channelName = chan->getChannelName();
+            cout << "PvaClientMonitor::monitorConnect"
+               << " channelName " << channelName
+               << " is already started "
+               << endl;
+        }
+        return;
+    }
     if(status.isOK() && chan) {
         pvaClientData = PvaClientMonitorData::create(structure);
         pvaClientData->setMessagePrefix(chan->getChannelName());
@@ -285,9 +307,19 @@ void PvaClientMonitor::start()
         if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::start"
            << " channelName " << channelName
+           << " connectState " << connectState
            << endl;
     }
-    if(connectState==monitorStarted) return;
+    if(isStarted) {
+        string channelName("disconnected");
+        Channel::shared_pointer chan(channel.lock());
+        if(chan) channelName = chan->getChannelName();
+        cerr << "PvaClientMonitor::start"
+           << " channelName " << channelName
+           << " why is this called twice "
+           << endl;
+        return;
+    }
     if(connectState==connectIdle) connect();
     if(connectState!=connected) {
         Channel::shared_pointer chan(channel.lock());
@@ -297,7 +329,7 @@ void PvaClientMonitor::start()
             + " PvaClientMonitor::start illegal state ";
         throw std::runtime_error(message);
     }
-    connectState = monitorStarted;
+    isStarted = true;
     monitor->start();
 }
 
@@ -312,8 +344,8 @@ void PvaClientMonitor::stop()
            << " channelName " << channelName
            << endl;
     }
-    if(connectState!=monitorStarted) return;
-    connectState = connected;
+    if(!isStarted) return;
+    isStarted = false;
     monitor->stop();
 }
 
@@ -328,7 +360,7 @@ bool PvaClientMonitor::poll()
            << endl;
     }
     checkMonitorState();
-    if(connectState!=monitorStarted) {
+    if(!isStarted) {
         string channelName("disconnected");
         Channel::shared_pointer chan(channel.lock());
         if(chan) channelName = chan->getChannelName();
@@ -361,7 +393,7 @@ bool PvaClientMonitor::waitEvent(double secondsToWait)
            << " channelName " << channelName
            << endl;
     }
-    if(connectState!=monitorStarted) {
+    if(!isStarted) {
         Channel::shared_pointer chan(channel.lock());
         string channelName("disconnected");
         if(chan) channelName = chan->getChannelName();
@@ -390,7 +422,7 @@ void PvaClientMonitor::releaseEvent()
            << " channelName " << channelName
            << endl;
     }
-    if(connectState!=monitorStarted) {
+    if(!isStarted) {
         Channel::shared_pointer chan(channel.lock());
         string channelName("disconnected");
         if(chan) channelName = chan->getChannelName();
