@@ -72,7 +72,11 @@ typedef std::tr1::shared_ptr<PvaClientMonitorRequester> PvaClientMonitorRequeste
 typedef std::tr1::weak_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterWPtr;
 class PvaClientArray;
 typedef std::tr1::shared_ptr<PvaClientArray> PvaClientArrayPtr;
-
+class PvaClientRPC;
+typedef std::tr1::shared_ptr<PvaClientRPC> PvaClientRPCPtr;
+class PvaClientRPCRequester;
+typedef std::tr1::shared_ptr<PvaClientRPCRequester> PvaClientRPCRequesterPtr;
+typedef std::tr1::weak_ptr<PvaClientRPCRequester> PvaClientRPCRequesterWPtr;
 
 // following are private to pvaClient
 class PvaClientChannelCache;
@@ -347,6 +351,29 @@ public:
      * @throw runtime_error if failure.
      */
     PvaClientMonitorPtr createMonitor(epics::pvData::PVStructurePtr const &  pvRequest);
+    /** Issue a channelRPC request
+     * @param pvRequest  The pvRequest that is passed to createRPC.
+     * @param pvArgument  The argument for a request.
+     * @return The result.
+     * @throw runtime_error if failure.
+     */
+     epics::pvData::PVStructurePtr rpc(
+          epics::pvData::PVStructurePtr const &  pvRequest,
+          epics::pvData::PVStructurePtr const & pvArgument);
+    /** Issue a channelRPC request
+     * @param pvArgument  The argument for the request.
+     * @return The result.
+     * @throw runtime_error if failure.
+     */
+     epics::pvData::PVStructurePtr rpc(
+          epics::pvData::PVStructurePtr const & pvArgument);
+    /** Create an PvaClientRPC.
+     * @param pvRequest  The pvRequest that must have the same interface
+     *  as a pvArgument that is passed to an rpcq request.
+     * @return The interface.
+     * @throw runtime_error if failure.
+     */
+    PvaClientRPCPtr createRPC(epics::pvData::PVStructurePtr const &  pvRequest);
      /** Show the list of cached gets and puts.
      */
     void showCache();
@@ -1400,6 +1427,122 @@ private:
     bool userWait;
     MonitorRequesterImplPtr monitorRequester;
     friend class MonitorRequesterImpl;
+};
+
+/**
+ * @brief Optional client callback.
+ *
+ */
+class epicsShareClass PvaClientRPCRequester
+{
+public:
+    POINTER_DEFINITIONS(PvaClientRPCRequester);
+    virtual ~PvaClientRPCRequester() {}
+    /**
+     * The request is done. This is always called with no locks held.
+     * @param status Completion status.
+     * @param pvaClientRPC The pvaClientRPC interface.
+     * @param pvResponse The response data for the RPC request or <code>null</code> if the request failed.
+     */
+    virtual void requestDone(
+        const epics::pvData::Status& status,
+        PvaClientRPCPtr const & pvaClientRPC,
+        epics::pvData::PVStructure::shared_pointer const & pvResponse) = 0;
+};
+// NOTE: must use separate class that implements RPCRequester,
+// because pvAccess holds a shared_ptr to RPCRequester instead of weak_pointer
+class epicsShareClass RPCRequesterImpl;
+typedef std::tr1::shared_ptr<RPCRequesterImpl> RPCRequesterImplPtr;
+
+/**
+ * @brief An easy to use alternative to RPC.
+ *
+ */
+class epicsShareClass PvaClientRPC :
+    public std::tr1::enable_shared_from_this<PvaClientRPC>
+{
+public:
+    POINTER_DEFINITIONS(PvaClientRPC);
+    /** Create a PvaClientRPC.
+     * @param &pvaClient Interface to PvaClient
+     * @param channel Interface to Channel
+     * @param pvRequest The request structure.
+     * @return The interface to the PvaClientRPC.
+     */
+    static PvaClientRPCPtr create(
+        PvaClientPtr const &pvaClient,
+        epics::pvAccess::Channel::shared_pointer const & channel,
+        epics::pvData::PVStructurePtr const &pvRequest
+    );
+    /** Destructor
+     */
+    ~PvaClientRPC();
+    /** Call issueConnect and then waitConnect.
+     * An exception is thrown if connect fails.
+     */
+    void connect();
+    /** Issue the channelRPC connection to the channel.
+     * This can only be called once.
+     * An exception is thrown if connect fails.
+     * @throw runtime_error if failure.
+     */
+    void issueConnect();
+    /** Wait until the channelRPC connection to the channel is complete.
+     * @return status;
+     */
+    epics::pvData::Status waitConnect();
+    /** issue a request and wait for response
+      * @param pvArgument The data to send to the service.
+      * @return The result
+      * @throw runtime_error if failure.
+     */
+    epics::pvData::PVStructure::shared_pointer request(
+        epics::pvData::PVStructure::shared_pointer const & pvArgument);
+    /** issue a request and return immediately.
+      * @param pvArgument The data to send to the service.
+      * @param pvaClientRPCRequester The requester that is called with the result.
+      * @throw runtime_error if failure.
+     */
+    void request(
+        epics::pvData::PVStructure::shared_pointer const & pvArgument,
+        PvaClientRPCRequesterPtr const & pvaClientRPCRequester);
+private:
+    PvaClientRPC(
+        PvaClientPtr const &pvaClient,
+        epics::pvAccess::Channel::shared_pointer const & channel,
+        epics::pvData::PVStructurePtr const &pvRequest);
+    virtual std::string getRequesterName();
+    virtual void message(std::string const & message,epics::pvData::MessageType messageType);
+    virtual void rpcConnect(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelRPC::shared_pointer const & channelRPC);
+    virtual void requestDone(
+        const epics::pvData::Status& status,
+        epics::pvAccess::ChannelRPC::shared_pointer const & channelRPC,
+        epics::pvData::PVStructure::shared_pointer const & pvResponse);
+
+    void checkRPCState();
+
+    enum RPCConnectState {connectIdle,connectActive,connected};
+    bool isDestroyed;
+    epics::pvData::Status connectStatus;
+    RPCConnectState connectState;
+
+    enum RPCState {rpcIdle,rpcActive,rpcComplete};
+    RPCState rpcState;
+
+    PvaClient::weak_pointer pvaClient;
+    epics::pvAccess::Channel::weak_pointer channel;
+    epics::pvData::PVStructurePtr pvRequest;
+    epics::pvData::PVStructurePtr pvResponse;
+    epics::pvData::Mutex mutex;
+    epics::pvData::Event waitForConnect;
+    epics::pvData::Event waitForDone;
+
+    PvaClientRPCRequesterWPtr pvaClientRPCRequester;    
+    RPCRequesterImplPtr rpcRequester;
+    epics::pvAccess::ChannelRPC::shared_pointer channelRPC;
+    friend class RPCRequesterImpl;
 };
 
 }}
