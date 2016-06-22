@@ -528,6 +528,30 @@ PvaClientMonitorPtr  PvaClientChannel::createMonitor(PVStructurePtr const &  pvR
     return PvaClientMonitor::create(yyy,channel,pvRequest);
 }
 
+PVStructurePtr PvaClientChannel::rpc(
+    PVStructurePtr const &  pvRequest,
+    PVStructurePtr const & pvArgument)
+{
+    
+    PvaClientRPCPtr rpc = createRPC(pvRequest);
+    return rpc->request(pvArgument);
+}
+
+PVStructurePtr PvaClientChannel::rpc(
+    PVStructurePtr const & pvArgument)
+{
+   return rpc(pvArgument,pvArgument);
+}
+
+
+PvaClientRPCPtr PvaClientChannel::createRPC(PVStructurePtr const &  pvRequest)
+{
+    if(connectState!=connected) connect(5.0);
+    PvaClientPtr yyy = pvaClient.lock();
+    if(!yyy) throw std::runtime_error("PvaClient was destroyed");
+    return PvaClientRPC::create(yyy,channel,pvRequest);
+}
+
 void PvaClientChannel::showCache()
 {
      if(pvaClientGetCache->cacheSize()>=1) {
