@@ -53,6 +53,9 @@ class PvaClientPutData;
 typedef std::tr1::shared_ptr<PvaClientPutData> PvaClientPutDataPtr;
 class PvaClientMonitorData;
 typedef std::tr1::shared_ptr<PvaClientMonitorData> PvaClientMonitorDataPtr;
+class PvaClientChannelStateChangeRequester;
+typedef std::tr1::shared_ptr<PvaClientChannelStateChangeRequester> PvaClientChannelStateChangeRequesterPtr;
+typedef std::tr1::weak_ptr<PvaClientChannelStateChangeRequester> PvaClientChannelStateChangeRequesterWPtr;
 class PvaClientChannel;
 typedef std::tr1::shared_ptr<PvaClientChannel> PvaClientChannelPtr;
 class PvaClientField;
@@ -195,12 +198,34 @@ class ChannelRequesterImpl;
 typedef std::tr1::shared_ptr<ChannelRequesterImpl> ChannelRequesterImplPtr;
 
 /** 
+ * @brief An easy to be notified of a change in connection status.
+ *
+ * @author mrk
+ */
+class epicsShareClass PvaClientChannelStateChangeRequester
+{
+public:
+    POINTER_DEFINITIONS(PvaClientChannelStateChangeRequester);
+    /**
+     * Destructor
+     */
+    virtual ~PvaClientChannelStateChangeRequester(){}
+    /**
+     * A channel connection state change has occurred.
+     * @param channel The channel.
+     * @param isConnected The new connection status.
+     */
+    virtual void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected) = 0;
+};
+
+/** 
  * @brief An easy to use alternative to directly calling the Channel methods of pvAccess.
  *
  * @author mrk
  */
 
-class epicsShareClass PvaClientChannel 
+class epicsShareClass PvaClientChannel :
+   public std::tr1::enable_shared_from_this<PvaClientChannel>
 {
 public:
     POINTER_DEFINITIONS(PvaClientChannel);
@@ -208,6 +233,7 @@ public:
      * Destructor
      */
     ~PvaClientChannel();
+    void setStateChangeRequester(PvaClientChannelStateChangeRequesterPtr const &stateChangeRequester);
     /** Get the name of the channel to which PvaClientChannel is connected.
      * @return The channel name.
      */
@@ -421,9 +447,11 @@ private:
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvAccess::Channel::shared_pointer channel;
+    PvaClientChannelStateChangeRequesterWPtr stateChangeRequester;
     ChannelRequesterImplPtr channelRequester;
     friend class PvaClient;
     friend class ChannelRequesterImpl;
+
 };
 
 /** 
@@ -1312,6 +1340,15 @@ public:
      * @param monitor The PvaClientMonitor that received the event.
      */
     virtual void event(PvaClientMonitorPtr const & monitor) = 0;
+    /**
+     * The data source is no longer available.
+     */
+
+    virtual void unlisten()
+    {
+         std::cerr << "PvaClientMonitorRequester::unlisten called"
+                 << " but no PvaClientMonitorRequester::unlisten\n";
+    }
 };
 
 

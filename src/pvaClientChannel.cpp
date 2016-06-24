@@ -213,7 +213,6 @@ PvaClientChannel::~PvaClientChannel()
     if(PvaClient::getDebug()) showCache();
 }
 
-
 void PvaClientChannel::channelCreated(const Status& status, Channel::shared_pointer const & channel)
 {
     if(PvaClient::getDebug()) {
@@ -252,6 +251,12 @@ void PvaClientChannel::channelStateChange(
         << " " << Channel::ConnectionStateNames[connectionState]
         << endl;
     }
+    PvaClientChannelStateChangeRequesterPtr req(stateChangeRequester.lock());
+    if(req) {
+         bool value = (connectionState==Channel::CONNECTED ? true :  false);
+         req->channelStateChange(shared_from_this(),value);
+    }
+   
     Lock xx(mutex);
     bool waitingForConnect = false;
     if(connectState==connectActive) waitingForConnect = true;
@@ -291,6 +296,12 @@ string PvaClientChannel::getChannelName()
 Channel::shared_pointer PvaClientChannel::getChannel()
 {
     return channel;
+}
+
+void PvaClientChannel::setStateChangeRequester(
+    PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester)
+{
+    this->stateChangeRequester = stateChangeRequester;
 }
 
 void PvaClientChannel::connect(double timeout)
