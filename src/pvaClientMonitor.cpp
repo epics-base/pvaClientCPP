@@ -219,8 +219,17 @@ void PvaClientMonitor::monitorEvent(MonitorPtr const & monitor)
 void PvaClientMonitor::unlisten(MonitorPtr const & monitor)
 {
     if(PvaClient::getDebug()) cout << "PvaClientMonitor::unlisten\n";
-    throw std::runtime_error("pvaClientMonitor::unlisten called but do not know what to do");
+    PvaClientMonitorRequesterPtr req = pvaClientMonitorRequester.lock();
+    if(req) {
+        req->unlisten();
+        return;
+    }
+    string channelName("disconnected");
+    Channel::shared_pointer chan(channel.lock());
+    if(chan) channelName = chan->getChannelName();
+    cerr << channelName + "pvaClientMonitor::unlisten called but no PvaClientMonitorRequester\n";
 }
+
 
 void PvaClientMonitor::connect()
 {
