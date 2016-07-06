@@ -103,7 +103,6 @@ PvaClientPtr PvaClient::get(std::string const & providerNames)
 
 PvaClient::PvaClient(std::string const & providerNames)
 :  pvaClientChannelCache(new PvaClientChannelCache()),
-   isDestroyed(false),
    pvaStarted(false),
    caStarted(false)
 {
@@ -127,11 +126,6 @@ PvaClient::PvaClient(std::string const & providerNames)
 }
 
 PvaClient::~PvaClient() {
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClient was destroyed");
-        isDestroyed = true;
-    }
     if(PvaClient::debug) {
         cout<< "PvaClient::~PvaClient()\n"
             << "pvaChannel cache:\n";

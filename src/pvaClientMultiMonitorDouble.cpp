@@ -10,8 +10,6 @@
  */
 
 #include <epicsThread.h>
-#include <pv/standardField.h>
-#include <pv/convert.h>
 #include <epicsMath.h>
 
 #define epicsExportSharedSymbols
@@ -25,11 +23,6 @@ using namespace epics::nt;
 using namespace std;
 
 namespace epics { namespace pvaClient { 
-
-static ConvertPtr convert = getConvert();
-static FieldCreatePtr fieldCreate = getFieldCreate();
-static PVDataCreatePtr pvDataCreate = getPVDataCreate();
-static StandardFieldPtr standardField = getStandardField();
 
 
 PvaClientMultiMonitorDoublePtr PvaClientMultiMonitorDouble::create(
@@ -49,8 +42,7 @@ PvaClientMultiMonitorDouble::PvaClientMultiMonitorDouble(
   nchannel(pvaClientChannelArray.size()),
   doubleValue(shared_vector<double>(nchannel,epicsNAN)),
   pvaClientMonitor(std::vector<PvaClientMonitorPtr>(nchannel,PvaClientMonitorPtr())),
-  isMonitorConnected(false),
-  isDestroyed(false)
+  isMonitorConnected(false)
 {
      if(PvaClient::getDebug()) cout<< "PvaClientMultiMonitorDouble::PvaClientMultiMonitorDouble()\n";
 }
@@ -58,12 +50,6 @@ PvaClientMultiMonitorDouble::PvaClientMultiMonitorDouble(
 PvaClientMultiMonitorDouble::~PvaClientMultiMonitorDouble()
 {
     if(PvaClient::getDebug()) cout<< "PvaClientMultiMonitorDouble::~PvaClientMultiMonitorDouble()\n";
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientMultiMonitorDouble was destroyed");
-        isDestroyed = true;
-    }
-    pvaClientChannelArray.clear();
 }
 
 void PvaClientMultiMonitorDouble::connect()
@@ -98,7 +84,7 @@ bool PvaClientMultiMonitorDouble::poll()
 {
     if(!isMonitorConnected){
          connect();
-         epicsThreadSleep(.01);
+         epicsThreadSleep(.1);
     }
     bool result = false;
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();

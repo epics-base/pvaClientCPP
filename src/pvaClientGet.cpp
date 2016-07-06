@@ -90,7 +90,6 @@ PvaClientGet::PvaClientGet(
 : pvaClient(pvaClient),
   channel(channel),
   pvRequest(pvRequest),
-  isDestroyed(false),
   connectState(connectIdle),
   getState(getIdle)
 {
@@ -103,11 +102,6 @@ PvaClientGet::PvaClientGet(
 
 PvaClientGet::~PvaClientGet()
 {
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientGet was destroyed");
-        isDestroyed = true;
-    }
     if(PvaClient::getDebug()) {
         string channelName("disconnected");
         Channel::shared_pointer chan(channel.lock());

@@ -168,8 +168,6 @@ private:
     PvaClientChannelArray pvaClientChannelArray;
     epics::pvData::shared_vector<epics::pvData::boolean> isConnected;
     epics::pvData::CreateRequest::shared_pointer createRequest;
-    bool isDestroyed;
-    
 };
 
 /**
@@ -227,7 +225,6 @@ private:
     epics::pvData::shared_vector<double> doubleValue;
     std::vector<PvaClientGetPtr> pvaClientGet;
     bool isGetConnected;
-    bool isDestroyed;
 };
 
 /**
@@ -280,7 +277,6 @@ private:
 
     std::vector<PvaClientPutPtr> pvaClientPut;
     bool isPutConnected;
-    bool isDestroyed;
 };
 
 /**
@@ -348,7 +344,6 @@ private:
     epics::pvData::shared_vector<double> doubleValue;
     std::vector<PvaClientMonitorPtr> pvaClientMonitor;
     bool isMonitorConnected;
-    bool isDestroyed;
 };
 
 /**
@@ -414,7 +409,6 @@ private:
     PvaClientNTMultiDataPtr pvaClientNTMultiData;
     std::vector<PvaClientGetPtr> pvaClientGet;
     bool isConnected;
-    bool isDestroyed;
 };
 
 /**
@@ -475,7 +469,6 @@ private:
     epics::pvData::shared_vector<epics::pvData::PVFieldPtr> value;
     std::vector<PvaClientPutPtr> pvaClientPut;
     bool isConnected;
-    bool isDestroyed;
 };
 
 /**
@@ -546,7 +539,6 @@ private:
     PvaClientNTMultiDataPtr pvaClientNTMultiData;
     std::vector<PvaClientMonitorPtr> pvaClientMonitor;
     bool isConnected;
-    bool isDestroyed;
 };
 
 /**
@@ -627,7 +619,6 @@ private:
     std::vector<epics::pvData::PVStructurePtr> topPVStructure;
     bool gotAlarm;
     bool gotTimeStamp;
-    bool isDestroyed;
     
     epics::pvData::StructureConstPtr ntMultiChannelStructure;
     epics::pvData::shared_vector<epics::pvData::PVUnionPtr> unionValue;

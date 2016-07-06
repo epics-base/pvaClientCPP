@@ -9,7 +9,6 @@
  * @date 2015.03
  */
 
-#include <pv/standardField.h>
 #include <pv/convert.h>
 #include <epicsMath.h>
 
@@ -24,11 +23,6 @@ using namespace epics::nt;
 using namespace std;
 
 namespace epics { namespace pvaClient { 
-
-static ConvertPtr convert = getConvert();
-static FieldCreatePtr fieldCreate = getFieldCreate();
-static PVDataCreatePtr pvDataCreate = getPVDataCreate();
-static StandardFieldPtr standardField = getStandardField();
 
 
 PvaClientMultiGetDoublePtr PvaClientMultiGetDouble::create(
@@ -48,8 +42,7 @@ PvaClientMultiGetDouble::PvaClientMultiGetDouble(
   nchannel(pvaClientChannelArray.size()),
   doubleValue(shared_vector<double>(nchannel)),
   pvaClientGet(std::vector<PvaClientGetPtr>(nchannel,PvaClientGetPtr())),
-  isGetConnected(false),
-  isDestroyed(false)
+  isGetConnected(false)
 {
     if(PvaClient::getDebug()) cout<< "PvaClientMultiGetDouble::PvaClientMultiGetDouble()\n";
 }
@@ -57,12 +50,6 @@ PvaClientMultiGetDouble::PvaClientMultiGetDouble(
 PvaClientMultiGetDouble::~PvaClientMultiGetDouble()
 {
     if(PvaClient::getDebug()) cout<< "PvaClientMultiGetDouble::~PvaClientMultiGetDouble()\n";
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientMultiGetDouble was destroyed");
-        isDestroyed = true;
-    }
-    pvaClientChannelArray.clear();
 }
 
 void PvaClientMultiGetDouble::connect()
@@ -116,7 +103,7 @@ epics::pvData::shared_vector<double> PvaClientMultiGetDouble::get()
         if(isConnected[i])
         {
             PVStructurePtr pvStructure = pvaClientGet[i]->getData()->getPVStructure();
-            doubleValue[i] = convert->toDouble(pvStructure->getSubField<PVScalar>("value"));
+            doubleValue[i] = getConvert()->toDouble(pvStructure->getSubField<PVScalar>("value"));
         } else {
             doubleValue[i] = epicsNAN;
         }

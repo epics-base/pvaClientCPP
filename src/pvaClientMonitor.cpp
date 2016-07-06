@@ -96,7 +96,6 @@ PvaClientMonitor::PvaClientMonitor(
 : pvaClient(pvaClient),
   channel(channel),
   pvRequest(pvRequest),
-  isDestroyed(false),
   isStarted(false),
   connectState(connectIdle),
   userPoll(false),
@@ -112,11 +111,6 @@ PvaClientMonitor::PvaClientMonitor(
 PvaClientMonitor::~PvaClientMonitor()
 {
     if(PvaClient::getDebug()) cout<< "PvaClientMonitor::~PvaClientMonitor\n";
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientMonitor was destroyed");
-        isDestroyed = true;
-    }
     if(PvaClient::getDebug()) {
         string channelName("disconnected");
         Channel::shared_pointer chan(channel.lock());

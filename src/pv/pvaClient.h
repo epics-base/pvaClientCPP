@@ -180,7 +180,6 @@ private:
     PvaClient(std::string const & providerNames);
     PvaClientChannelCachePtr pvaClientChannelCache;
     epics::pvData::Requester::weak_pointer requester;
-    bool isDestroyed;
     bool pvaStarted;
     bool caStarted;
     epics::pvData::Mutex mutex;
@@ -198,7 +197,7 @@ class ChannelRequesterImpl;
 typedef std::tr1::shared_ptr<ChannelRequesterImpl> ChannelRequesterImplPtr;
 
 /** 
- * @brief An easy to be notified of a change in connection status.
+ * @brief A callback for change in connection status.
  *
  * @author mrk
  */
@@ -393,9 +392,9 @@ public:
      */
      epics::pvData::PVStructurePtr rpc(
           epics::pvData::PVStructurePtr const & pvArgument);
-    /** Create an PvaClientRPC.
+    /** Create a PvaClientRPC.
      * @param pvRequest  The pvRequest that must have the same interface
-     *  as a pvArgument that is passed to an rpcq request.
+     *  as a pvArgument that is passed to an rpc request.
      * @return The interface.
      * @throw runtime_error if failure.
      */
@@ -438,7 +437,6 @@ private:
     std::string channelName;
     std::string providerName;
     ConnectState connectState;
-    bool isDestroyed;
     
     epics::pvData::CreateRequest::shared_pointer createRequest;
     PvaClientGetCachePtr pvaClientGetCache;
@@ -949,7 +947,6 @@ private:
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForProcess;
 
-    bool isDestroyed;
     epics::pvData::Status channelProcessConnectStatus;
     epics::pvData::Status channelProcessStatus;
     epics::pvAccess::ChannelProcess::shared_pointer channelProcess;
@@ -1053,7 +1050,6 @@ private:
     PvaClientGetDataPtr pvaClientData;
     std::string messagePrefix;
 
-    bool isDestroyed;
     epics::pvData::Status channelGetConnectStatus;
     epics::pvData::Status channelGetStatus;
     epics::pvAccess::ChannelGet::shared_pointer channelGet;
@@ -1172,7 +1168,6 @@ private :
     epics::pvData::Event waitForGetPut;
     PvaClientPutDataPtr pvaClientData;
 
-    bool isDestroyed;
     epics::pvData::Status channelPutConnectStatus;
     epics::pvData::Status channelGetPutStatus;
     epics::pvAccess::ChannelPut::shared_pointer channelPut;
@@ -1314,7 +1309,6 @@ private :
     PvaClientGetDataPtr pvaClientGetData;
     PvaClientPutDataPtr pvaClientPutData;
 
-    bool isDestroyed;
     epics::pvData::Status channelPutGetConnectStatus;
     epics::pvData::Status channelPutGetStatus;
     epics::pvAccess::ChannelPutGet::shared_pointer channelPutGet;
@@ -1452,7 +1446,6 @@ private:
     epics::pvData::Event waitForEvent;
     PvaClientMonitorDataPtr pvaClientData;
 
-    bool isDestroyed;
     bool isStarted;
     epics::pvData::Status connectStatus;
     epics::pvData::MonitorPtr monitor;
@@ -1561,12 +1554,8 @@ private:
     void checkRPCState();
 
     enum RPCConnectState {connectIdle,connectActive,connected};
-    bool isDestroyed;
     epics::pvData::Status connectStatus;
     RPCConnectState connectState;
-
-    enum RPCState {rpcIdle,rpcActive,rpcComplete};
-    RPCState rpcState;
 
     PvaClient::weak_pointer pvaClient;
     epics::pvAccess::Channel::weak_pointer channel;

@@ -100,7 +100,6 @@ PvaClientPut::PvaClientPut(
 : pvaClient(pvaClient),
   channel(channel),
   pvRequest(pvRequest),
-  isDestroyed(false),
   connectState(connectIdle),
   putState(putIdle)
 {
@@ -113,11 +112,6 @@ PvaClientPut::PvaClientPut(
 
 PvaClientPut::~PvaClientPut()
 {
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientPut was destroyed");
-        isDestroyed = true;
-    }
     if(PvaClient::getDebug()) {
         string channelName("disconnected");
         Channel::shared_pointer chan(channel.lock());
@@ -194,7 +188,6 @@ void PvaClientPut::getDone(
            << endl;
     }
     channelGetPutStatus = status;
-    connectState = connected;
     if(status.isOK()) {
         PVStructurePtr pvs = pvaClientData->getPVStructure();
         pvs->copyUnchecked(*pvStructure,*bitSet);

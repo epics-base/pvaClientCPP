@@ -188,7 +188,6 @@ PvaClientChannel::PvaClientChannel(
   channelName(channelName),
   providerName(providerName),
   connectState(connectIdle),
-  isDestroyed(false),
   createRequest(CreateRequest::create()),
   pvaClientGetCache(new PvaClientGetCache()),
   pvaClientPutCache(new PvaClientPutCache())
@@ -200,11 +199,6 @@ PvaClientChannel::PvaClientChannel(
 
 PvaClientChannel::~PvaClientChannel()
 {
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientChannel was destroyed");
-        isDestroyed = true;
-    }
     if(PvaClient::getDebug()) {
         cout  << "PvaClientChannel::~PvaClientChannel() "
              << " channelName " << channelName
@@ -218,6 +212,7 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
     if(PvaClient::getDebug()) {
         cout << "PvaClientChannel::channelCreated"
            << " channelName " << channelName
+           << " connectState " << connectState
            << " isConnected " << (channel->isConnected() ? "true" : "false")
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
@@ -327,6 +322,7 @@ void PvaClientChannel::issueConnect()
     }
     {
         Lock xx(mutex);
+        if(connectState==connected) return;
         if(connectState!=connectIdle) {
            throw std::runtime_error("pvaClientChannel already connected");
         }
@@ -506,7 +502,7 @@ PvaClientMonitorPtr PvaClientChannel::monitor(string const & request)
 
 PvaClientMonitorPtr PvaClientChannel::monitor(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester)
 {
-      return monitor("value,alarm,timeStamp",pvaClientMonitorRequester);
+      return monitor("field(value,alarm,timeStamp)",pvaClientMonitorRequester);
 }
 
 PvaClientMonitorPtr PvaClientChannel::monitor(string const & request,
