@@ -9,8 +9,6 @@
  * @date 2015.03
  */
 
-#include <pv/standardField.h>
-#include <pv/convert.h>
 #include <epicsMath.h>
 
 #define epicsExportSharedSymbols
@@ -25,18 +23,13 @@ using namespace std;
 
 namespace epics { namespace pvaClient { 
 
-static ConvertPtr convert = getConvert();
-static FieldCreatePtr fieldCreate = getFieldCreate();
-static PVDataCreatePtr pvDataCreate = getPVDataCreate();
-static StandardFieldPtr standardField = getStandardField();
-
 
 PvaClientNTMultiGetPtr PvaClientNTMultiGet::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
     PvaClientChannelArray const &pvaClientChannelArray,
     PVStructurePtr const &  pvRequest)
 {
-    UnionConstPtr u = fieldCreate->createVariantUnion();
+    UnionConstPtr u = getFieldCreate()->createVariantUnion();
     PvaClientNTMultiGetPtr pvaClientNTMultiGet(
          new PvaClientNTMultiGet(u,pvaMultiChannel,pvaClientChannelArray,pvRequest));
     return pvaClientNTMultiGet;
@@ -57,8 +50,7 @@ PvaClientNTMultiGet::PvaClientNTMultiGet(
            pvaClientMultiChannel,
            pvaClientChannelArray,
            pvRequest)),
-  isConnected(false),
-  isDestroyed(false)
+  isConnected(false)
 {
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiGet::PvaClientNTMultiGet()\n";
 }
@@ -66,12 +58,6 @@ PvaClientNTMultiGet::PvaClientNTMultiGet(
 PvaClientNTMultiGet::~PvaClientNTMultiGet()
 {
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiGet::~PvaClientNTMultiGet()\n";
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientNTMultiGet was destroyed");
-        isDestroyed = true;
-    }
-    pvaClientChannelArray.clear();
 }
 
 void PvaClientNTMultiGet::connect()

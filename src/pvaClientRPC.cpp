@@ -88,9 +88,8 @@ PvaClientRPC::PvaClientRPC(
         PvaClientPtr const &pvaClient,
         Channel::shared_pointer const & channel,
         PVStructurePtr const &pvRequest)
-: isDestroyed(false),
+: 
   connectState(connectIdle),
-  rpcState(rpcIdle),
   pvaClient(pvaClient),
   channel(channel),
   pvRequest(pvRequest)
@@ -104,12 +103,6 @@ PvaClientRPC::PvaClientRPC(
 
 PvaClientRPC::~PvaClientRPC()
 {
-    if(PvaClient::getDebug()) cout<< "PvaClientRPC::~PvaClientRPC\n";
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientRPC was destroyed");
-        isDestroyed = true;
-    }
     if(PvaClient::getDebug()) {
         string channelName("disconnected");
         Channel::shared_pointer chan(channel.lock());

@@ -87,7 +87,6 @@ PvaClientProcess::PvaClientProcess(
 : pvaClient(pvaClient),
   channel(channel),
   pvRequest(pvRequest),
-  isDestroyed(false),
   connectState(connectIdle),
   processState(processIdle)
 {
@@ -97,11 +96,6 @@ PvaClientProcess::PvaClientProcess(
 PvaClientProcess::~PvaClientProcess()
 {
     if(PvaClient::getDebug()) cout<< "PvaClientProcess::~PvaClientProcess()\n";
-    {
-        Lock xx(mutex);
-        if(isDestroyed) throw std::runtime_error("pvaClientProcess was destroyed");
-        isDestroyed = true;
-    }
     channelProcess->destroy();
 }
 
@@ -125,6 +119,7 @@ void PvaClientProcess::channelProcessConnect(
     ChannelProcess::shared_pointer const & channelProcess)
 {
     channelProcessConnectStatus = status;
+    connectState = connected;
     this->channelProcess = channelProcess;
     waitForConnect.signal();
     
@@ -135,6 +130,7 @@ void PvaClientProcess::processDone(
     ChannelProcess::shared_pointer const & channelProcess)
 {
     channelProcessStatus = status;
+    processState = processComplete;
     waitForProcess.signal();
 }
 
@@ -161,13 +157,17 @@ void PvaClientProcess::issueConnect()
 
 Status PvaClientProcess::waitConnect()
 {
+    if(connectState==connected) {
+         if(!channelProcessConnectStatus.isOK()) connectState = connectIdle;
+         return channelProcessConnectStatus;
+    }
     if(connectState!=connectActive) {
         string message = string("channel ") + channel->getChannelName()
             + " pvaClientProcess illegal connect state ";
         throw std::runtime_error(message);
     }
     waitForConnect.wait();
-    connectState = channelProcessConnectStatus.isOK() ? connected : connectIdle;
+    if(!channelProcessConnectStatus.isOK()) connectState = connectIdle;
     return channelProcessConnectStatus;
 }
 
@@ -195,6 +195,10 @@ void PvaClientProcess::issueProcess()
 
 Status PvaClientProcess::waitProcess()
 {
+    if(processState==processComplete) {
+        processState = processIdle;
+        return channelProcessStatus;
+    }
     if(processState!=processActive){
         string message = string("channel ") + channel->getChannelName()
             + " PvaClientProcess::waitProcess llegal process state";
