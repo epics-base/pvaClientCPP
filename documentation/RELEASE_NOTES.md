@@ -1,10 +1,9 @@
 EPICS V4 release 4.6
 ==========================
 
-PvaClientMultiChannel
----------------------
-
-checkConnected() now throws an exception if connect fails.
+* The examples are moved to exampleCPP.
+* Support for channelRPC is now available.
+* In PvaClientMultiChannel checkConnected() now throws an exception if connect fails.
 
 
 

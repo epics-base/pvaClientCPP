@@ -547,9 +547,17 @@ PVStructurePtr PvaClientChannel::rpc(
 PVStructurePtr PvaClientChannel::rpc(
     PVStructurePtr const & pvArgument)
 {
-   return rpc(pvArgument,pvArgument);
+    PvaClientRPCPtr rpc = createRPC();
+    return rpc->request(pvArgument);
 }
 
+PvaClientRPCPtr PvaClientChannel::createRPC()
+{
+    if(connectState!=connected) connect(5.0);
+    PvaClientPtr yyy = pvaClient.lock();
+    if(!yyy) throw std::runtime_error("PvaClient was destroyed");
+    return PvaClientRPC::create(yyy,channel);
+}
 
 PvaClientRPCPtr PvaClientChannel::createRPC(PVStructurePtr const &  pvRequest)
 {
