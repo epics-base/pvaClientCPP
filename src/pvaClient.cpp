@@ -27,7 +27,7 @@ using namespace std;
 namespace epics { namespace pvaClient { 
 
 
-class PvaClientChannelCache
+class epicsShareClass PvaClientChannelCache
 {
 public:
     PvaClientChannelCache(){}
