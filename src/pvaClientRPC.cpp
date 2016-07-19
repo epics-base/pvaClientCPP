@@ -72,7 +72,14 @@ public:
     }
 };
 
-
+PvaClientRPCPtr PvaClientRPC::create(
+        PvaClientPtr const &pvaClient,
+        Channel::shared_pointer const & channel)
+{
+     StructureConstPtr structure(getFieldCreate()->createStructure());
+     PVStructurePtr pvRequest(getPVDataCreate()->createPVStructure(structure));
+     return create(pvaClient,channel,pvRequest);
+}
 PvaClientRPCPtr PvaClientRPC::create(
         PvaClientPtr const &pvaClient,
         Channel::shared_pointer const & channel,
