@@ -201,7 +201,7 @@ typedef std::tr1::shared_ptr<ChannelRequesterImpl> ChannelRequesterImplPtr;
  *
  * @author mrk
  */
-class epicsShareClass PvaClientChannelStateChangeRequester
+class PvaClientChannelStateChangeRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientChannelStateChangeRequester);
@@ -1372,7 +1372,7 @@ private :
  * @brief Optional client callback.
  *
  */
-class epicsShareClass PvaClientMonitorRequester
+class PvaClientMonitorRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientMonitorRequester);
@@ -1438,9 +1438,9 @@ public:
      */
     epics::pvData::Status waitConnect();
     /** @brief Set a user callback.
-     * @param pvaClientMonitorrRequester The requester which must be implemented by the caller.
+     * @param pvaClientMonitorRequester The requester which must be implemented by the caller.
      */
-    void setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorrRequester);
+    void setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester);
     /** @brief Start monitoring.
      */
     void start();
@@ -1514,7 +1514,7 @@ private:
  * @brief Optional client callback.
  *
  */
-class epicsShareClass PvaClientRPCRequester
+class PvaClientRPCRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientRPCRequester);
