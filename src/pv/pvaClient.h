@@ -1395,7 +1395,7 @@ public:
 
 // NOTE: must use separate class that implements MonitorRequester,
 // because pvAccess holds a shared_ptr to MonitorRequester instead of weak_pointer
-class epicsShareClass MonitorRequesterImpl;
+class MonitorRequesterImpl;
 typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
 
 /**
@@ -1420,7 +1420,7 @@ public:
     );
     /** @brief Destructor
      */
-    ~PvaClientMonitor();
+    virtual ~PvaClientMonitor();
     /** @brief Call issueConnect and then waitConnect.
      *
      * An exception is thrown if connect fails.
@@ -1532,7 +1532,7 @@ public:
 };
 // NOTE: must use separate class that implements RPCRequester,
 // because pvAccess holds a shared_ptr to RPCRequester instead of weak_pointer
-class epicsShareClass RPCRequesterImpl;
+class RPCRequesterImpl;
 typedef std::tr1::shared_ptr<RPCRequesterImpl> RPCRequesterImplPtr;
 
 /**
@@ -1565,7 +1565,7 @@ public:
     );
     /** @brief Destructor
      */
-    ~PvaClientRPC();
+    virtual ~PvaClientRPC();
     /** @brief Call issueConnect and then waitConnect.
      *
      * An exception is thrown if connect fails.
