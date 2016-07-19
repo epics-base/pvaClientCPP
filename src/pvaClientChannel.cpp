@@ -26,7 +26,7 @@ using namespace std;
 namespace epics { namespace pvaClient {
 
 
-class PvaClientGetCache
+class epicsShareClass PvaClientGetCache
 {
 public:
     PvaClientGetCache(){}
@@ -73,7 +73,7 @@ size_t PvaClientGetCache::cacheSize()
 
 }
 
-class PvaClientPutCache
+class epicsShareClass PvaClientPutCache
 {
 public:
     PvaClientPutCache(){}
