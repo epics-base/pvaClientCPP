@@ -1420,7 +1420,7 @@ public:
     );
     /** @brief Destructor
      */
-    ~PvaClientMonitor();
+    virtual ~PvaClientMonitor();
     /** @brief Call issueConnect and then waitConnect.
      *
      * An exception is thrown if connect fails.
@@ -1565,7 +1565,7 @@ public:
     );
     /** @brief Destructor
      */
-    ~PvaClientRPC();
+    virtual ~PvaClientRPC();
     /** @brief Call issueConnect and then waitConnect.
      *
      * An exception is thrown if connect fails.
