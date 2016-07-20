@@ -1472,14 +1472,14 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}
 private:
-    virtual std::string getRequesterName();
-    virtual void message(std::string const & message,epics::pvData::MessageType messageType);
-    virtual void monitorConnect(
+    std::string getRequesterName();
+    void message(std::string const & message,epics::pvData::MessageType messageType);
+    void monitorConnect(
         const epics::pvData::Status& status,
         epics::pvData::MonitorPtr const & monitor,
         epics::pvData::StructureConstPtr const & structure);
-    virtual void unlisten(epics::pvData::MonitorPtr const & monitor);
-    virtual void monitorEvent(epics::pvData::MonitorPtr const & monitor);
+    void unlisten(epics::pvData::MonitorPtr const & monitor);
+    void monitorEvent(epics::pvData::MonitorPtr const & monitor);
 
     PvaClientMonitor(
         PvaClientPtr const &pvaClient,
@@ -1602,12 +1602,12 @@ private:
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
-    virtual std::string getRequesterName();
-    virtual void message(std::string const & message,epics::pvData::MessageType messageType);
-    virtual void rpcConnect(
+    std::string getRequesterName();
+    void message(std::string const & message,epics::pvData::MessageType messageType);
+    void rpcConnect(
         const epics::pvData::Status& status,
         epics::pvAccess::ChannelRPC::shared_pointer const & channelRPC);
-    virtual void requestDone(
+    void requestDone(
         const epics::pvData::Status& status,
         epics::pvAccess::ChannelRPC::shared_pointer const & channelRPC,
         epics::pvData::PVStructure::shared_pointer const & pvResponse);
