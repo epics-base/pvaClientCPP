@@ -1566,6 +1566,22 @@ public:
     /** @brief Destructor
      */
     ~PvaClientRPC();
+    /**
+     * @brief Set a timeout for a request.
+     * @param responseTimeout The time in seconds to wait for a request to complete.
+     */
+    void setResponseTimeout(double responseTimeout) 
+    {
+        this->responseTimeout = responseTimeout;
+    }
+    /**
+     * @brief Get the responseTimeout.
+     * @return The value.
+     */
+    double getResponseTimeout()
+    {
+        return responseTimeout;
+    }
     /** @brief Call issueConnect and then waitConnect.
      *
      * An exception is thrown if connect fails.
@@ -1583,6 +1599,9 @@ public:
      */
     epics::pvData::Status waitConnect();
     /** @brief Issue a request and wait for response
+      *
+      * Note that if responseTimeout is ( lt 0.0, ge 0.0) then this (will, will not) block
+      * until response completes or timeout.
       * @param pvArgument The data to send to the service.
       * @return The result
       * @throw runtime_error if failure.
@@ -1621,7 +1640,7 @@ private:
     PvaClient::weak_pointer pvaClient;
     epics::pvAccess::Channel::weak_pointer channel;
     epics::pvData::PVStructurePtr pvRequest;
-    epics::pvData::PVStructurePtr pvResponse;
+    
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvData::Event waitForDone;
@@ -1629,6 +1648,11 @@ private:
     PvaClientRPCRequesterWPtr pvaClientRPCRequester;    
     RPCRequesterImplPtr rpcRequester;
     epics::pvAccess::ChannelRPC::shared_pointer channelRPC;
+    epics::pvData::PVStructurePtr pvResponse;
+
+    enum RPCState {rpcIdle,rpcActive,rpcComplete};
+    RPCState rpcState;
+    double responseTimeout;
     friend class RPCRequesterImpl;
 };
 
