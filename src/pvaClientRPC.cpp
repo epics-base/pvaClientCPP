@@ -99,7 +99,9 @@ PvaClientRPC::PvaClientRPC(
   connectState(connectIdle),
   pvaClient(pvaClient),
   channel(channel),
-  pvRequest(pvRequest)
+  pvRequest(pvRequest),
+  rpcState(rpcIdle),
+  responseTimeout(0.0)
 {
     if(PvaClient::getDebug()) {
          cout<< "PvaClientRPC::PvaClientRPC()"
@@ -177,21 +179,38 @@ void PvaClientRPC::requestDone(
         ChannelRPC::shared_pointer const & channelRPC,
         PVStructure::shared_pointer const & pvResponse)
 {
-    if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
-        cout << "PvaClientRPC::requesyDone"
-           << " channelName " << channelName
-           << endl;
-    }    
     PvaClientRPCRequesterPtr req = pvaClientRPCRequester.lock();
+    {
+        Lock xx(mutex);
+        if(PvaClient::getDebug()) {
+             string channelName("disconnected");
+             Channel::shared_pointer chan(channel.lock());
+             if(chan) channelName = chan->getChannelName();
+             cout << "PvaClientRPC::requestDone"
+                  << " channelName " << channelName
+                  << endl;
+        }
+        if(rpcState!=rpcActive) {
+             string channelName("disconnected");
+             Channel::shared_pointer chan(channel.lock());
+             if(chan) channelName = chan->getChannelName();
+             string message = "channel "
+                 + channelName 
+                 +" PvaClientRPC::requestDone"
+                 + " but not active";
+             throw std::runtime_error(message);
+        }
+        if(req && (responseTimeout<=0.0)) {
+            rpcState = rpcIdle;
+        } else {
+            rpcState = rpcComplete;
+            if(!req) this->pvResponse = pvResponse;
+            waitForDone.signal();
+        }
+    }
     if(req) {
         req->requestDone(status,shared_from_this(),pvResponse);
-        return;
     }
-    this->pvResponse = pvResponse;
-    waitForDone.signal();
 }
 
 void PvaClientRPC::connect()
@@ -261,8 +280,36 @@ Status PvaClientRPC::waitConnect()
 PVStructure::shared_pointer PvaClientRPC::request(PVStructure::shared_pointer const & pvArgument)
 {
     checkRPCState();
+    {
+        Lock xx(mutex);
+        if(rpcState!=rpcIdle) {
+            Channel::shared_pointer chan(channel.lock());
+            string channelName("disconnected");
+            if(chan) channelName = chan->getChannelName();
+            string message = "channel "
+                + channelName
+                + " PvaClientRPC::request request aleady active ";
+            throw std::runtime_error(message);
+        }
+        rpcState = rpcActive;
+    }
     channelRPC->request(pvArgument);
-    waitForDone.wait();
+    if(responseTimeout>0.0) {
+        waitForDone.wait(responseTimeout);
+    } else {
+        waitForDone.wait();
+    }
+    Lock xx(mutex);
+    if(rpcState!=rpcComplete) {
+        Channel::shared_pointer chan(channel.lock());
+            string channelName("disconnected");
+            if(chan) channelName = chan->getChannelName();
+        string message = "channel "
+            + channelName
+            + " PvaClientRPC::request request timeout ";
+        throw std::runtime_error(message);
+    }
+    rpcState = rpcIdle;
     return pvResponse;
 }
 
@@ -271,9 +318,26 @@ void PvaClientRPC::request(
     PVStructure::shared_pointer const & pvArgument,
     PvaClientRPCRequesterPtr const & pvaClientRPCRequester)
 {
-    checkRPCState();
+    checkRPCState();   
     this->pvaClientRPCRequester = pvaClientRPCRequester;
-    channelRPC->request(pvArgument);
+    if(responseTimeout<=0.0) {
+         {
+             Lock xx(mutex);
+             if(rpcState!=rpcIdle) {
+                 Channel::shared_pointer chan(channel.lock());
+                 string channelName("disconnected");
+                 if(chan) channelName = chan->getChannelName();
+                 string message = "channel "
+                    + channelName
+                    + " PvaClientRPC::request request aleady active ";
+                 throw std::runtime_error(message);
+            }
+            rpcState = rpcActive;
+        }
+        channelRPC->request(pvArgument);
+        return;
+    }
+    request(pvArgument);
 }
 
 
