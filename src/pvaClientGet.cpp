@@ -256,7 +256,7 @@ void PvaClientGet::get()
 void PvaClientGet::issueGet()
 {
     if(connectState==connectIdle) connect();
-    if(getState!=getIdle) {
+    if(getState==getActive) {
         Channel::shared_pointer chan(channel.lock());
         string channelName("disconnected");
         if(chan) channelName = chan->getChannelName();
@@ -273,7 +273,6 @@ Status PvaClientGet::waitGet()
     {
         Lock xx(mutex);
         if(getState==getComplete) {
-            getState =getIdle;
             return channelGetStatus;
         }
         if(getState!=getActive){
@@ -286,7 +285,7 @@ Status PvaClientGet::waitGet()
         }
     }
     waitForGet.wait();
-    getState = getIdle;
+    getState = getComplete;
     return channelGetStatus;
 }
 PvaClientGetDataPtr PvaClientGet::getData()

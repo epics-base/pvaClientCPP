@@ -297,6 +297,7 @@ void PvaClientChannel::setStateChangeRequester(
     PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester)
 {
     this->stateChangeRequester = stateChangeRequester;
+    stateChangeRequester->channelStateChange(shared_from_this(),channel->isConnected());
 }
 
 void PvaClientChannel::connect(double timeout)
