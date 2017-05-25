@@ -297,7 +297,9 @@ void PvaClientChannel::setStateChangeRequester(
     PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester)
 {
     this->stateChangeRequester = stateChangeRequester;
-    stateChangeRequester->channelStateChange(shared_from_this(),channel->isConnected());
+    bool isConnected = false;
+    if(channel) isConnected = channel->isConnected();
+    stateChangeRequester->channelStateChange(shared_from_this(),isConnected);
 }
 
 void PvaClientChannel::connect(double timeout)
@@ -349,6 +351,7 @@ Status PvaClientChannel::waitConnect(double timeout)
     }
     {
         Lock xx(mutex);
+        if(!channel) return Status(Status::STATUSTYPE_ERROR,"");
         if(channel->isConnected()) return Status::Ok;
     }
     if(timeout>0.0) {
@@ -356,8 +359,9 @@ Status PvaClientChannel::waitConnect(double timeout)
     } else {
         waitForConnect.wait();
     }
+    if(!channel) return Status(Status::STATUSTYPE_ERROR,"pvaClientChannel::waitConnect channel is null");
     if(channel->isConnected()) return Status::Ok;
-    return Status(Status::STATUSTYPE_ERROR,channelName + " not connected");
+    return Status(Status::STATUSTYPE_ERROR," not connected");
 }
 
 
