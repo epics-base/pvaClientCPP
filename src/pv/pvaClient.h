@@ -37,7 +37,6 @@
 
 #include <shareLib.h>
 
-
 namespace epics { namespace pvaClient { 
 
 class PvaClient;
@@ -183,6 +182,7 @@ private:
     bool pvaStarted;
     bool caStarted;
     epics::pvData::Mutex mutex;
+    epics::pvAccess::ChannelProviderRegistry::shared_pointer channelRegistry;
 };
 
 // folowing private to PvaClientChannel
