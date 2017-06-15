@@ -105,7 +105,7 @@ PvaClient::PvaClient(std::string const & providerNames)
 :  pvaClientChannelCache(new PvaClientChannelCache()),
    pvaStarted(false),
    caStarted(false),
-   channelRegistry(ChannelProviderRegistry::getChannelProviderRegistry())
+   channelRegistry(getChannelProviderRegistry())
 {
     stringstream ss(providerNames);
     string providerName;

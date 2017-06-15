@@ -28,6 +28,7 @@
 #include <pv/standardField.h>
 #include <pv/standardPVField.h>
 #include <pv/createRequest.h>
+#include <pv/executor.h>
 #include <pv/nt.h>
 
 #ifdef pvaClientEpicsExportSharedSymbols
@@ -64,6 +65,8 @@ class PvaClientPutGet;
 typedef std::tr1::shared_ptr<PvaClientPutGet> PvaClientPutGetPtr;
 class PvaClientMonitor;
 typedef std::tr1::shared_ptr<PvaClientMonitor> PvaClientMonitorPtr;
+class PvaMonitor;
+typedef std::tr1::shared_ptr<PvaMonitor> PvaMonitorPtr;
 class PvaClientMonitorRequester;
 typedef std::tr1::shared_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterPtr;
 typedef std::tr1::weak_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterWPtr;
@@ -1509,6 +1512,80 @@ private:
     MonitorRequesterImplPtr monitorRequester;
     friend class MonitorRequesterImpl;
 };
+
+/**
+ * @brief An easy to use alternative to Monitor.
+ *
+ */
+class epicsShareClass PvaMonitor :
+    public PvaClientChannelStateChangeRequester,
+    public PvaClientMonitorRequester,
+    public epics::pvData::Command,
+    public std::tr1::enable_shared_from_this<PvaMonitor>
+{
+public:
+    POINTER_DEFINITIONS(PvaMonitor);
+    /** @brief Create a PvaMonitor.
+     * @param &pvaClient Interface to PvaClient.
+     * @param channelName  The channel name.
+     * @param providerName The provider name.
+     * @param request The request. For example "value,timeStamp"
+     * @param stateChangeRequester The state change requester. Can be null.
+     * @param monitorRequester The monitor requester. Can be null;
+     * @return The new instance.
+     */
+    static PvaMonitorPtr create(
+        PvaClientPtr const &pvaClient,
+        std::string const & channelName,
+        std::string const & providerName,
+        std::string const & request,
+        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
+        PvaClientMonitorRequesterPtr const & monitorRequester
+    );
+    /** @brief Destructor
+     */
+    ~PvaMonitor();
+
+    /**
+    * @brief  Get the PvaClientChannel
+    *
+    * @return The PvaClientChannel 
+    */
+   PvaClientChannelPtr getPvaClientChannel();
+   /**
+    * @brief  Get the PvaClientMonitor
+    *
+    * @return The PvaClientMonitor 
+    */
+   PvaClientMonitorPtr getPvaClientMonitor();
+
+private:
+    static epics::pvData::ExecutorPtr executor;
+    PvaClient::weak_pointer pvaClient;
+    std::string channelName;
+    std::string providerName;
+    std::string request;
+    PvaClientChannelPtr pvaClientChannel;
+    PvaClientMonitorPtr pvaClientMonitor;
+    PvaClientChannelStateChangeRequesterPtr stateChangeRequester;
+    PvaClientMonitorRequesterPtr monitorRequester;
+
+    PvaMonitor(
+        PvaClientPtr const &pvaClient,
+        std::string const & channelName,
+        std::string const & providerName,
+        std::string const & request,
+        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
+        PvaClientMonitorRequesterPtr const & monitorRequester
+    );
+
+    void init();
+public:
+    void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected);
+    void event(PvaClientMonitorPtr const & monitor);
+    void command();
+};
+
 
 /**
  * @brief Optional client callback.
