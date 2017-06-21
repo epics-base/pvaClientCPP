@@ -1406,6 +1406,9 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
  *
  */
 class epicsShareClass PvaClientMonitor :
+//    public PvaClientChannelStateChangeRequester,
+//    public PvaClientMonitorRequester,
+//    public epics::pvData::Command,
     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
 public:
@@ -1420,6 +1423,23 @@ public:
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest
+    );
+    /** @brief Create a PvaClientMonitor.
+     * @param &pvaClient Interface to PvaClient.
+     * @param channelName  The channel name.
+     * @param providerName The provider name.
+     * @param request The request. For example "value,timeStamp"
+     * @param stateChangeRequester The state change requester. Can be null.
+     * @param monitorRequester The monitor requester. Can be null;
+     * @return The new instance.
+     */
+    static PvaClientMonitorPtr create(
+        PvaClientPtr const &pvaClient,
+        std::string const & channelName,
+        std::string const & providerName,
+        std::string const & request,
+        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
+        PvaClientMonitorRequesterPtr const & monitorRequester
     );
     /** @brief Destructor
      */
@@ -1447,6 +1467,12 @@ public:
     /** @brief Start monitoring.
      */
     void start();
+    /**
+    * @brief  Start or restart the monitor with a new request.
+    *
+    * @param request The new request.
+    */
+   void start(const std::string & request);
     /** @brief Stop monitoring.
      */
     void stop();
@@ -1475,6 +1501,7 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}
 private:
+    static epics::pvData::ExecutorPtr executor;
     std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);
     void monitorConnect(
@@ -1488,6 +1515,7 @@ private:
         PvaClientPtr const &pvaClient,
         epics::pvAccess::Channel::shared_pointer const & channel,
         epics::pvData::PVStructurePtr const &pvRequest);
+    void init();
 
     void checkMonitorState();
     enum MonitorConnectState {connectIdle,connectActive,connected};
@@ -1504,6 +1532,7 @@ private:
     epics::pvData::Status connectStatus;
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientMonitorRequesterWPtr pvaClientMonitorRequester;
 
     MonitorConnectState connectState;
@@ -1511,7 +1540,12 @@ private:
     bool userWait;
     MonitorRequesterImplPtr monitorRequester;
     friend class MonitorRequesterImpl;
+//public:
+//    void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected);
+//    void event(PvaClientMonitorPtr const & monitor);
+//    void command();
 };
+
 
 /**
  * @brief An easy to use alternative to Monitor.
@@ -1558,6 +1592,23 @@ public:
     * @return The PvaClientMonitor 
     */
    PvaClientMonitorPtr getPvaClientMonitor();
+   /**
+    * @brief  Start the monitor
+    *
+    */
+    void start();
+   /**
+    * @brief  Start or restart the monitor with a new request.
+    *
+    * @param request The new request.
+    */
+   void start(const std::string & request);
+   /**
+    * @brief  Stop the monitor.
+    *
+    * @return The PvaClientMonitor 
+    */
+   void stop();
 
 private:
     static epics::pvData::ExecutorPtr executor;

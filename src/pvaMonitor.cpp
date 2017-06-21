@@ -86,6 +86,40 @@ PvaClientMonitorPtr PvaMonitor::getPvaClientMonitor()
     return pvaClientMonitor;
 }
 
+void PvaMonitor::start()
+{
+    if(PvaClient::getDebug()) cout<< "PvaMonitor::start()\n";
+    if(!pvaClientMonitor) {
+        PvaClientPtr client(pvaClient.lock());
+        client->message("PvaMonitor::start but not connected",MessageType::errorMessage);
+        return;
+    }
+    pvaClientMonitor->start();
+}
+
+void PvaMonitor::start(const string & request)
+{
+    if(PvaClient::getDebug()) cout<< "PvaMonitor::start(request)\n";
+    if(!pvaClientChannel->getChannel()->isConnected()) {
+        PvaClientPtr client(pvaClient.lock());
+        client->message("PvaMonitor::start(request) but not connected",MessageType::errorMessage);
+        return;
+    }
+    pvaClientMonitor.reset();
+    pvaClientMonitor = pvaClientChannel->monitor(request,shared_from_this());
+}
+    
+void PvaMonitor::stop()
+{
+    if(PvaClient::getDebug()) cout<< "PvaMonitor::stop()\n";
+    if(!pvaClientMonitor) {
+        PvaClientPtr client(pvaClient.lock());
+        client->message("PvaMonitor::start but not connected",MessageType::errorMessage);
+        return;
+    }
+    pvaClientMonitor->stop();
+}
+
 void PvaMonitor::channelStateChange(PvaClientChannelPtr const & channel, bool isConnected)
 {
     if(PvaClient::getDebug()) cout<< "PvaMonitor::channelStateChange isConnected " << (isConnected ? "true" : "false") << endl;
@@ -104,7 +138,7 @@ void PvaMonitor::event(PvaClientMonitorPtr const & monitor)
 
 void PvaMonitor::command()
 {
-    if(PvaClient::getDebug()) cout<< "PvaMonitor::run\n";
+    if(PvaClient::getDebug()) cout<< "PvaMonitor::command\n";
     pvaClientMonitor = pvaClientChannel->monitor(request,shared_from_this());
 }
 
