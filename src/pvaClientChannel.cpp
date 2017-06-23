@@ -537,7 +537,7 @@ PvaClientMonitorPtr  PvaClientChannel::createMonitor(PVStructurePtr const &  pvR
     if(connectState!=connected) connect(5.0);
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientMonitor::create(yyy,channel,pvRequest);
+    return PvaClientMonitor::create(yyy,shared_from_this(),pvRequest);
 }
 
 PVStructurePtr PvaClientChannel::rpc(

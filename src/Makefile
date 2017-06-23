@@ -20,7 +20,6 @@ LIBSRCS += pvaClientProcess.cpp
 LIBSRCS += pvaClientGet.cpp
 LIBSRCS += pvaClientPut.cpp
 LIBSRCS += pvaClientMonitor.cpp
-LIBSRCS += pvaMonitor.cpp
 LIBSRCS += pvaClientPutGet.cpp
 LIBSRCS += pvaClientMultiChannel.cpp
 LIBSRCS += pvaClientMultiGetDouble.cpp

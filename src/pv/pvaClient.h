@@ -65,8 +65,6 @@ class PvaClientPutGet;
 typedef std::tr1::shared_ptr<PvaClientPutGet> PvaClientPutGetPtr;
 class PvaClientMonitor;
 typedef std::tr1::shared_ptr<PvaClientMonitor> PvaClientMonitorPtr;
-class PvaMonitor;
-typedef std::tr1::shared_ptr<PvaMonitor> PvaMonitorPtr;
 class PvaClientMonitorRequester;
 typedef std::tr1::shared_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterPtr;
 typedef std::tr1::weak_ptr<PvaClientMonitorRequester> PvaClientMonitorRequesterWPtr;
@@ -1406,29 +1404,29 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
  *
  */
 class epicsShareClass PvaClientMonitor :
-//    public PvaClientChannelStateChangeRequester,
-//    public PvaClientMonitorRequester,
-//    public epics::pvData::Command,
+    public PvaClientChannelStateChangeRequester,
+    public PvaClientMonitorRequester,
+    public epics::pvData::Command,
     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
 public:
     POINTER_DEFINITIONS(PvaClientMonitor);
     /** @brief Create a PvaClientMonitor.
-     * @param &pvaClient Interface to PvaClient
-     * @param channel Interface to Channel
+     * @param pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to PvaClientChannel
      * @param pvRequest The request structure.
      * @return The interface to the PvaClientMonitor.
      */
     static PvaClientMonitorPtr create(
         PvaClientPtr const &pvaClient,
-        epics::pvAccess::Channel::shared_pointer const & channel,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
     /** @brief Create a PvaClientMonitor.
-     * @param &pvaClient Interface to PvaClient.
-     * @param channelName  The channel name.
-     * @param providerName The provider name.
-     * @param request The request. For example "value,timeStamp"
+     * @param pvaClient Interface to PvaClient
+     * @param channelName channel name
+     * @param providerName provider name
+     * @param request The request.
      * @param stateChangeRequester The state change requester. Can be null.
      * @param monitorRequester The monitor requester. Can be null;
      * @return The new instance.
@@ -1513,15 +1511,14 @@ private:
 
     PvaClientMonitor(
         PvaClientPtr const &pvaClient,
-        epics::pvAccess::Channel::shared_pointer const & channel,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest);
-    void init();
 
     void checkMonitorState();
     enum MonitorConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
-    epics::pvAccess::Channel::weak_pointer channel;
+    PvaClientChannelPtr pvaClientChannel;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
@@ -1532,110 +1529,22 @@ private:
     epics::pvData::Status connectStatus;
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;
+    
     PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientMonitorRequesterWPtr pvaClientMonitorRequester;
-
     MonitorConnectState connectState;
     bool userPoll;
     bool userWait;
     MonitorRequesterImplPtr monitorRequester;
-    friend class MonitorRequesterImpl;
-//public:
-//    void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected);
-//    void event(PvaClientMonitorPtr const & monitor);
-//    void command();
-};
-
-
-/**
- * @brief An easy to use alternative to Monitor.
- *
- */
-class epicsShareClass PvaMonitor :
-    public PvaClientChannelStateChangeRequester,
-    public PvaClientMonitorRequester,
-    public epics::pvData::Command,
-    public std::tr1::enable_shared_from_this<PvaMonitor>
-{
-public:
-    POINTER_DEFINITIONS(PvaMonitor);
-    /** @brief Create a PvaMonitor.
-     * @param &pvaClient Interface to PvaClient.
-     * @param channelName  The channel name.
-     * @param providerName The provider name.
-     * @param request The request. For example "value,timeStamp"
-     * @param stateChangeRequester The state change requester. Can be null.
-     * @param monitorRequester The monitor requester. Can be null;
-     * @return The new instance.
-     */
-    static PvaMonitorPtr create(
-        PvaClientPtr const &pvaClient,
-        std::string const & channelName,
-        std::string const & providerName,
-        std::string const & request,
-        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
-        PvaClientMonitorRequesterPtr const & monitorRequester
-    );
-    /** @brief Destructor
-     */
-    ~PvaMonitor();
-
-    /**
-    * @brief  Get the PvaClientChannel
-    *
-    * @return The PvaClientChannel 
-    */
-   PvaClientChannelPtr getPvaClientChannel();
-   /**
-    * @brief  Get the PvaClientMonitor
-    *
-    * @return The PvaClientMonitor 
-    */
-   PvaClientMonitorPtr getPvaClientMonitor();
-   /**
-    * @brief  Start the monitor
-    *
-    */
-    void start();
-   /**
-    * @brief  Start or restart the monitor with a new request.
-    *
-    * @param request The new request.
-    */
-   void start(const std::string & request);
-   /**
-    * @brief  Stop the monitor.
-    *
-    * @return The PvaClientMonitor 
-    */
-   void stop();
-
-private:
-    static epics::pvData::ExecutorPtr executor;
-    PvaClient::weak_pointer pvaClient;
-    std::string channelName;
-    std::string providerName;
-    std::string request;
-    PvaClientChannelPtr pvaClientChannel;
-    PvaClientMonitorPtr pvaClientMonitor;
-    PvaClientChannelStateChangeRequesterPtr stateChangeRequester;
-    PvaClientMonitorRequesterPtr monitorRequester;
-
-    PvaMonitor(
-        PvaClientPtr const &pvaClient,
-        std::string const & channelName,
-        std::string const & providerName,
-        std::string const & request,
-        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
-        PvaClientMonitorRequesterPtr const & monitorRequester
-    );
 
     void init();
 public:
     void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected);
     void event(PvaClientMonitorPtr const & monitor);
     void command();
+    friend class MonitorRequesterImpl;
 };
+
 
 
 /**
