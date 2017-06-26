@@ -246,25 +246,26 @@ void PvaClientChannel::channelStateChange(
         << " " << Channel::ConnectionStateNames[connectionState]
         << endl;
     }
+    
+    bool waitingForConnect = false;
+    if(connectState==connectActive) waitingForConnect = true;
+    if(connectionState!=Channel::CONNECTED) {
+        string mess(channelName +
+                " connection state " + Channel::ConnectionStateNames[connectionState]);
+        message(mess,errorMessage);
+        connectState = notConnected;
+    } else {
+        connectState = connected;
+    }
+    if(waitingForConnect) {
+         Lock xx(mutex);
+         waitForConnect.signal();
+    }
     PvaClientChannelStateChangeRequesterPtr req(stateChangeRequester.lock());
     if(req) {
          bool value = (connectionState==Channel::CONNECTED ? true :  false);
          req->channelStateChange(shared_from_this(),value);
     }
-   
-    Lock xx(mutex);
-    bool waitingForConnect = false;
-    if(connectState==connectActive) waitingForConnect = true;
-    if(connectionState!=Channel::CONNECTED) {
-         string mess(channelName +
-             " connection state " + Channel::ConnectionStateNames[connectionState]);
-             message(mess,errorMessage);
-             connectState = notConnected;
-         return;
-    } else {
-        connectState = connected;
-    }
-    if(waitingForConnect) waitForConnect.signal();
 }
 
 string PvaClientChannel::getRequesterName()
