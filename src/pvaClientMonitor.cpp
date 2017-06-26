@@ -114,26 +114,19 @@ PvaClientMonitorPtr PvaClientMonitor::create(
     CreateRequest::shared_pointer createRequest(CreateRequest::create());
     PVStructurePtr pvRequest(createRequest->createRequest(request));
     if(!pvRequest) throw std::runtime_error(createRequest->getMessage());
-cout << "calling pvaClient->createChannel\n";
     PvaClientChannelPtr pvaClientChannel = pvaClient->createChannel(channelName,providerName);
-cout << "calling createMonitor\n";
     PvaClientMonitorPtr clientMonitor(new PvaClientMonitor(pvaClient,pvaClientChannel,pvRequest));
-cout << "after calling createMonitor\n";
     clientMonitor->monitorRequester = MonitorRequesterImplPtr(
         new MonitorRequesterImpl(clientMonitor,pvaClient));
     if(stateChangeRequester) clientMonitor->pvaClientChannelStateChangeRequester = stateChangeRequester;
     if(monitorRequester) clientMonitor->pvaClientMonitorRequester = monitorRequester;
-cout << "calling init\n";
     clientMonitor->init();
-cout << "after calling init\n";
     return clientMonitor;
 }
 
 void PvaClientMonitor::init()
 {
-cout << "init calling setStateChangeRequester\n";
     pvaClientChannel->setStateChangeRequester(shared_from_this());
-cout << "init calling issueConnect\n";
     pvaClientChannel->issueConnect();
 }
 
