@@ -28,7 +28,6 @@
 #include <pv/standardField.h>
 #include <pv/standardPVField.h>
 #include <pv/createRequest.h>
-#include <pv/executor.h>
 #include <pv/nt.h>
 
 #ifdef pvaClientEpicsExportSharedSymbols
@@ -192,10 +191,6 @@ typedef std::tr1::shared_ptr<PvaClientGetCache> PvaClientGetCachePtr;
 class PvaClientPutCache;
 typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
 
-// NOTE: must use separate class that implements ChannelRequester,
-// because pvAccess holds a shared_ptr to ChannelRequester instead of weak_pointer
-class ChannelRequesterImpl;
-typedef std::tr1::shared_ptr<ChannelRequesterImpl> ChannelRequesterImplPtr;
 
 /** 
  * @brief A callback for change in connection status.
@@ -225,6 +220,7 @@ public:
  */
 
 class epicsShareClass PvaClientChannel :
+   public epics::pvAccess::ChannelRequester,
    public std::tr1::enable_shared_from_this<PvaClientChannel>
 {
 public:
@@ -431,18 +427,6 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}
 private:
-    //ChannelRequester methods
-    void channelCreated(
-        const epics::pvData::Status& status,
-        epics::pvAccess::Channel::shared_pointer const & channel);
-    void channelStateChange(
-        epics::pvAccess::Channel::shared_pointer const & channel,
-        epics::pvAccess::Channel::ConnectionState connectionState);
-    std::string getRequesterName();
-    void message(
-        std::string const & message,
-        epics::pvData::MessageType messageType);
-
     static PvaClientChannelPtr create(
          PvaClientPtr const &pvaClient,
          std::string const & channelName,
@@ -466,11 +450,18 @@ private:
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
     epics::pvAccess::Channel::shared_pointer channel;
+    epics::pvAccess::ChannelProvider::shared_pointer channelProvider;
     PvaClientChannelStateChangeRequesterWPtr stateChangeRequester;
-    ChannelRequesterImplPtr channelRequester;
+public:
+    virtual std::string getRequesterName();
+    virtual void message(std::string const & message, epics::pvData::MessageType messageType);
+    virtual void channelCreated(
+        const epics::pvData::Status& status,
+        epics::pvAccess::Channel::shared_pointer const & channel);
+    virtual void channelStateChange(
+        epics::pvAccess::Channel::shared_pointer const & channel,
+        epics::pvAccess::Channel::ConnectionState connectionState);
     friend class PvaClient;
-    friend class ChannelRequesterImpl;
-
 };
 
 /** 
@@ -1406,7 +1397,6 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
 class epicsShareClass PvaClientMonitor :
     public PvaClientChannelStateChangeRequester,
     public PvaClientMonitorRequester,
-    public epics::pvData::Command,
     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
 public:
@@ -1499,7 +1489,6 @@ public:
      */
     void destroy()  EPICS_DEPRECATED {}
 private:
-    static epics::pvData::ExecutorPtr executor;
     std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);
     void monitorConnect(
@@ -1515,7 +1504,7 @@ private:
         epics::pvData::PVStructurePtr const &pvRequest);
 
     void checkMonitorState();
-    enum MonitorConnectState {connectIdle,connectActive,connected};
+    enum MonitorConnectState {connectIdle,connectWait,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
     PvaClientChannelPtr pvaClientChannel;
@@ -1541,7 +1530,6 @@ private:
 public:
     void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected);
     void event(PvaClientMonitorPtr const & monitor);
-    void command();
     friend class MonitorRequesterImpl;
 };
 

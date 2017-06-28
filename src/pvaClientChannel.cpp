@@ -122,60 +122,12 @@ size_t PvaClientPutCache::cacheSize()
 
 }
 
-class epicsShareClass ChannelRequesterImpl : public ChannelRequester
-{
-    PvaClientChannel::weak_pointer pvaClientChannel;
-    PvaClient::weak_pointer pvaClient;
-public:
-    ChannelRequesterImpl(
-        PvaClientChannelPtr const & pvaClientChannel,
-        PvaClientPtr const &pvaClient)
-    : pvaClientChannel(pvaClientChannel),
-      pvaClient(pvaClient)
-    {}
-    virtual ~ChannelRequesterImpl() {
-        if(PvaClient::getDebug()) std::cout << "~ChannelRequesterImpl" << std::endl;
-    }
-
-    virtual std::string getRequesterName() {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return string("clientChannel is null");
-        return clientChannel->getRequesterName();
-    }
-
-    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return;
-        clientChannel->message(message,messageType);
-    }
-
-    virtual void channelCreated(
-         const epics::pvData::Status& status,
-         Channel::shared_pointer const & channel)
-    {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return;
-        clientChannel->channelCreated(status,channel);
-    }
-
-    virtual void channelStateChange(
-          Channel::shared_pointer const & channel,
-          Channel::ConnectionState connectionState)
-    {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return;
-        clientChannel->channelStateChange(channel,connectionState);
-    }
-};
-
 PvaClientChannelPtr PvaClientChannel::create(
    PvaClientPtr const &pvaClient,
    string const & channelName,
    string const & providerName)
 {
     PvaClientChannelPtr channel(new PvaClientChannel(pvaClient,channelName,providerName));
-    channel->channelRequester = ChannelRequesterImplPtr(
-        new ChannelRequesterImpl(channel,pvaClient));
     return channel;
 }
 
@@ -209,6 +161,7 @@ PvaClientChannel::~PvaClientChannel()
 
 void PvaClientChannel::channelCreated(const Status& status, Channel::shared_pointer const & channel)
 {
+cout << "PvaClientChannel::channelCreated channel\n" << channel.get() << endl;
     if(PvaClient::getDebug()) {
         cout << "PvaClientChannel::channelCreated"
            << " channelName " << channelName
@@ -240,6 +193,7 @@ void PvaClientChannel::channelStateChange(
     Channel::shared_pointer const & channel,
     Channel::ConnectionState connectionState)
 {
+cout << "PvaClientChannel::channelStateChange channel\n" << channel.get() << endl;
     if(PvaClient::getDebug()) {
         cout << " PvaClientChannel::channelStateChange "
         << " channelName " << channelName
@@ -333,12 +287,14 @@ void PvaClientChannel::issueConnect()
         connectState = connectActive;
     }
     ChannelProviderRegistry::shared_pointer reg(getChannelProviderRegistry());;
-    ChannelProvider::shared_pointer provider = reg->getProvider(providerName);
-    if(!provider) {
+    channelProvider = reg->getProvider(providerName);
+    if(!channelProvider) {
         throw std::runtime_error(channelName + " provider " + providerName + " not registered");
     }
     if(PvaClient::getDebug()) cout << "PvaClientChannel::issueConnect calling provider->createChannel\n";
-    channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
+cout << "before provider->createChannel channel " << channel.get() << endl;
+    channel = channelProvider->createChannel(channelName,shared_from_this(),ChannelProvider::PRIORITY_DEFAULT);
+cout << "after provider->createChannel channel " << channel.get() << endl;
     if(!channel) {
          throw std::runtime_error(channelName + " channelCreate failed ");
     }
