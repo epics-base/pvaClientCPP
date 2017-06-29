@@ -84,6 +84,7 @@ typedef std::tr1::shared_ptr<PvaClientChannelCache> PvaClientChannelCachePtr;
  *
  * Thus it is easier to use than pvAccess itself.
  * In addition pvaClient provides many convenience methods.
+ *
  * @author mrk
  * @date 2015.02
  */
@@ -98,6 +99,7 @@ public:
      */
     ~PvaClient();
     /** @brief Get the single instance of PvaClient.
+     *
      * @param providerNames Space separated list of provider names.
      * @return shared pointer to the single instance.
      */
@@ -1393,6 +1395,7 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
 /**
  * @brief An easy to use alternative to Monitor.
  *
+ *  <a href = "../htmldoxygen/pvaClientMonitor.html">pvaClientMonitor</a>
  */
 class epicsShareClass PvaClientMonitor :
     public PvaClientChannelStateChangeRequester,
@@ -1688,6 +1691,6 @@ private:
 /** @page Overview Documentation
  *
  * <a href = "../pvaClientCPP.html">pvaClientCPP.html</a>
- *
+ *  
  */
 
