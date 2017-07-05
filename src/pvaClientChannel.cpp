@@ -161,7 +161,6 @@ PvaClientChannel::~PvaClientChannel()
 
 void PvaClientChannel::channelCreated(const Status& status, Channel::shared_pointer const & channel)
 {
-cout << "PvaClientChannel::channelCreated channel\n" << channel.get() << endl;
     if(PvaClient::getDebug()) {
         cout << "PvaClientChannel::channelCreated"
            << " channelName " << channelName
@@ -193,7 +192,6 @@ void PvaClientChannel::channelStateChange(
     Channel::shared_pointer const & channel,
     Channel::ConnectionState connectionState)
 {
-cout << "PvaClientChannel::channelStateChange channel\n" << channel.get() << endl;
     if(PvaClient::getDebug()) {
         cout << " PvaClientChannel::channelStateChange "
         << " channelName " << channelName
@@ -292,9 +290,7 @@ void PvaClientChannel::issueConnect()
         throw std::runtime_error(channelName + " provider " + providerName + " not registered");
     }
     if(PvaClient::getDebug()) cout << "PvaClientChannel::issueConnect calling provider->createChannel\n";
-cout << "before provider->createChannel channel " << channel.get() << endl;
     channel = channelProvider->createChannel(channelName,shared_from_this(),ChannelProvider::PRIORITY_DEFAULT);
-cout << "after provider->createChannel channel " << channel.get() << endl;
     if(!channel) {
          throw std::runtime_error(channelName + " channelCreate failed ");
     }
