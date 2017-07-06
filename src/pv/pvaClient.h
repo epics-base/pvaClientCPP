@@ -86,7 +86,7 @@ typedef std::tr1::shared_ptr<PvaClientChannelCache> PvaClientChannelCachePtr;
 /**
  * @brief  pvaClient is a synchronous wrapper for the pvAccess API, which is a callback based API.
  *
- *  <a href = "../htmldoxygen/pvaClient.html">pvaClient</a>
+ *  <a href = "../htmldoxygen/pvaClient.html">Overview of PvaClient</a>
  */
 class epicsShareClass PvaClient :
      public epics::pvData::Requester,
@@ -104,14 +104,6 @@ public:
      * @return shared pointer to the single instance.
      */
     static PvaClientPtr get(std::string const & providerNames = "pva ca");
-    /** @brief Create an instance of PvaClient with providerName "pva ca".
-     * \deprecated This method will go away in future versions. Use get instead.
-     * @return shared pointer to the single instance
-     */
-    static PvaClientPtr create() EPICS_DEPRECATED
-    {
-        return get();
-    }
     /** @brief Get the requester name.
      * @return The name.
      */
@@ -127,6 +119,7 @@ public:
         std::string const & message,
         epics::pvData::MessageType messageType);
     /** @brief Get a cached channel or create and connect to a new channel.
+     *
      * @param channelName The channelName.
      * @param providerName The providerName.
      * @param timeOut The number of seconds to wait for connection. 0.0 means forever.
@@ -138,6 +131,7 @@ public:
         std::string const &providerName = "pva",
         double timeOut = 5.0);
     /** @brief Create an PvaClientChannel with the specified provider.
+     *
      * @param channelName The channelName.
      * @param providerName The provider.
      * @return The interface.
@@ -162,20 +156,16 @@ public:
      /** @brief Get the number of cached channels.
      */
     size_t cacheSize();
-    /** Should debug info be shown?
+    /** @brief Should debug info be shown?
+     *
      * @param value true or false
      */
     static void setDebug(bool value) {debug = value;}
     /** @brief Is debug set?
+     *
      * @return true or false
      */
     static bool getDebug() {return debug;}
-
-    /** @brief Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
-
 private:
     static bool debug;
     PvaClient(std::string const & providerNames);
@@ -197,7 +187,7 @@ typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
 /** 
  * @brief A callback for change in connection status.
  *
- * <a href = "../htmldoxygen/pvaClientChannelStateChangeRequester.html">pvaClientChannelStateChangeRequester</a 
+ * <a href = "../htmldoxygen/pvaClientChannelStateChangeRequester.html">Overview of PvaClientChannelStateChangeRequester</a 
  *
  */
 class PvaClientChannelStateChangeRequester
@@ -219,7 +209,7 @@ public:
 /** 
  * @brief An easy to use alternative to directly calling the Channel methods of pvAccess.
  *
- * <a href = "../htmldoxygen/pvaClientChannel.html">pvaClientChannel</a>
+ * <a href = "../htmldoxygen/pvaClientChannel.html">Overview of PvaClientChannel</a>
  */
 
 class epicsShareClass PvaClientChannel :
@@ -470,7 +460,7 @@ public:
 /** 
  *  @brief A class that holds data returned by PvaClientGet or PvaClientPutGet
  *
- * <a href = "../htmldoxygen/pvaClientGetData.html">pvaClientGetData</a>
+ * <a href = "../htmldoxygen/pvaClientGetData.html">Overview of PvaClientGetData</a>
  */
 class epicsShareClass PvaClientGetData
 {
@@ -609,7 +599,7 @@ class PvaClientPostHandlerPvt; // private to PvaClientPutData
 /** 
  *  @brief A class that holds data given to  by PvaClientPut or PvaClientPutGet
  *
- * <a href = "../htmldoxygen/pvaClientPutData.html">pvaClientPutData</a>
+ * <a href = "../htmldoxygen/pvaClientPutData.html">Overview of PvaClientPutData</a>
  */
 class epicsShareClass PvaClientPutData 
 {
@@ -748,7 +738,7 @@ private:
 /**
  * @brief A class that holds data returned by PvaClientMonitor
  *
- * <a href = "../htmldoxygen/pvaClientMonitorData.html">pvaClientMonitorData</a>
+ * <a href = "../htmldoxygen/pvaClientMonitorData.html">Overview of PvaClientMonitorData</a>
  */
 class epicsShareClass PvaClientMonitorData
 {
@@ -906,7 +896,7 @@ typedef std::tr1::shared_ptr<ChannelProcessRequesterImpl> ChannelProcessRequeste
 /**
  * @brief An easy to use alternative to ChannelProcess.
  *
- * <a href = "../htmldoxygen/pvaClientChannelProcess.html">pvaClientChannelProcess</a>
+ * <a href = "../htmldoxygen/pvaClientChannelProcess.html">Overview of PvaClientChannelProcess</a>
  */
 class epicsShareClass PvaClientProcess 
 {
@@ -1000,7 +990,7 @@ typedef std::tr1::shared_ptr<ChannelGetRequesterImpl> ChannelGetRequesterImplPtr
 /**
  * @brief An easy to use alternative to ChannelGet.
  *
- * <a href = "../htmldoxygen/pvaClientChannelGet.html">pvaClientChannelGet</a>
+ * <a href = "../htmldoxygen/pvaClientChannelGet.html">Overview of PvaClientChannelGet</a>
  */
 class epicsShareClass PvaClientGet 
 {
@@ -1107,7 +1097,7 @@ typedef std::tr1::shared_ptr<ChannelPutRequesterImpl> ChannelPutRequesterImplPtr
 /**
  * @brief An easy to use alternative to ChannelPut.
  *
- * <a href = "../htmldoxygen/pvaClientChannelPut.html">pvaClientChannelPut</a>
+ * <a href = "../htmldoxygen/pvaClientChannelPut.html">Overview of PvaClientChannelPut</a>
  */
 class epicsShareClass PvaClientPut 
 {
@@ -1226,7 +1216,7 @@ typedef std::tr1::shared_ptr<ChannelPutGetRequesterImpl> ChannelPutGetRequesterI
 /** 
  * @brief An easy to use alternative to ChannelPutGet.
  *
- * <a href = "../htmldoxygen/pvaClientChannelPutGet.html">pvaClientChannelPutGet</a>
+ * <a href = "../htmldoxygen/pvaClientChannelPutGet.html">Overview of PvaClientChannelPutGet</a>
  */
 class epicsShareClass PvaClientPutGet 
 {
@@ -1369,7 +1359,7 @@ private :
 /**
  * @brief Optional client callback.
  *
- * <a href = "../htmldoxygen/pvaClientMonitorRequester.html">pvaClientMonitorRequester</a>
+ * <a href = "../htmldoxygen/pvaClientMonitorRequester.html">Overview of PvaClientMonitorRequester</a>
  */
 class PvaClientMonitorRequester
 {
@@ -1400,7 +1390,7 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
 /**
  * @brief An easy to use alternative to Monitor.
  *
- *  <a href = "../htmldoxygen/pvaClientMonitor.html">pvaClientMonitor</a>
+ *  <a href = "../htmldoxygen/pvaClientMonitor.html">Overview of PvaClientMonitor</a>
  */
 class epicsShareClass PvaClientMonitor :
     public PvaClientChannelStateChangeRequester,
@@ -1552,7 +1542,7 @@ public:
 /**
  * @brief Optional client callback.
  *
- * <a href = "../htmldoxygen/pvaClientRPCRequester.html">pvaClientRPCRequester</a>
+ * <a href = "../htmldoxygen/pvaClientRPCRequester.html">Overview of PvaClientRPCRequester</a>
  */
 class PvaClientRPCRequester
 {
@@ -1578,7 +1568,7 @@ typedef std::tr1::shared_ptr<RPCRequesterImpl> RPCRequesterImplPtr;
 /**
  * @brief An easy to use alternative to RPC.
  *
- * <a href = "../htmldoxygen/pvaClientRPC.html">pvaClientRPC</a>
+ * <a href = "../htmldoxygen/pvaClientRPC.html">Overview of PvaClientRPC</a>
  */
 class epicsShareClass PvaClientRPC :
     public std::tr1::enable_shared_from_this<PvaClientRPC>

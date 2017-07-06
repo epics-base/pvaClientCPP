@@ -384,7 +384,7 @@ void PvaClientMonitor::start(string const & request)
     if(!pvaClientChannel->getChannel()->isConnected()) {
         client->message(
              "PvaClientMonitor::start(request) but not connected",
-             MessageType::errorMessage);
+             errorMessage);
         return;
     }
     CreateRequest::shared_pointer createRequest(CreateRequest::create());

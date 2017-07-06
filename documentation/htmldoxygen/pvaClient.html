@@ -35,9 +35,6 @@
 
 <h1>PvaClient</h1>
 
-<p>
-<b>Not Yet Written</b>
-</p>
 
 <h2>Overview</h2>
 <p>
@@ -45,6 +42,81 @@ pvaClient is a synchronous wrapper for the pvAccess API, which is a callback bas
 Thus it is easier to use than pvAccess itself.
 In addition pvaClient provides many convenience methods.
 </p>
+<p>
+Class <b>PvaClient</b> is a class that is used by all the other pvaClient classes.
+An application that uses pvaClient must call:</p>
+<pre>
+PvaClientPtr pvaClient = PvaClient::get(providers);
+</pre>
+<p>
+before it uses any other pvaClient classes.
+</p>
+<p>
+This is a singleton method, i. e. only one instance of PvaClient is created.
+</p>
+<p>
+<b>pvaClient</b> must not be deleted until the client no longer wants to use any part
+of pvaClient.
+</p>
+<p>
+<b>providers</b> is a blank separated set of provider names.
+For example:</p>
+<pre>
+PvaClientPtr pvaClient = PvaClient::get("ca pva");
+</pre>
+<p>
+The providers <b>ca</b> and <b>pva</b> are special.
+For each of these a client context is created when the <b>PvaClient</b>
+is constructed and the context destroyed when <b>PvaClient</b> is deleted.
+</p>
+<h2>Channel Caching</h2>
+<p>
+<b>PvaClient</b> has a method:
+</p>
+<pre>
+PvaClientChannelPtr channel(
+    string const &amp; channelName,
+    string const &amp;providerName = "pva",
+    double timeOut = 5.0);
+</pre>
+<p>
+This method creates a
+<b>PvaClientChannel</b> and then connects to the channel.
+</p>
+<p>
+If a call is successful then multiple calls to the same channelName and providerName
+share the same PvaClientChannel, i. e. the PvaClientChannel is cached.
+</p>
+<p>
+<b>pvaClientChannelGet</b> and <b>pvaClientChannelPut</b> also implement caching.
+</p>
+<p>
+For example consider a client that makes multiple calls like:
+</p>
+<pre>
+double value;
+value =  pva->channel(channelName)->get()->getData()->getDouble();
+...
+value =  pva->channel(channelName)->get()->getData()->getDouble();
+</pre>
+<p>
+Only the first call creates a new PvaClientChannel and a new PvaClientGet.
+The second call reuses the cached PvaClientChannel and PvaClientGet.
+</p>
+<h2>Non Cached Channels</h2>
+<p>
+<b>PvaClient</b> has a method:
+</p>
+<pre>
+PvaClientChannelPtr createChannel(
+    string const &amp; channelName,
+    string const &amp;providerName = "pva");
+</pre>
+<p>
+This method is just creates a new PvaClientChannel and returns it to the caller.
+The caller must call the PvaClientChannel connect methods.
+</p>
+
 
 </body>
 </html>
