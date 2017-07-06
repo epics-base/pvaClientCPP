@@ -489,6 +489,11 @@ void PvaClientMonitor::releaseEvent()
     monitor->release(monitorElement);
 }
 
+PvaClientChannelPtr PvaClientMonitor::getPvaClientChannel()
+{
+    return pvaClientChannel;
+}
+
 PvaClientMonitorDataPtr PvaClientMonitor::getData()
 {
     if(PvaClient::getDebug()) {

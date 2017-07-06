@@ -34,28 +34,30 @@
 <body>
 
 <h1>PvaClientMonitor</h1>
-
+<p>
+<b>NOTE:</b> This is a work in progress.
+</p>
 <h2>Overview</h2>
 <p>
 This provides an easier way to create a monitor on a channel than to use pvAccessCPP itself.
 It provides two main ways to create a monitor:
 </p>
-<h3>The client first creates a pvaClientChannel and then creates a monitor</h3>
+<h3>The client first creates a PvaClientMonitorChannel and then creates a monitor</h3>
 The client calls:
 <pre>
 static PvaClientMonitorPtr create(
-    PvaClientPtr const &amp;pvaClient,
-    PvaClientChannelPtr const &amp; pvaClientChannel,
+    PvaClientMonitorPtr const &amp;PvaClientMonitor,
+    PvaClientMonitorChannelPtr const &amp; PvaClientMonitorChannel,
     epics::pvData::PVStructurePtr const &amp;pvRequest
 );
 
 where
 
-pvaClient
-    The pvaClient.
+PvaClientMonitor
+    The PvaClientMonitor.
 
-pvaClientChannel
-    The pvaClientChannel that has already been created by the client.
+PvaClientMonitorChannel
+    The PvaClientMonitorChannel that has already been created by the client.
 
 pvRequest
     The pvRequest for creating the monitor.
@@ -66,18 +68,18 @@ This method blocks while the monitor is created.
 The client calls:
 <pre>
 static PvaClientMonitorPtr create(
-    PvaClientPtr const &amp;pvaClient,
+    PvaClientMonitorPtr const &amp;PvaClientMonitor,
     std::string const &amp; channelName,
     std::string const &amp; providerName,
     std::string const &amp; request,
-    PvaClientChannelStateChangeRequesterPtr const &amp; stateChangeRequester,
+    PvaClientMonitorChannelStateChangeRequesterPtr const &amp; stateChangeRequester,
     PvaClientMonitorRequesterPtr const &amp; monitorRequester
 );
 
 where
 
-pvaClient
-    The pvaClient.
+PvaClientMonitor
+    The PvaClientMonitor.
 
 channelName
     The name of the channel.
