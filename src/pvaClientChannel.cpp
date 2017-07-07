@@ -284,7 +284,7 @@ void PvaClientChannel::issueConnect()
         }
         connectState = connectActive;
     }
-    ChannelProviderRegistry::shared_pointer reg(getChannelProviderRegistry());;
+    ChannelProviderRegistry::shared_pointer reg(ChannelProviderRegistry::clients());
     channelProvider = reg->getProvider(providerName);
     if(!channelProvider) {
         throw std::runtime_error(channelName + " provider " + providerName + " not registered");
