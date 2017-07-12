@@ -187,7 +187,7 @@ typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
 /** 
  * @brief A callback for change in connection status.
  *
- * <a href = "../htmldoxygen/pvaClientChannelStateChangeRequester.html">Overview of PvaClientChannelStateChangeRequester</a 
+ * <a href = "../htmldoxygen/pvaClientChannelStateChangeRequester.html">Overview of PvaClientChannelStateChangeRequester</a>
  *
  */
 class PvaClientChannelStateChangeRequester
@@ -200,6 +200,8 @@ public:
     virtual ~PvaClientChannelStateChangeRequester(){}
     /**
      * @brief A channel connection state change has occurred.
+     *
+     * <b>Warning</b> A call to a method that blocks should not be made by this method.
      * @param channel The channel.
      * @param isConnected The new connection status.
      */
@@ -222,12 +224,18 @@ public:
      * @brief Destructor
      */
     ~PvaClientChannel();
+    /** @brief Set a client stateChangeRequester.
+     * 
+     * @param stateChangeRequester The client stateChangeRequester implementation.
+     */
     void setStateChangeRequester(PvaClientChannelStateChangeRequesterPtr const &stateChangeRequester);
     /** @brief Get the name of the channel to which PvaClientChannel is connected.
+     *
      * @return The channel name.
      */
     std::string getChannelName();
     /** @brief Get the the channel to which PvaClientChannel is connected.
+     *
      * @return The channel interface.
      */
     epics::pvAccess::Channel::shared_pointer getChannel();
@@ -239,50 +247,53 @@ public:
      */
     void connect(double timeout=5.0);
     /** @brief Issue a connect request and return immediately.
+     *
      */
     void issueConnect();
     /** @brief Wait until the connection completes or for timeout.
+     *
      * @param timeout The time in seconds to wait. A value of 0 means forever.
      * @return status.
-     * @throw runtime_error if failure.
      */
     epics::pvData::Status waitConnect(double timeout = 5.0);
     /**  @brief Create a PvaClientField for the specified subField.
+     *
      * @param subField The desired subField, i. e. "field.field...."
      * An empty string, i. e. "", asks for the entire top level struture as defined by the server.
      * @return The interface.
      */
     PvaClientFieldPtr createField(std::string const & subField = "");
     /** @brief First call createRequest as implemented by pvDataCPP and then call the next method.
+     *
      * @param request The syntax of request is defined by the copy facility of pvData.
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientProcessPtr createProcess(std::string const & request = "");
-    /** Creates an PvaClientProcess. 
+    /** Creates a PvaClientProcess. 
+     *
      * @param pvRequest The syntax of pvRequest is defined by the copy facility of pvData.
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientProcessPtr createProcess(epics::pvData::PVStructurePtr const &  pvRequest);
-    /** @brief Get a cached PvaClientGet or create and connect to a new PvaClientGet.
+    /** @brief create a PvaChannelGet
      *
-     * If connection can not be made an exception is thrown.
-     * @param request The syntax of request is defined by the copy facility of pvData.
+     * Get a cached PvaClientGet or create and connect to a new PvaClientGet.
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientGetPtr get(std::string const & request = "field(value,alarm,timeStamp)");
     /** @brief create a PvaClientGet.
      *
-     * First call createRequest as implemented by pvDataJava and then call the next method.
-     * Then get a cached PvaClientGet or create and connect to a new PvaClientGet.
+     * First call createRequest as implemented by pvData and then call the next method.
      * @param request The syntax of request is defined by the copy facility of pvData.
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientGetPtr createGet(std::string const & request = "field(value,alarm,timeStamp)");
     /** @brief Creates an PvaClientGet.
+     *
      * @param pvRequest The syntax of pvRequest is defined by the copy facility of pvData.
      * @return The interface.
      * @throw runtime_error if failure.
@@ -290,8 +301,7 @@ public:
     PvaClientGetPtr createGet(epics::pvData::PVStructurePtr const &  pvRequest);
     /** @brief create a PvaClientPut.
      * 
-     * First call createRequest as implemented by pvDataJava.
-     * Then get a cached PvaClientPut or create and connect to a new PvaClientPut.
+     * Get a cached PvaClientPut or create and connect to a new PvaClientPut.
      * Then call it's get method.
      * @param request The syntax of request is defined by the copy facility of pvData.
      * @return The interface.
@@ -307,6 +317,7 @@ public:
      */
     PvaClientPutPtr createPut(std::string const & request = "field(value)");
     /** @brief Create a PvaClientPut.
+     *
      * @param pvRequest The syntax of pvRequest is defined by the copy facility of pvData.
      * @return The interface.
      */
@@ -321,6 +332,7 @@ public:
     PvaClientPutGetPtr createPutGet(
          std::string const & request = "putField(argument)getField(result)");
     /** @brief Create a PvaClientPutGet.
+     *
      * @param pvRequest The syntax of pvRequest is defined by the copy facility of pvData.
      * @return The interface.
      */
@@ -350,6 +362,7 @@ public:
      */
     PvaClientMonitorPtr monitor(std::string const & request = "field(value,alarm,timeStamp)");
     /** @brief Call the next method with request =  "field(value,alarm,timeStamp)" 
+      *
       * @param pvaClientMonitorRequester The client callback.
       * @return The interface.
       * @throw runtime_error if failure.
@@ -368,7 +381,8 @@ public:
         std::string const & request,
         PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester);
     /**
-     * @brief First call createRequest as implemented by pvDataJava and then calls the next method.
+     * @brief First call createRequest as implemented by pvDataJava and then call the next method.
+     *
      * @param request The syntax of request is defined by the copy facility of pvData.
      * @return The interface.
      * @throw runtime_error if failure.
@@ -377,11 +391,13 @@ public:
          std::string const & request = "field(value,alarm,timeStamp)");
     /** Create an PvaClientMonitor.
      * @param pvRequest  The syntax of pvRequest is defined by the copy facility of pvData.
+     *
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientMonitorPtr createMonitor(epics::pvData::PVStructurePtr const &  pvRequest);
     /** @brief Issue a channelRPC request
+     *
      * @param pvRequest  The pvRequest that is passed to createRPC.
      * @param pvArgument  The argument for a request.
      * @return The result.
@@ -391,6 +407,7 @@ public:
           epics::pvData::PVStructurePtr const &  pvRequest,
           epics::pvData::PVStructurePtr const & pvArgument);
     /** @brief Issue a channelRPC request
+     *
      * @param pvArgument  The argument for the request.
      * @return The result.
      * @throw runtime_error if failure.
@@ -398,11 +415,13 @@ public:
      epics::pvData::PVStructurePtr rpc(
           epics::pvData::PVStructurePtr const & pvArgument);
     /** @brief Create a PvaClientRPC.
+     *
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientRPCPtr createRPC();
     /** @brief Create a PvaClientRPC.
+     *
      * @param pvRequest  The pvRequest that must have the same interface
      *  as a pvArgument that is passed to an rpc request.
      * @return The interface.
@@ -415,10 +434,6 @@ public:
      /** @brief Get the number of cached gets and puts.
      */
     size_t cacheSize();
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     static PvaClientChannelPtr create(
          PvaClientPtr const &pvaClient,
@@ -477,11 +492,13 @@ public:
      */
     void setMessagePrefix(std::string const & value);
    /** @brief Get the structure.
+    *
     * @return The Structure
     * @throw runtime_error if failure.
     */
    epics::pvData::StructureConstPtr getStructure();
    /** @brief Get the pvStructure.
+    *
     * @return the pvStructure.
     * @throw runtime_error if failure.
     */
@@ -494,6 +511,7 @@ public:
     */
    epics::pvData::BitSetPtr getChangedBitSet();
    /** @brief Show the fields that have changed value since the last get.
+    *
     * @param out The stream that shows the changed fields.
     * @return The stream that was passed as out.
     */
@@ -610,36 +628,43 @@ public:
      */    
     ~PvaClientPutData() {}
     /** @brief Set a prefix for throw messages.
+     *
      * @param value The prefix.
      */
     void setMessagePrefix(std::string const & value);
     /** @brief Get the structure.
-    * @return The Structure
-    * @throw runtime_error if failure.
-    */
-   epics::pvData::StructureConstPtr getStructure();
+     *
+     * @return The Structure
+     * @throw runtime_error if failure.
+     */
+    epics::pvData::StructureConstPtr getStructure();
    /** @brief Get the pvStructure.
+    *
     * @return the pvStructure.
     * @throw runtime_error if failure.
     */
    epics::pvData::PVStructurePtr getPVStructure();
     /**  @brief Get the changed BitSet for the pvStructure
+     *
      * This shows which fields have changed values.
      * @return The bitSet
      * @throw runtime_error if failure.
      */
     epics::pvData::BitSetPtr getChangedBitSet();
     /**  @brief Show the fields that have changed values.
+     *
      * @param out The stream that shows the changed fields.
      * @return The stream that was passed as out.
      */
     std::ostream & showChanged(std::ostream & out);
     /**
      * @brief Is there a top level field named value.
+     *
      * @return The answer.
      */
     bool hasValue();
     /** @brief Is the value field a scalar?
+     *
      * @return The answer.
      */
     bool isValueScalar();
@@ -648,10 +673,12 @@ public:
      */
     bool isValueScalarArray();
     /** Get the interface to the value field.
+     *
      * @return The interface. an excetion is thrown if a value field does not exist.
      */
     epics::pvData::PVFieldPtr getValue();
     /** @brief Get the interface to a scalar value field.
+     *
      * @return The interface for a scalar value field.
      * @throw runtime_error if failure.
      */
@@ -896,7 +923,7 @@ typedef std::tr1::shared_ptr<ChannelProcessRequesterImpl> ChannelProcessRequeste
 /**
  * @brief An easy to use alternative to ChannelProcess.
  *
- * <a href = "../htmldoxygen/pvaClientChannelProcess.html">Overview of PvaClientChannelProcess</a>
+ * <a href = "../htmldoxygen/pvaClientProcess.html">Overview of PvaClientProcess</a>
  */
 class epicsShareClass PvaClientProcess 
 {
@@ -936,17 +963,13 @@ public:
      * An exception is thrown if get fails.
      */
     void process();
-    /** @brief Issue a process and return immediately.
+    /** @brief Issue a process request and return immediately.
      */
     void issueProcess();
     /** @brief Wait until process completes.
      * @return status.
      */
     epics::pvData::Status waitProcess();
-     /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);
@@ -990,7 +1013,7 @@ typedef std::tr1::shared_ptr<ChannelGetRequesterImpl> ChannelGetRequesterImplPtr
 /**
  * @brief An easy to use alternative to ChannelGet.
  *
- * <a href = "../htmldoxygen/pvaClientChannelGet.html">Overview of PvaClientChannelGet</a>
+ * <a href = "../htmldoxygen/pvaClientGet.html">Overview of PvaClientGet</a>
  */
 class epicsShareClass PvaClientGet 
 {
@@ -1042,10 +1065,6 @@ public:
      * @return The interface.
      */
     PvaClientGetDataPtr getData();
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
         std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);
@@ -1097,7 +1116,7 @@ typedef std::tr1::shared_ptr<ChannelPutRequesterImpl> ChannelPutRequesterImplPtr
 /**
  * @brief An easy to use alternative to ChannelPut.
  *
- * <a href = "../htmldoxygen/pvaClientChannelPut.html">Overview of PvaClientChannelPut</a>
+ * <a href = "../htmldoxygen/pvaClientPut.html">Overview of PvaClientPut</a>
  */
 class epicsShareClass PvaClientPut 
 {
@@ -1162,10 +1181,6 @@ public:
      * @return The interface.
      */
     PvaClientPutDataPtr getData();
-     /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}   
 private :
     std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);
@@ -1216,7 +1231,7 @@ typedef std::tr1::shared_ptr<ChannelPutGetRequesterImpl> ChannelPutGetRequesterI
 /** 
  * @brief An easy to use alternative to ChannelPutGet.
  *
- * <a href = "../htmldoxygen/pvaClientChannelPutGet.html">Overview of PvaClientChannelPutGet</a>
+ * <a href = "../htmldoxygen/pvaClientPutGet.html">Overview of PvaClientPutGet</a>
  */
 class epicsShareClass PvaClientPutGet 
 {
@@ -1300,10 +1315,6 @@ public:
      * @return The interface.
      */
     PvaClientGetDataPtr getGetData(); 
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}  
 private :
     std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);
@@ -1488,10 +1499,6 @@ public:
      * @return The interface.
      */
     PvaClientMonitorDataPtr getData();   
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);

@@ -1,6 +1,16 @@
 EPICS V4 release 4.7
 ====================
 
+Works with release/7.0 of pvDataCPP and release/6.0 of pvAccessCPP
+------------------------------------------------------------------
+
+Will not work with older versions.
+
+destroy methods removed
+-----------------------
+
+All the destroy methods are removed since implementation is RAII compliant.s
+
 API changes to PvaClientMonitor
 -------------------------------
 
@@ -30,11 +40,6 @@ A new method is also implemented
         PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
         PvaClientMonitorRequesterPtr const & monitorRequester
     );
-
-Works with release/6.0 of pvAccessCPP
---------------------------------------
-
-Not sure this will work with older versions of pvAccessCPP.
 
 
 EPICS V4 release 4.6

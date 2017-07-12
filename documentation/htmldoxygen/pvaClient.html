@@ -117,6 +117,29 @@ This method is just creates a new PvaClientChannel and returns it to the caller.
 The caller must call the PvaClientChannel connect methods.
 </p>
 
+<h2>Blocking vs Non-Blocking Methods</h2>
+<p>Each component of pvaClient provides a set of blocking and non-blocking calls.
+For example several components (examples are <b>PvaClientChannel</b> and <b>PvaChannelGet</b>)
+have methods:</p>
+<dl>
+    <dt>connect</dt>
+       <dd>
+        This calls issueConnect and then waitConnect.
+        If waitConnect fails an exception is thrown.
+        Since waitConnect is a blocking method so is this.
+       </dd>
+    <dt>issueConnect</dt>
+       <dd>
+         This is a request to connect, i. e. issue a request to the server to create something
+         on the server. This is a non blocking call.
+       </dd>
+    <dt>waitConnect</dt>
+       <dd>
+         This waits for the server to respond to issueConnect.
+         It blocks until the server responds or a timeout occurs.
+       </dd>
+</dl>
+
 
 </body>
 </html>

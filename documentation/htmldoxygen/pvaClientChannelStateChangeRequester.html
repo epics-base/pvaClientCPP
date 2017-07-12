@@ -35,9 +35,46 @@
 
 <h1>PvaClientChannelStateChangeRequester</h1>
 
-<p>
-<b>Not Yet Written</b>
+<p>This class has the single method <b>channelStateChange</b>.
+It is called each time the channel connection status changes.
 </p>
+<p>
+<b>NOTE:</b>
+The implementation must not call a method that blocks waiting for a response from the server.
+It it does the client may be blocked forever.
+</p>
+<p>
+An example of illegal code is:
+</p>
+<pre>
+virtual void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected)
+{
+    if(isConnected&&!pvaClientPut)
+    {
+       pvaClientPut  = pvaClientChannel->createPut(request);
+       pvaClientPut->connect();
+    }
+}
+</pre>
+<p>
+This is illegal because the call to <b>connect</b> blocks.
+</p>
+<p>The following is an example of legal code:
+</p>
+<pre>
+virtual void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected)
+{
+    if(isConnected&&!pvaClientPut)
+    {
+       pvaClientPut  = pvaClientChannel->createPut(request);
+       pvaClientPut->issueConnect();
+    }
+}
+</pre>
+<p>This is legal code because neither <b>createPut</b> or <b>issueConnect</b>
+blocks.
+</p>
+
 
 </body>
 </html>
