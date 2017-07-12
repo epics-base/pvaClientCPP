@@ -17,7 +17,6 @@
 
 #include <list>
 #include <iostream>
-#include <compilerDependencies.h>
 #include <pv/requester.h>
 #include <pv/status.h>
 #include <pv/event.h>

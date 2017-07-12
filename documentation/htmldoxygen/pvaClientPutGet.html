@@ -50,11 +50,11 @@ class PvaClientChannel
 ...
 {
 ...
-    PvaClientPutGetPtr createPutGet(std::string const & request);
-    PvaClientPutGetPtr createPutGet(epics::pvData::PVStructurePtr const &  pvRequest);
+    PvaClientPutGetPtr createPutGet(std::string const &amp; request);
+    PvaClientPutGetPtr createPutGet(epics::pvData::PVStructurePtr const &amp;  pvRequest);
 ...
 };
-<p>An instance of <b>PvaClientPutGet/b> connects to a single channel.
+<p>An instance of <b>PvaClientPutGet</b> connects to a single channel.
 <b>PvaClientPutGet</b> has both synchronous methods, which block, and non blocking methods.
 </p>
 <p><b>PvaClientPutGet</b> has methods:</p>
@@ -75,7 +75,8 @@ getPutData          get the put portion of the data.
 getGetData          get the get portion of the data.
 </pre>
 <p>
-Note that <b>issueConnect</b>, <b>issuePutGet</b>,  <b>issueGetGet</b>  and <b>issueGetPut</b> do not block but all other methods block.
+<b>issueConnect</b>, <b>issuePutGet</b>,  <b>issueGetGet</b>  and <b>issueGetPut</b> do not block.
+All other methods can block.
 </p>
 
 

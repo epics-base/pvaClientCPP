@@ -45,11 +45,11 @@ class PvaClientChannel
 ...
 {
 ...
-    PvaClientProcessPtr createProcess(std::string const & request = "");
-    PvaClientProcessPtr createProcess(epics::pvData::PVStructurePtr const &  pvRequest);
+    PvaClientProcessPtr createProcess(std::string const &amp; request = "");
+    PvaClientProcessPtr createProcess(epics::pvData::PVStructurePtr const &amp;  pvRequest);
 ...
 };
-<p>An instance of <b>PvaClientProcess/b> connects to a single channel.
+<p>An instance of <b>PvaClientProcess</b> connects to a single channel.
 <b>PvaClientProcess</b> has both synchronous methods, which block, and non blocking methods.
 </p>
 <p><b>PvaClientChannel</b> has methods:</p>
@@ -62,8 +62,8 @@ issueProcess        issues a process request to the server.
 waitProcess         waits until the server send a message that the process is complete.
 </pre>
 <p>
-Note that <b>issueConnect</b> and <b>issueProcess</b> do not block but all other methods
-do block.
+<b>issueConnect</b> and <b>issueProcess</b> do not block.
+All other methods can block.
 </p>
 
 </body>

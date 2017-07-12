@@ -40,18 +40,18 @@
 pvaClientGet is a synchronous wrapper for the pvAccess::ChannelGet API, which is a callback based API.
 Thus it is easier to use than pvAccess::ChannelGet itself.
 </p>
-<p>An instance of PvaClientGet is created via a call to one of the followimg:</p>
+<p>An instance of PvaClientGet is created via a call to one of the following:</p>
 <pre>
 class PvaClientChannel
 ...
 {
 ...
-    PvaClientGetPtr get(std::string const & request = "field(value,alarm,timeStamp)");
-    PvaClientGetPtr createGet(std::string const & request = "");
-    PvaClientGetPtr createGet(epics::pvData::PVStructurePtr const &  pvRequest);
+    PvaClientGetPtr get(std::string const &amp; request = "field(value,alarm,timeStamp)");
+    PvaClientGetPtr createGet(std::string const &amp; request = "");
+    PvaClientGetPtr createGet(epics::pvData::PVStructurePtr const &amp;  pvRequest);
 ...
 };
-<p>An instance of <b>PvaClientGet/b> connects to a single channel.
+<p>An instance of <b>PvaClientGet</b> connects to a single channel.
 <b>PvaClientGet</b> has both synchronous methods, which block, and non blocking methods.
 </p>
 <p><b>PvaClientChannel</b> has methods:</p>
@@ -65,8 +65,8 @@ waitGet             waits until the server send a message that the get is comple
 getData             get the data.
 </pre>
 <p>
-Note that <b>issueConnect</b> and <b>issueGet</b> do not block but all other methods
-do block.
+<b>issueConnect</b> and <b>issueGet</b> do not block.
+All other methods can block.
 </p>
 
 </body>

@@ -9,7 +9,7 @@ Will not work with older versions.
 destroy methods removed
 -----------------------
 
-All the destroy methods are removed since implementation is RAII compliant.s
+All the destroy methods are removed since implementation is RAII compliant.
 
 API changes to PvaClientMonitor
 -------------------------------
