@@ -17,6 +17,7 @@
 
 #include <list>
 #include <iostream>
+#include <sstream>  
 #include <pv/requester.h>
 #include <pv/status.h>
 #include <pv/event.h>
@@ -1666,7 +1667,7 @@ private:
     PvaClientMonitorDataPtr pvaClientData;
 
     bool isStarted;
-    epics::pvData::Status connectStatus;
+    epics::pvData::Status monitorConnectStatus;
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;
     

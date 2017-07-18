@@ -169,14 +169,21 @@ void PvaClientPut::channelStateChange(PvaClientChannelPtr const & pvaClientChann
 
 void PvaClientPut::checkPutState()
 {
-    if(!pvaClientChannel->getChannel()->isConnected()) {
-        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " PvaClientPut::checkPutState channel not connected ";
-        throw std::runtime_error(message);
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientPut::checkPutState"
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+           << endl;
     }
     if(connectState==connectIdle){
           connect();
           get();
+          return;
+    }
+    if(connectState==connectActive){
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
+            + " "
+            + channelPutConnectStatus.getMessage();
+        throw std::runtime_error(message);
     }
 }
 
@@ -207,11 +214,19 @@ void PvaClientPut::channelPutConnect(
     }
     {
         Lock xx(mutex);
-        channelPutConnectStatus = status;
         this->channelPut = channelPut;
         if(status.isOK()) {
+            channelPutConnectStatus = status;
+            connectState = connected;
             pvaClientData = PvaClientPutData::create(structure);
             pvaClientData->setMessagePrefix(channelPut->getChannel()->getChannelName());
+        } else {
+             stringstream ss;
+             ss << pvRequest;
+             string message = string("\nPvaClientPut::channelPutConnect)")
+               + "\npvRequest\n" + ss.str()
+               + "\nerror\n" + status.getMessage();
+             channelPutConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
         }
     }
     PvaClientPutRequesterPtr  req(pvaClientPutRequester.lock());
@@ -269,6 +284,11 @@ void PvaClientPut::putDone(
 
 void PvaClientPut::connect()
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientPut::connect"
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+           << endl;
+    }
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
@@ -281,18 +301,29 @@ void PvaClientPut::connect()
 
 void PvaClientPut::issueConnect()
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientPut::issueConnect"
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+           << endl;
+    }
     if(connectState!=connectIdle) {
         string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " pvaClientPut already connected ";
         throw std::runtime_error(message);
     }
     connectState = connectActive;
+    channelPutConnectStatus = Status(Status::STATUSTYPE_ERROR, "connect active");
     channelPut = pvaClientChannel->getChannel()->createChannelPut(channelPutRequester,pvRequest);
        
 }
 
 Status PvaClientPut::waitConnect()
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientPut::waitConnect"
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+           << endl;
+    }
     {
         Lock xx(mutex);
         if(connectState==connected) {
@@ -389,6 +420,11 @@ Status PvaClientPut::waitPut()
 
 PvaClientPutDataPtr PvaClientPut::getData()
 {
+    if(PvaClient::getDebug()) {
+           cout<< "PvaClientPut::getData"
+               << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+               << endl;
+    }
     checkPutState();
     return pvaClientData;
 }

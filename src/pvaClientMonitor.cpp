@@ -187,8 +187,17 @@ void PvaClientMonitor::checkMonitorState()
            << " connectState " << connectState
            << endl;
     }
-    if(connectState==connectIdle) connect();
-    if(connectState==connected && !isStarted) start();
+    if(connectState==connectIdle) {
+         connect();
+         if(!isStarted) start();
+         return;
+    }
+    if(connectState==connectActive){
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
+            + " "
+            + monitorConnectStatus.getMessage();
+        throw std::runtime_error(message);
+    }
 }
 
 string PvaClientMonitor::getRequesterName()
@@ -216,17 +225,21 @@ void PvaClientMonitor::monitorConnect(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    if(!status.isOK()) {
-        this->monitor.reset();
-        connectState = connectIdle;
-        string message = string("PvaClientMonitor::monitorConnect channel ") 
-        + pvaClientChannel->getChannel()->getChannelName()
-        + " "
-        + status.getMessage();
-        throw std::runtime_error(message);
+    {
+        Lock xx(mutex);
+        this->monitor = monitor;
+        if(!status.isOK()) {
+             stringstream ss;
+             ss << pvRequest;
+             string message = string("\nPvaClientMonitor::monitorConnect)")
+               + "\npvRequest\n" + ss.str()
+               + "\nerror\n" + status.getMessage();
+             monitorConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
+             return;
+        }
     }
     bool signal = (connectState==connectWait) ? true : false;
-    connectStatus = status;
+    monitorConnectStatus = status;
     connectState = connected;
     if(isStarted) {
         if(PvaClient::getDebug()) {
@@ -306,30 +319,29 @@ void PvaClientMonitor::issueConnect()
 Status PvaClientMonitor::waitConnect()
 {
     if(PvaClient::getDebug()) {
-       cout << "PvaClientMonitor::waitConnect"
+       cout << "PvaClientMonitor::waitConnect "
          << pvaClientChannel->getChannel()->getChannelName()
          << endl;
     }
-    if(connectState==connected) {
-         if(!connectStatus.isOK()) connectState = connectIdle;
-         return connectStatus;
-    }
-    if(connectState!=connectWait) {
-        string message = string("channel ")
-            + pvaClientChannel->getChannel()->getChannelName()
-            + " PvaClientMonitor::waitConnect illegal connect state ";
-        throw std::runtime_error(message);
-    }
-    if(PvaClient::getDebug()) {
-        cout << "PvaClientMonitor::waitConnect calling waitForConnect.wait\n";
+    {
+        Lock xx(mutex);
+        if(connectState==connected) {
+             if(!monitorConnectStatus.isOK()) connectState = connectIdle;
+             return monitorConnectStatus;
+        }
+        if(connectState!=connectWait) {
+            string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
+                + " PvaClientMonitor::waitConnect illegal connect state ";
+            throw std::runtime_error(message);
+        }
     }
     waitForConnect.wait();
-    connectState = connectStatus.isOK() ? connected : connectIdle;
+    connectState = monitorConnectStatus.isOK() ? connected : connectIdle;
     if(PvaClient::getDebug()) {
         cout << "PvaClientMonitor::waitConnect"
-             << " connectStatus " << (connectStatus.isOK() ? "connected" : "not connected");
+             << " monitorConnectStatus " << (monitorConnectStatus.isOK() ? "connected" : "not connected");
     }
-    return connectStatus;
+    return monitorConnectStatus;
 }
 
 void PvaClientMonitor::setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester)
