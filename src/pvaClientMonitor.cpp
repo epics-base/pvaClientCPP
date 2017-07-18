@@ -80,21 +80,56 @@ public:
 
 PvaClientMonitorPtr PvaClientMonitor::create(
         PvaClientPtr const &pvaClient,
-        Channel::shared_pointer const & channel,
+        PvaClientChannelPtr const & pvaClientChannel,
         PVStructurePtr const &pvRequest)
 {
-    PvaClientMonitorPtr epv(new PvaClientMonitor(pvaClient,channel,pvRequest));
-    epv->monitorRequester = MonitorRequesterImplPtr(
-        new MonitorRequesterImpl(epv,pvaClient));
-    return epv;
+   if(PvaClient::getDebug()) {
+         cout<< "PvaClientMonitor::create(pvaClient,pvaClientChannel,pvRequest)\n"
+             << " channelName " << pvaClientChannel->getChannel()->getChannelName() 
+             << endl;
+    }
+    PvaClientMonitorPtr clientMonitor(new PvaClientMonitor(pvaClient,pvaClientChannel,pvRequest));
+    clientMonitor->monitorRequester = MonitorRequesterImplPtr(
+        new MonitorRequesterImpl(clientMonitor,pvaClient));
+    return clientMonitor;
 }
+
+PvaClientMonitorPtr PvaClientMonitor::create(
+        PvaClientPtr const &pvaClient,
+        std::string const & channelName,
+        std::string const & providerName,
+        std::string const & request,
+        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
+        PvaClientMonitorRequesterPtr const & monitorRequester)
+{
+    if(PvaClient::getDebug()) {
+         cout<< "PvaClientMonitor::create(pvaClient,channelName,providerName,request,stateChangeRequester,monitorRequester)\n"
+             << " channelName " <<  channelName
+             << " providerName " <<  providerName
+             << " request " << request
+             << endl;
+    }
+    CreateRequest::shared_pointer createRequest(CreateRequest::create());
+    PVStructurePtr pvRequest(createRequest->createRequest(request));
+    if(!pvRequest) throw std::runtime_error(createRequest->getMessage());
+    PvaClientChannelPtr pvaClientChannel = pvaClient->createChannel(channelName,providerName);
+    PvaClientMonitorPtr clientMonitor(new PvaClientMonitor(pvaClient,pvaClientChannel,pvRequest));
+    clientMonitor->monitorRequester = MonitorRequesterImplPtr(
+        new MonitorRequesterImpl(clientMonitor,pvaClient));
+    if(stateChangeRequester) clientMonitor->pvaClientChannelStateChangeRequester = stateChangeRequester;
+    if(monitorRequester) clientMonitor->pvaClientMonitorRequester = monitorRequester;
+    pvaClientChannel->setStateChangeRequester(clientMonitor);
+    pvaClientChannel->issueConnect();
+    return clientMonitor;
+}
+
 
 PvaClientMonitor::PvaClientMonitor(
         PvaClientPtr const &pvaClient,
-        Channel::shared_pointer const & channel,
+        PvaClientChannelPtr const & pvaClientChannel,
         PVStructurePtr const &pvRequest)
 : pvaClient(pvaClient),
-  channel(channel),
+  pvaClientChannel(pvaClientChannel),
   pvRequest(pvRequest),
   isStarted(false),
   connectState(connectIdle),
@@ -102,21 +137,15 @@ PvaClientMonitor::PvaClientMonitor(
   userWait(false)
 {
     if(PvaClient::getDebug()) {
-         cout<< "PvaClientMonitor::PvaClientMonitor()"
-             << " channelName " << channel->getChannelName() 
-             << endl;
+         cout<< "PvaClientMonitor::PvaClientMonitor()" << endl;
     }
 }
 
 PvaClientMonitor::~PvaClientMonitor()
 {
-    if(PvaClient::getDebug()) cout<< "PvaClientMonitor::~PvaClientMonitor\n";
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout<< "PvaClientMonitor::~PvaClientMonitor"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     if(monitor) {
@@ -125,19 +154,50 @@ PvaClientMonitor::~PvaClientMonitor()
     }
 }
 
+void PvaClientMonitor::channelStateChange(PvaClientChannelPtr const & channel, bool isConnected)
+{
+    if(PvaClient::getDebug()) {
+           cout<< "PvaClientMonitor::channelStateChange"
+               << " channelName " << channel->getChannelName()
+               << " isConnected " << (isConnected ? "true" : "false")
+               << endl;
+    }
+    if(isConnected&&!monitor)
+    {
+        connectState = connectActive;
+        monitor = pvaClientChannel->getChannel()->createMonitor(monitorRequester,pvRequest);
+    }
+    PvaClientChannelStateChangeRequesterPtr req(pvaClientChannelStateChangeRequester.lock());
+    if(req) {
+          req->channelStateChange(channel,isConnected);
+    }
+}
+
+void PvaClientMonitor::event(PvaClientMonitorPtr const & monitor)
+{
+    PvaClientMonitorRequesterPtr req(pvaClientMonitorRequester.lock());
+    if(req) req->event(monitor);
+}
+
 void PvaClientMonitor::checkMonitorState()
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::checkMonitorState"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << " connectState " << connectState
            << endl;
     }
-    if(connectState==connectIdle) connect();
-    if(connectState==connected && !isStarted) start();
+    if(connectState==connectIdle) {
+         connect();
+         if(!isStarted) start();
+         return;
+    }
+    if(connectState==connectActive){
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
+            + " "
+            + monitorConnectStatus.getMessage();
+        throw std::runtime_error(message);
+    }
 }
 
 string PvaClientMonitor::getRequesterName()
@@ -159,50 +219,58 @@ void PvaClientMonitor::monitorConnect(
     Monitor::shared_pointer const & monitor,
     StructureConstPtr const & structure)
 {
-    Channel::shared_pointer chan(channel.lock());
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::monitorConnect"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    connectStatus = status;
+    {
+        Lock xx(mutex);
+        this->monitor = monitor;
+        if(!status.isOK()) {
+             stringstream ss;
+             ss << pvRequest;
+             string message = string("\nPvaClientMonitor::monitorConnect)")
+               + "\npvRequest\n" + ss.str()
+               + "\nerror\n" + status.getMessage();
+             monitorConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
+             return;
+        }
+    }
+    bool signal = (connectState==connectWait) ? true : false;
+    monitorConnectStatus = status;
     connectState = connected;
-    this->monitor = monitor;
     if(isStarted) {
         if(PvaClient::getDebug()) {
-            string channelName("disconnected");
-            Channel::shared_pointer chan(channel.lock());
-            if(chan) channelName = chan->getChannelName();
             cout << "PvaClientMonitor::monitorConnect"
-               << " channelName " << channelName
+               << " channelName " <<  pvaClientChannel->getChannel()->getChannelName()
                << " is already started "
                << endl;
         }
         return;
     }
-    if(status.isOK() && chan) {
-        pvaClientData = PvaClientMonitorData::create(structure);
-        pvaClientData->setMessagePrefix(chan->getChannelName());
+    pvaClientData = PvaClientMonitorData::create(structure);
+    pvaClientData->setMessagePrefix(pvaClientChannel->getChannel()->getChannelName());
+    if(signal) {
+        if(PvaClient::getDebug()) {
+             cout << "PvaClientMonitor::monitorConnect calling waitForConnect.signal\n";
+        }
+        waitForConnect.signal();
+    } else {
+        if(PvaClient::getDebug()) {
+             cout << "PvaClientMonitor::monitorConnect calling start\n";
+        }
+        start();
     }
-    if(PvaClient::getDebug()) {
-         cout << "PvaClientMonitor::monitorConnect calling waitForConnect.signal\n";
-    }
-    waitForConnect.signal();
     
 }
 
 void PvaClientMonitor::monitorEvent(MonitorPtr const & monitor)
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::monitorEvent"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }    
     PvaClientMonitorRequesterPtr req = pvaClientMonitorRequester.lock();
@@ -218,10 +286,7 @@ void PvaClientMonitor::unlisten(MonitorPtr const & monitor)
         req->unlisten();
         return;
     }
-    string channelName("disconnected");
-    Channel::shared_pointer chan(channel.lock());
-    if(chan) channelName = chan->getChannelName();
-    cerr << channelName + "pvaClientMonitor::unlisten called but no PvaClientMonitorRequester\n";
+    cerr << pvaClientChannel->getChannel()->getChannelName() + "pvaClientMonitor::unlisten called but no PvaClientMonitorRequester\n";
 }
 
 
@@ -231,11 +296,8 @@ void PvaClientMonitor::connect()
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    Channel::shared_pointer chan(channel.lock());
-    string channelName("disconnected");
-    if(chan) channelName = chan->getChannelName();
     string message = string("channel ") 
-        + channelName
+        + pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientMonitor::connect "
         + status.getMessage();
     throw std::runtime_error(message);
@@ -244,59 +306,49 @@ void PvaClientMonitor::connect()
 void PvaClientMonitor::issueConnect()
 {
     if(PvaClient::getDebug()) cout << "PvaClientMonitor::issueConnect\n";
-    Channel::shared_pointer chan(channel.lock());
     if(connectState!=connectIdle) {
-        string channelName("disconnected");
-        if(chan) channelName = chan->getChannelName();
         string message = string("channel ")
-            + channelName 
+            + pvaClientChannel->getChannel()->getChannelName()
             + " pvaClientMonitor already connected ";
         throw std::runtime_error(message);
     }
-    if(chan) {
-        connectState = connectActive;
-        monitor = chan->createMonitor(monitorRequester,pvRequest);
-        return;
-    }
-    throw std::runtime_error("PvaClientMonitor::issueConnect() but channel disconnected");
+    connectState = connectWait;
+    monitor = pvaClientChannel->getChannel()->createMonitor(monitorRequester,pvRequest);
 }
 
 Status PvaClientMonitor::waitConnect()
 {
-    if(PvaClient::getDebug()) cout << "PvaClientMonitor::waitConnect\n";
-    if(connectState==connected) {
-         if(!connectStatus.isOK()) connectState = connectIdle;
-         return connectStatus;
-    }
-    if(connectState!=connectActive) {
-        Channel::shared_pointer chan(channel.lock());
-        string channelName("disconnected");
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ")
-            + channelName
-            + " PvaClientMonitor::waitConnect illegal connect state ";
-        throw std::runtime_error(message);
-    }
     if(PvaClient::getDebug()) {
-        cout << "PvaClientMonitor::waitConnect calling waitForConnect.wait\n";
+       cout << "PvaClientMonitor::waitConnect "
+         << pvaClientChannel->getChannel()->getChannelName()
+         << endl;
+    }
+    {
+        Lock xx(mutex);
+        if(connectState==connected) {
+             if(!monitorConnectStatus.isOK()) connectState = connectIdle;
+             return monitorConnectStatus;
+        }
+        if(connectState!=connectWait) {
+            string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
+                + " PvaClientMonitor::waitConnect illegal connect state ";
+            throw std::runtime_error(message);
+        }
     }
     waitForConnect.wait();
-    connectState = connectStatus.isOK() ? connected : connectIdle;
+    connectState = monitorConnectStatus.isOK() ? connected : connectIdle;
     if(PvaClient::getDebug()) {
         cout << "PvaClientMonitor::waitConnect"
-             << " connectStatus " << (connectStatus.isOK() ? "connected" : "not connected");
+             << " monitorConnectStatus " << (monitorConnectStatus.isOK() ? "connected" : "not connected");
     }
-    return connectStatus;
+    return monitorConnectStatus;
 }
 
 void PvaClientMonitor::setRequester(PvaClientMonitorRequesterPtr const & pvaClientMonitorRequester)
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::setRequester"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     this->pvaClientMonitorRequester = pvaClientMonitorRequester;
@@ -305,30 +357,21 @@ void PvaClientMonitor::setRequester(PvaClientMonitorRequesterPtr const & pvaClie
 void PvaClientMonitor::start()
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::start"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << " connectState " << connectState
            << endl;
     }
     if(isStarted) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cerr << "PvaClientMonitor::start"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << " why is this called twice "
            << endl;
         return;
     }
     if(connectState==connectIdle) connect();
     if(connectState!=connected) {
-        Channel::shared_pointer chan(channel.lock());
-        string channelName("disconnected");
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ") + channelName
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " PvaClientMonitor::start illegal state ";
         throw std::runtime_error(message);
     }
@@ -336,15 +379,47 @@ void PvaClientMonitor::start()
     monitor->start();
 }
 
+void PvaClientMonitor::start(string const & request)
+{
+    if(PvaClient::getDebug()) {
+        cout<< "PvaMonitor::start(request)"
+            << " request " << request
+            << endl;
+    }
+    PvaClientPtr client(pvaClient.lock());
+    if(!client) throw std::runtime_error("pvaClient was deleted");
+    if(!pvaClientChannel->getChannel()->isConnected()) {
+        client->message(
+             "PvaClientMonitor::start(request) but not connected",
+             errorMessage);
+        return;
+    }
+    CreateRequest::shared_pointer createRequest(CreateRequest::create());
+    PVStructurePtr pvr(createRequest->createRequest(request));
+    if(!pvr) throw std::runtime_error(createRequest->getMessage());
+    if(monitor) {
+       if(isStarted) monitor->stop();
+       monitor->destroy();
+    }
+    monitorRequester.reset();
+    monitor.reset();
+    isStarted = false;
+    connectState = connectIdle;
+    userPoll = false;
+    userWait = false;
+    monitorRequester = MonitorRequesterImplPtr(
+        new MonitorRequesterImpl(shared_from_this(),client));
+    pvRequest = pvr;
+    connect();
+    start();
+}
+
 
 void PvaClientMonitor::stop()
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::stop"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     if(!isStarted) return;
@@ -355,27 +430,18 @@ void PvaClientMonitor::stop()
 bool PvaClientMonitor::poll()
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::poll"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     checkMonitorState();
     if(!isStarted) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ") + channelName
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " PvaClientMonitor::poll illegal state ";
          throw std::runtime_error(message);
     }
     if(userPoll) {
-                string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ") + channelName
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " PvaClientMonitor::poll did not release last";
         throw std::runtime_error(message);
     }
@@ -389,18 +455,12 @@ bool PvaClientMonitor::poll()
 bool PvaClientMonitor::waitEvent(double secondsToWait)
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::waitEvent"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     if(!isStarted) {
-        Channel::shared_pointer chan(channel.lock());
-        string channelName("disconnected");
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ") + channelName
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " PvaClientMonitor::waitEvent illegal state ";
         throw std::runtime_error(message);
     }
@@ -418,26 +478,17 @@ bool PvaClientMonitor::waitEvent(double secondsToWait)
 void PvaClientMonitor::releaseEvent()
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::releaseEvent"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     if(!isStarted) {
-        Channel::shared_pointer chan(channel.lock());
-        string channelName("disconnected");
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ") + channelName
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " PvaClientMonitor::releaseEvent monitor not started ";
         throw std::runtime_error(message);
     }
     if(!userPoll) {
-        Channel::shared_pointer chan(channel.lock());
-        string channelName("disconnected");
-        if(chan) channelName = chan->getChannelName();
-        string message = string("channel ") + channelName
+        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " PvaClientMonitor::releaseEvent did not call poll";
         throw std::runtime_error(message);
     }
@@ -445,14 +496,16 @@ void PvaClientMonitor::releaseEvent()
     monitor->release(monitorElement);
 }
 
+PvaClientChannelPtr PvaClientMonitor::getPvaClientChannel()
+{
+    return pvaClientChannel;
+}
+
 PvaClientMonitorDataPtr PvaClientMonitor::getData()
 {
     if(PvaClient::getDebug()) {
-        string channelName("disconnected");
-        Channel::shared_pointer chan(channel.lock());
-        if(chan) channelName = chan->getChannelName();
         cout << "PvaClientMonitor::getData"
-           << " channelName " << channelName
+           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     checkMonitorState();

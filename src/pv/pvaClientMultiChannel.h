@@ -145,10 +145,6 @@ public:
      */
     PvaClientNTMultiMonitorPtr createNTMonitor(
         std::string const &request= "field(value,alarm,timeStamp)");
-     /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiChannel(
         PvaClientPtr const &pvaClient,
@@ -209,10 +205,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiGetDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -262,10 +254,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiPutDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -329,10 +317,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientMultiMonitorDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -390,10 +374,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiGet(
          epics::pvData::UnionConstPtr const & u,
@@ -453,10 +433,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiPut(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -523,10 +499,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiMonitor(
          epics::pvData::UnionConstPtr const & u,
@@ -601,10 +573,6 @@ public:
     {
         return shared_from_this();
     }
-    /** Deprecated method
-     * \deprecated This method will go away in future versions. 
-     */
-    void destroy()  EPICS_DEPRECATED {}
 private:
     PvaClientNTMultiData(
          epics::pvData::UnionConstPtr const & u,

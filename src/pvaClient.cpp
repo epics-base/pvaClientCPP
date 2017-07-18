@@ -104,22 +104,31 @@ PvaClientPtr PvaClient::get(std::string const & providerNames)
 PvaClient::PvaClient(std::string const & providerNames)
 :  pvaClientChannelCache(new PvaClientChannelCache()),
    pvaStarted(false),
-   caStarted(false)
+   caStarted(false),
+   channelRegistry(ChannelProviderRegistry::clients())
 {
     stringstream ss(providerNames);
     string providerName;
+    if(PvaClient::debug) {
+         cout<< "PvaClient::PvaClient()\n";
+    }
     while (getline(ss, providerName, ' '))
     {
-         ChannelProviderRegistry::shared_pointer registry(getChannelProviderRegistry());
          if(providerName=="pva") {
+             if(PvaClient::debug) {
+                  cout<< "calling ClientFactory::start()\n";
+              }
              ClientFactory::start();
              pvaStarted = true;
          } else if(providerName=="ca") {
+             if(PvaClient::debug) {
+                  cout<< "calling CAClientFactory::start()\n";
+              }
              CAClientFactory::start();
              caStarted = true;
-         } else {
-             if(!registry->getProvider(providerName)) {
-                  cerr << "PvaClient::get provider " << providerName  << " not known" << endl;
+         } else { 
+             if(!channelRegistry->getProvider(providerName)) {
+                 cerr << "PvaClient::get provider " << providerName  << " not known" << endl;
              }
          }
     }
@@ -141,6 +150,7 @@ PvaClient::~PvaClient() {
         CAClientFactory::stop();
         if(PvaClient::debug) cout<< "after calling CAClientFactory::stop()\n";
     }
+channelRegistry.reset();
 }
 
 string PvaClient:: getRequesterName()

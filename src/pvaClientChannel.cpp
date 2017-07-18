@@ -122,60 +122,12 @@ size_t PvaClientPutCache::cacheSize()
 
 }
 
-class epicsShareClass ChannelRequesterImpl : public ChannelRequester
-{
-    PvaClientChannel::weak_pointer pvaClientChannel;
-    PvaClient::weak_pointer pvaClient;
-public:
-    ChannelRequesterImpl(
-        PvaClientChannelPtr const & pvaClientChannel,
-        PvaClientPtr const &pvaClient)
-    : pvaClientChannel(pvaClientChannel),
-      pvaClient(pvaClient)
-    {}
-    virtual ~ChannelRequesterImpl() {
-        if(PvaClient::getDebug()) std::cout << "~ChannelRequesterImpl" << std::endl;
-    }
-
-    virtual std::string getRequesterName() {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return string("clientChannel is null");
-        return clientChannel->getRequesterName();
-    }
-
-    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return;
-        clientChannel->message(message,messageType);
-    }
-
-    virtual void channelCreated(
-         const epics::pvData::Status& status,
-         Channel::shared_pointer const & channel)
-    {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return;
-        clientChannel->channelCreated(status,channel);
-    }
-
-    virtual void channelStateChange(
-          Channel::shared_pointer const & channel,
-          Channel::ConnectionState connectionState)
-    {
-        PvaClientChannelPtr clientChannel(pvaClientChannel.lock());
-        if(!clientChannel) return;
-        clientChannel->channelStateChange(channel,connectionState);
-    }
-};
-
 PvaClientChannelPtr PvaClientChannel::create(
    PvaClientPtr const &pvaClient,
    string const & channelName,
    string const & providerName)
 {
     PvaClientChannelPtr channel(new PvaClientChannel(pvaClient,channelName,providerName));
-    channel->channelRequester = ChannelRequesterImplPtr(
-        new ChannelRequesterImpl(channel,pvaClient));
     return channel;
 }
 
@@ -332,13 +284,13 @@ void PvaClientChannel::issueConnect()
         }
         connectState = connectActive;
     }
-    ChannelProviderRegistry::shared_pointer reg = getChannelProviderRegistry();
-    ChannelProvider::shared_pointer provider = reg->getProvider(providerName);
-    if(!provider) {
+    ChannelProviderRegistry::shared_pointer reg(ChannelProviderRegistry::clients());
+    channelProvider = reg->getProvider(providerName);
+    if(!channelProvider) {
         throw std::runtime_error(channelName + " provider " + providerName + " not registered");
     }
     if(PvaClient::getDebug()) cout << "PvaClientChannel::issueConnect calling provider->createChannel\n";
-    channel = provider->createChannel(channelName,channelRequester,ChannelProvider::PRIORITY_DEFAULT);
+    channel = channelProvider->createChannel(channelName,shared_from_this(),ChannelProvider::PRIORITY_DEFAULT);
     if(!channel) {
          throw std::runtime_error(channelName + " channelCreate failed ");
     }
@@ -421,7 +373,7 @@ PvaClientGetPtr PvaClientChannel::createGet(PVStructurePtr const &  pvRequest)
     if(connectState!=connected) connect(5.0);
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientGet::create(yyy,channel,pvRequest);
+    return PvaClientGet::create(yyy,shared_from_this(),pvRequest);
 }
 
 
@@ -454,7 +406,7 @@ PvaClientPutPtr PvaClientChannel::createPut(PVStructurePtr const & pvRequest)
     if(connectState!=connected) connect(5.0);
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientPut::create(yyy,channel,pvRequest);
+    return PvaClientPut::create(yyy,shared_from_this(),pvRequest);
 }
 
 PvaClientPutGetPtr PvaClientChannel::createPutGet(string const & request)
@@ -538,7 +490,7 @@ PvaClientMonitorPtr  PvaClientChannel::createMonitor(PVStructurePtr const &  pvR
     if(connectState!=connected) connect(5.0);
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientMonitor::create(yyy,channel,pvRequest);
+    return PvaClientMonitor::create(yyy,shared_from_this(),pvRequest);
 }
 
 PVStructurePtr PvaClientChannel::rpc(
