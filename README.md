@@ -21,29 +21,3 @@ It can also be built by:
     edit configure/RELEASE.local
     make
 
-
-Examples
-------------
-
-Project exampleCPP has examples for pvaClientCPP
-
-Status
-------
-
-* The API is for EPICS Version 4 release 4.6.0
-* Everything defined in pvaClient.h is ready but see below for remaining work.
-* Everything defined in pvaClientMultiChannel.h is ready but see below for remaining work.
-
-
-pvaClientChannel
----------------
-
-Channel::getField and channelArray are not supported for release 4.6
-
-pvaClientMultiChannel
----------------
-
-For release 4.5 support is available for multiDouble and NTMultiChannel.
-In the future additional support should be provided that at least includes NTScalarMultiChannel.
-
-Testing with some channels not connected has not been done.

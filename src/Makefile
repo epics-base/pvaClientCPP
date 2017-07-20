@@ -6,7 +6,7 @@ include $(TOP)/configure/CONFIG
 LIBRARY += pvaClient
 
 # shared library ABI version.
-SHRLIB_VERSION ?= 4.2.0
+SHRLIB_VERSION ?= 4.3.0
 
 INC += pv/pvaClient.h
 INC += pv/pvaClientMultiChannel.h
@@ -31,7 +31,7 @@ LIBSRCS += pvaClientNTMultiGet.cpp
 LIBSRCS += pvaClientNTMultiMonitor.cpp
 LIBSRCS += pvaClientRPC.cpp
 
-pvaClient_LIBS += pvAccess nt pvData Com
+pvaClient_LIBS += pvAccessCA pvAccess nt pvData Com
 pvaClient_LIBS +=  $(EPICS_BASE_IOC_LIBS)
 
 include $(TOP)/configure/RULES
