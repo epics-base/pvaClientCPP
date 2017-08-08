@@ -196,7 +196,7 @@ typedef std::tr1::shared_ptr<PvaClientPutCache> PvaClientPutCachePtr;
  * <a href = "../htmldoxygen/pvaClientChannelStateChangeRequester.html">Overview of PvaClientChannelStateChangeRequester</a>
  *
  */
-class PvaClientChannelStateChangeRequester
+class epicsShareClass PvaClientChannelStateChangeRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientChannelStateChangeRequester);
@@ -1023,7 +1023,7 @@ typedef std::tr1::shared_ptr<ChannelGetRequesterImpl> ChannelGetRequesterImplPtr
  *
  * <a href = "../htmldoxygen/pvaClientGetRequester.html">Overview of PvaClientGetRequester</a>
  */
-class PvaClientGetRequester
+class epicsShareClass PvaClientGetRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientGetRequester);
@@ -1035,7 +1035,9 @@ public:
      */
     virtual void channelGetConnect(
         const epics::pvData::Status& status,
-        PvaClientGetPtr const & clientGet);
+        PvaClientGetPtr const & clientGet)
+    {
+    }
      /** @brief A get request is complete.
      *
      * @param status The status returned by the server.
@@ -1043,7 +1045,7 @@ public:
      */
     virtual void getDone(
         const epics::pvData::Status& status,
-        PvaClientGetPtr const & clientGet);
+        PvaClientGetPtr const & clientGet) = 0;
 };
 /**
  * @brief An easy to use alternative to ChannelGet.
@@ -1188,7 +1190,7 @@ typedef std::tr1::shared_ptr<ChannelPutRequesterImpl> ChannelPutRequesterImplPtr
  *
  * <a href = "../htmldoxygen/pvaClientPutRequester.html">Overview of PvaClientPutRequester</a>
  */
-class PvaClientPutRequester
+class epicsShareClass PvaClientPutRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientPutRequester);
@@ -1200,7 +1202,9 @@ public:
      */
     virtual void channelPutConnect(
         const epics::pvData::Status& status,
-        PvaClientPutPtr const & clientPut);
+        PvaClientPutPtr const & clientPut)
+     {
+     }
      /** @brief A get request is complete.
      *
      * @param status The status returned by the server.
@@ -1208,7 +1212,9 @@ public:
      */
     virtual void getDone(
         const epics::pvData::Status& status,
-        PvaClientPutPtr const & clientPut);
+        PvaClientPutPtr const & clientPut)
+    {
+    }
      /** @brief A put request is complete.
      *
      * @param status The status returned by the server.
@@ -1216,7 +1222,7 @@ public:
      */
     virtual void putDone(
         const epics::pvData::Status& status,
-        PvaClientPutPtr const & clientPut);
+        PvaClientPutPtr const & clientPut) = 0;
 };
 
 /**
@@ -1511,10 +1517,20 @@ private :
  *
  * <a href = "../htmldoxygen/pvaClientMonitorRequester.html">Overview of PvaClientMonitorRequester</a>
  */
-class PvaClientMonitorRequester
+class epicsShareClass PvaClientMonitorRequester
 {
 public:
     POINTER_DEFINITIONS(PvaClientMonitorRequester);
+    /** @brief The server has returned a message that the monitor is connected.
+     *
+     * @param status Completion status.
+     * @param monitor The monitor
+     * @param structure The structure defining the data.
+     */
+    virtual void monitorConnect(epics::pvData::Status const & status,
+        PvaClientMonitorPtr const & monitor, epics::pvData::StructureConstPtr const & structure)
+    {
+    }
     virtual ~PvaClientMonitorRequester() {}
     /** @brief A monitor event has occurred.
      * @param monitor The PvaClientMonitor that received the event.

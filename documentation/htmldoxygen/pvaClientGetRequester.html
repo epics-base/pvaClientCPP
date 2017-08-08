@@ -35,8 +35,23 @@
 
 <h1>PvaClientGetRequester</h1>
 
+<p>This is a virtual class that can be implemented by a client that uses <b>PvaClientGet</b>.
+It has the methods:</p>
+<pre>
+virtual void channelGetConnect(
+    const Status&amp; status,
+    PvaClientGetPtr const &amp; clientGet) {}
+virtual void getDone(
+    const Status&amp; status,
+    PvaClientGetPtr const &amp; clientGet) = 0;
+</pre>
+
+<p>The client must call</p>
+<pre>
+pvaClientGet->setRequester(shared_from_this());
+</pre>
 <p>
-<b>Not Yet Written</b>
+after creating an instance of PvaClientGet.
 </p>
 
 </body>

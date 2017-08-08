@@ -263,7 +263,8 @@ void PvaClientMonitor::monitorConnect(
         }
         start();
     }
-    
+    PvaClientMonitorRequesterPtr req(pvaClientMonitorRequester.lock());
+    if(req) req->monitorConnect(status,shared_from_this(),structure);
 }
 
 void PvaClientMonitor::monitorEvent(MonitorPtr const & monitor)
