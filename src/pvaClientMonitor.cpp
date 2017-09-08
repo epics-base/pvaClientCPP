@@ -150,7 +150,6 @@ PvaClientMonitor::~PvaClientMonitor()
     }
     if(monitor) {
        if(isStarted) monitor->stop();
-       monitor->destroy();
     }
 }
 
@@ -400,7 +399,6 @@ void PvaClientMonitor::start(string const & request)
     if(!pvr) throw std::runtime_error(createRequest->getMessage());
     if(monitor) {
        if(isStarted) monitor->stop();
-       monitor->destroy();
     }
     monitorRequester.reset();
     monitor.reset();

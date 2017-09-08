@@ -132,7 +132,6 @@ PvaClientPutGet::~PvaClientPutGet()
            << " channelName " << channelName
            << endl;
     }
-    channelPutGet->destroy();
 }
 
 void PvaClientPutGet::checkPutGetState()

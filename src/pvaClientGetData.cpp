@@ -42,6 +42,10 @@ static string noTimeStamp("no timeStamp");
 
 PvaClientGetDataPtr PvaClientGetData::create(StructureConstPtr const & structure)
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientGetData::create"
+           << endl;
+    }
     PvaClientGetDataPtr epv(new PvaClientGetData(structure));
     return epv;
 }
@@ -54,6 +58,10 @@ PvaClientGetData::PvaClientGetData(StructureConstPtr const & structure)
 
 void PvaClientGetData::checkValue()
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientGetData::checkValue"
+           << endl;
+    }
     if(pvValue) return;
     throw std::runtime_error(messagePrefix + noValue);
 }
@@ -100,6 +108,10 @@ void PvaClientGetData::setData(
     PVStructurePtr const & pvStructureFrom,
     BitSetPtr const & bitSetFrom)
 {
+    if(PvaClient::getDebug()) {
+        cout << "PvaClientGetData::setData"
+           << endl;
+    }
    pvStructure = pvStructureFrom;
    bitSet = bitSetFrom;
    pvValue = pvStructure->getSubField("value");
