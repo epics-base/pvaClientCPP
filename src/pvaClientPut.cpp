@@ -70,7 +70,7 @@ public:
         clientPut->getDone(status,channelPut,pvStructure,bitSet);
     }
 
-        virtual void putDone(
+    virtual void putDone(
         const Status& status,
         ChannelPut::shared_pointer const & channelPut)
     {

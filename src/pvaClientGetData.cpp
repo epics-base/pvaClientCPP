@@ -51,9 +51,12 @@ PvaClientGetDataPtr PvaClientGetData::create(StructureConstPtr const & structure
 }
 
 PvaClientGetData::PvaClientGetData(StructureConstPtr const & structure)
-: structure(structure)
+: structure(structure),
+  pvStructure(getPVDataCreate()->createPVStructure(structure)),
+  bitSet(BitSetPtr(new BitSet(pvStructure->getNumberFields())))
 {
     messagePrefix = "";
+    pvValue = pvStructure->getSubField("value");
 }
 
 void PvaClientGetData::checkValue()

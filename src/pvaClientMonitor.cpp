@@ -256,6 +256,10 @@ void PvaClientMonitor::monitorConnect(
              cout << "PvaClientMonitor::monitorConnect calling waitForConnect.signal\n";
         }
         waitForConnect.signal();
+        if(PvaClient::getDebug()) {
+             cout << "PvaClientMonitor::monitorConnect calling start\n";
+        }
+        start();
     } else {
         if(PvaClient::getDebug()) {
              cout << "PvaClientMonitor::monitorConnect calling start\n";
@@ -339,7 +343,8 @@ Status PvaClientMonitor::waitConnect()
     connectState = monitorConnectStatus.isOK() ? connected : connectIdle;
     if(PvaClient::getDebug()) {
         cout << "PvaClientMonitor::waitConnect"
-             << " monitorConnectStatus " << (monitorConnectStatus.isOK() ? "connected" : "not connected");
+             << " monitorConnectStatus " << (monitorConnectStatus.isOK() ? "connected" : "not connected")
+             << endl;
     }
     return monitorConnectStatus;
 }
@@ -410,7 +415,6 @@ void PvaClientMonitor::start(string const & request)
         new MonitorRequesterImpl(shared_from_this(),client));
     pvRequest = pvr;
     connect();
-    start();
 }
 
 

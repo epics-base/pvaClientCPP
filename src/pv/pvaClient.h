@@ -73,6 +73,9 @@ typedef std::tr1::shared_ptr<PvaClientPutRequester> PvaClientPutRequesterPtr;
 typedef std::tr1::weak_ptr<PvaClientPutRequester> PvaClientPutRequesterWPtr;
 class PvaClientPut;
 typedef std::tr1::shared_ptr<PvaClientPut> PvaClientPutPtr;
+class PvaClientPutGetRequester;
+typedef std::tr1::shared_ptr<PvaClientPutGetRequester> PvaClientPutGetRequesterPtr;
+typedef std::tr1::weak_ptr<PvaClientPutGetRequester> PvaClientPutGetRequesterWPtr;
 class PvaClientPutGet;
 typedef std::tr1::shared_ptr<PvaClientPutGet> PvaClientPutGetPtr;
 class PvaClientMonitor;
@@ -346,7 +349,7 @@ public:
      * @return The interface.
      */
     PvaClientPutGetPtr createPutGet(epics::pvData::PVStructurePtr const & pvRequest);
-    /** @brief Create a PvaClientPutGet.
+    /** @brief Create a PvaClientArray.
      *
      * First call createRequest as implemented by pvDataJava and then call the next method.
      * @param request The syntax of request is defined by the copy facility of pvData.
@@ -946,7 +949,7 @@ public:
      /** @brief A process request is complete.
      *
      * @param status The status returned by the server.
-     * @param clientProcess The PvaClientProcess that issued the request to create a ChannelProcess.
+     * @param clientProcess The PvaClientProcess that issued the process request.
      */
     virtual void processDone(
         const epics::pvData::Status& status,
@@ -1089,7 +1092,7 @@ public:
      /** @brief A get request is complete.
      *
      * @param status The status returned by the server.
-     * @param clientGet The PvaClientGet that issued the request to create a ChannelGet.
+     * @param clientGet The PvaClientGet that issued the get request
      */
     virtual void getDone(
         const epics::pvData::Status& status,
@@ -1237,7 +1240,7 @@ public:
      /** @brief A get request is complete.
      *
      * @param status The status returned by the server.
-     * @param clientPut The PvaClientPut that issued the request to create a ChannelPut.
+     * @param clientPut The PvaClientPut that issued the get request.
      */
     virtual void getDone(
         const epics::pvData::Status& status,
@@ -1247,7 +1250,7 @@ public:
      /** @brief A put request is complete.
      *
      * @param status The status returned by the server.
-     * @param clientPut The PvaClientPut that issued the request to create a ChannelPut.
+     * @param clientPut The PvaClientPut that issued the put request.
      */
     virtual void putDone(
         const epics::pvData::Status& status,
@@ -1383,12 +1386,66 @@ public:
 class ChannelPutGetRequesterImpl;
 typedef std::tr1::shared_ptr<ChannelPutGetRequesterImpl> ChannelPutGetRequesterImplPtr;
 
+/**
+ * @brief Optional client callback.
+ *
+ * <a href = "../htmldoxygen/pvaClientPutGetRequester.html">Overview of PvaClientPutGetRequester</a>
+ */
+class epicsShareClass PvaClientPutGetRequester
+{
+public:
+    POINTER_DEFINITIONS(PvaClientPutGetRequester);
+    virtual ~PvaClientPutGetRequester() {}
+    /** @brief A channelPutGet has connected.
+     *
+     * @param status The status returned by the server.
+     * @param clientPutGet The PvaClientPutGet that issued the request to create a ChannelPutGet.
+     */
+    virtual void channelPutGetConnect(
+        const epics::pvData::Status& status,
+        PvaClientPutGetPtr const & clientPutGet)
+     {
+     }
+     /** @brief A putGet request is complete.
+     *
+     * @param status The status returned by the server.
+     * @param clientPutGet The PvaClientPutGet that issued the putGet request.
+     */
+    virtual void putGetDone(
+        const epics::pvData::Status& status,
+        PvaClientPutGetPtr const & clientPutGet) = 0;
+     /** @brief A getPut request is complete.
+     *
+     * @param status The status returned by the server.
+     * @param clientPutGet The PvaClientPutGet that issued the getPut request.
+     */
+    virtual void getPutDone(
+        const epics::pvData::Status& status,
+        PvaClientPutGetPtr const & clientPutGet)
+     {
+     }
+     /** @brief A getGet request is complete.
+     *
+     * @param status The status returned by the server.
+     * @param clientPutGet The PvaClientPutGet that issued the getGet request.
+     */
+    virtual void getGetDone(
+        const epics::pvData::Status& status,
+        PvaClientPutGetPtr const & clientPutGet)
+    {
+    }
+    
+};
+
+
 /** 
  * @brief An easy to use alternative to ChannelPutGet.
  *
  * <a href = "../htmldoxygen/pvaClientPutGet.html">Overview of PvaClientPutGet</a>
  */
-class epicsShareClass PvaClientPutGet 
+class epicsShareClass PvaClientPutGet :
+    public PvaClientChannelStateChangeRequester,
+    public std::tr1::enable_shared_from_this<PvaClientPutGet>
 {
 public:
     POINTER_DEFINITIONS(PvaClientPutGet);
@@ -1400,12 +1457,16 @@ public:
      */
     static PvaClientPutGetPtr create(
         PvaClientPtr const &pvaClient,
-        epics::pvAccess::Channel::shared_pointer const & channel,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
     /** @brief Destructor
      */
     ~PvaClientPutGet();
+     /** @brief Set a user callback.
+     * @param pvaClientPutGetRequester The requester which must be implemented by the caller.
+     */
+    void setRequester(PvaClientPutGetRequesterPtr const & pvaClientPutGetRequester);
 
     /** @brief Call issueConnect and then waitConnect.
      *
@@ -1470,6 +1531,11 @@ public:
      * @return The interface.
      */
     PvaClientGetDataPtr getGetData(); 
+    /** @brief Get the PvaClientChannel;
+     *
+     * @return The interface.
+     */
+    PvaClientChannelPtr getPvaClientChannel();
 private :
     std::string getRequesterName();
     void message(std::string const & message,epics::pvData::MessageType messageType);
@@ -1496,13 +1562,13 @@ private :
 
     PvaClientPutGet(
         PvaClientPtr const &pvaClient,
-        epics::pvAccess::Channel::shared_pointer const & channel,
+        PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest);
     void checkPutGetState();
     enum PutGetConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
-    epics::pvAccess::Channel::weak_pointer channel;
+    PvaClientChannelPtr pvaClientChannel;
     epics::pvData::PVStructurePtr pvRequest;
     epics::pvData::Mutex mutex;
     epics::pvData::Event waitForConnect;
@@ -1518,6 +1584,10 @@ private :
     enum PutGetState {putGetIdle,putGetActive,putGetComplete};
     PutGetState putGetState;
     ChannelPutGetRequesterImplPtr channelPutGetRequester;
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
+    PvaClientPutGetRequesterWPtr pvaClientPutGetRequester;
+public:
+    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelPutGetRequesterImpl;
 };
 

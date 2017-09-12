@@ -430,7 +430,7 @@ PvaClientPutGetPtr PvaClientChannel::createPutGet(PVStructurePtr const & pvReque
     if(connectState!=connected) connect(5.0);
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientPutGet::create(yyy,channel,pvRequest);
+    return PvaClientPutGet::create(yyy,shared_from_this(),pvRequest);
 }
 
 
