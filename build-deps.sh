@@ -72,7 +72,6 @@ EOF
 cat << EOF > normativeTypesCPP/configure/RELEASE.local
 PVDATA=$HOME/.source/pvDataCPP
 EPICS_BASE=$HOME/.source/epics-base
-PVACCESS=$HOME/.source/pvAccessCPP
 EOF
 
 make -j2 -C epics-base
