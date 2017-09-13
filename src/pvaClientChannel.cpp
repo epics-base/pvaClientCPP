@@ -341,17 +341,19 @@ PvaClientProcessPtr PvaClientChannel::createProcess(PVStructurePtr const &  pvRe
     if(connectState!=connected) connect(5.0);
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientProcess::create(yyy,channel,pvRequest);
+    return PvaClientProcess::create(yyy,shared_from_this(),pvRequest);
 }
 
 
 PvaClientGetPtr PvaClientChannel::get(string const & request)
 {
     PvaClientGetPtr pvaClientGet = pvaClientGetCache->getGet(request);
-    if(pvaClientGet) return pvaClientGet;
-    pvaClientGet = createGet(request);
-    pvaClientGet->connect();
-    pvaClientGetCache->addGet(request,pvaClientGet);
+    if(!pvaClientGet) {
+        pvaClientGet = createGet(request);
+        pvaClientGet->connect();
+        pvaClientGetCache->addGet(request,pvaClientGet);
+    }
+    pvaClientGet->get();
     return pvaClientGet;
 }
 
@@ -381,10 +383,12 @@ PvaClientPutPtr PvaClientChannel::put(string const & request)
 {
     PvaClientPutPtr pvaClientPut = pvaClientPutCache->getPut(request);
     if(pvaClientPut) return pvaClientPut;
-    pvaClientPut = createPut(request);
-    pvaClientPut->connect();
-    pvaClientPut->get();
-    pvaClientPutCache->addPut(request,pvaClientPut);
+    if(!pvaClientPut) {
+        pvaClientPut = createPut(request);
+        pvaClientPut->connect();
+        pvaClientPut->get();
+        pvaClientPutCache->addPut(request,pvaClientPut);
+    }
     return pvaClientPut;
 }
 
@@ -426,7 +430,7 @@ PvaClientPutGetPtr PvaClientChannel::createPutGet(PVStructurePtr const & pvReque
     if(connectState!=connected) connect(5.0);
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
-    return PvaClientPutGet::create(yyy,channel,pvRequest);
+    return PvaClientPutGet::create(yyy,shared_from_this(),pvRequest);
 }
 
 

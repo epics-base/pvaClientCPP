@@ -77,7 +77,7 @@ PvaClientGetPtr PvaClientGet::create(
         PVStructurePtr const &pvRequest)
 {
     if(PvaClient::getDebug()) {
-         cout<< "PvaClientGet::create(pvaClient,channelName,providerName,pvRequest)\n"
+         cout<< "PvaClientGet::create(pvaClient,channelName,pvRequest)\n"
              << " channelName " <<  pvaClientChannel->getChannel()->getChannelName()
              << " pvRequest " << pvRequest
              << endl;
@@ -85,35 +85,6 @@ PvaClientGetPtr PvaClientGet::create(
     PvaClientGetPtr clientGet(new PvaClientGet(pvaClient,pvaClientChannel,pvRequest));
     clientGet->channelGetRequester = ChannelGetRequesterImplPtr(
         new ChannelGetRequesterImpl(clientGet,pvaClient));
-    return clientGet;
-}
-
-PvaClientGetPtr PvaClientGet::create(
-        PvaClientPtr const &pvaClient,
-        std::string const & channelName,
-        std::string const & providerName,
-        std::string const & request,
-        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester,
-        PvaClientGetRequesterPtr const & getRequester)
-{
-    if(PvaClient::getDebug()) {
-         cout<< "PvaClientGet::create(pvaClient,channelName,providerName,request,stateChangeRequester,getRequester)\n"
-             << " channelName " <<  channelName
-             << " providerName " <<  providerName
-             << " request " << request
-             << endl;
-    }
-    CreateRequest::shared_pointer createRequest(CreateRequest::create());
-    PVStructurePtr pvRequest(createRequest->createRequest(request));
-    if(!pvRequest) throw std::runtime_error(createRequest->getMessage());
-    PvaClientChannelPtr pvaClientChannel = pvaClient->createChannel(channelName,providerName);
-    PvaClientGetPtr clientGet(new PvaClientGet(pvaClient,pvaClientChannel,pvRequest));
-    clientGet->channelGetRequester = ChannelGetRequesterImplPtr(
-        new ChannelGetRequesterImpl(clientGet,pvaClient));
-    if(stateChangeRequester) clientGet->pvaClientChannelStateChangeRequester = stateChangeRequester;
-    if(getRequester) clientGet->pvaClientGetRequester = getRequester;
-    pvaClientChannel->setStateChangeRequester(clientGet);
-    pvaClientChannel->issueConnect();
     return clientGet;
 }
 
@@ -141,7 +112,6 @@ PvaClientGet::~PvaClientGet()
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
-    if(channelGet) channelGet->destroy();
 }
 
 void PvaClientGet::channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected)
@@ -184,7 +154,6 @@ void PvaClientGet::checkGetState()
             + channelGetConnectStatus.getMessage();
         throw std::runtime_error(message);
     }
-    if(getState==getIdle) get();
 }
 
 // from ChannelGetRequester
@@ -253,6 +222,7 @@ void PvaClientGet::getDone(
     {
         Lock xx(mutex);
         channelGetStatus = status;
+        getState = getComplete;
         if(status.isOK()) {
             pvaClientData->setData(pvStructure,bitSet);
         }
@@ -362,6 +332,7 @@ Status PvaClientGet::waitGet()
     {
         Lock xx(mutex);
         if(getState==getComplete) {
+            getState = getIdle;
             return channelGetStatus;
         }
         if(getState!=getActive){
@@ -376,7 +347,13 @@ Status PvaClientGet::waitGet()
 }
 PvaClientGetDataPtr PvaClientGet::getData()
 {
+    if(PvaClient::getDebug()) {
+           cout<< "PvaClientGet::getData"
+               << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+               << endl;
+    }
     checkGetState();
+    if(getState==getIdle) get();
     return pvaClientData;
 }
 

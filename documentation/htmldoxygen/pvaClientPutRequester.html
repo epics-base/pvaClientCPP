@@ -35,9 +35,28 @@
 
 <h1>PvaClientPutRequester</h1>
 
+<p>This is a virtual class that can be implemented by a client that uses <b>PvaClientPut</b>.
+It has the methods:</p>
+<pre>
+virtual void channelPutConnect(
+    const Status&amp; status,
+    PvaClientPutPtr const &amp; clientPut) {}
+virtual void getDone(
+    const Status&amp; status,
+    PvaClientPutPtr const &amp; clientPut) {}
+virtual void putDone(
+    const Status&amp; status,
+    PvaClientPutPtr const &amp; clientPut) = 0;
+</pre>
+
+<p>The client must call</p>
+<pre>
+pvaClientPut->setRequester(shared_from_this());
+</pre>
 <p>
-<b>Not Yet Written</b>
+after creating an instance of PvaClientPut.
 </p>
+
 
 </body>
 </html>
