@@ -174,5 +174,7 @@ make -j2 -C epics-base $EXTRA
 
 if [ "$BRBASE" ]
 then
-  make -j2 -C pvData $EXTRA
+make -j2 -C pvData $EXTRA
+make -j2 -C pvAccess $EXTRA
+make -j2 -C normativeTypes $EXTRA
 fi
