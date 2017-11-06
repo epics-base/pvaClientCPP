@@ -87,7 +87,18 @@ size_t PvaClientChannelCache::cacheSize()
 
 }
 
-bool PvaClient::debug = false;
+// MSVC doesn't like making this a class static data member:
+static bool debug = 0;
+
+void PvaClient::setDebug(bool value)
+{
+    debug = value;
+}
+
+bool PvaClient::getDebug()
+{
+    return debug;
+}
 
 PvaClientPtr PvaClient::get(std::string const & providerNames)
 {
@@ -109,19 +120,19 @@ PvaClient::PvaClient(std::string const & providerNames)
 {
     stringstream ss(providerNames);
     string providerName;
-    if(PvaClient::debug) {
+    if(getDebug()) {
          cout<< "PvaClient::PvaClient()\n";
     }
     while (getline(ss, providerName, ' '))
     {
          if(providerName=="pva") {
-             if(PvaClient::debug) {
+             if(getDebug()) {
                   cout<< "calling ClientFactory::start()\n";
               }
              ClientFactory::start();
              pvaStarted = true;
          } else if(providerName=="ca") {
-             if(PvaClient::debug) {
+             if(getDebug()) {
                   cout<< "calling CAClientFactory::start()\n";
               }
              CAClientFactory::start();
@@ -135,20 +146,20 @@ PvaClient::PvaClient(std::string const & providerNames)
 }
 
 PvaClient::~PvaClient() {
-    if(PvaClient::debug) {
+    if(getDebug()) {
         cout<< "PvaClient::~PvaClient()\n"
             << "pvaChannel cache:\n";
         showCache();
     }
     if(pvaStarted){
-        if(PvaClient::debug) cout<< "calling ClientFactory::stop()\n";
+        if(getDebug()) cout<< "calling ClientFactory::stop()\n";
         ClientFactory::stop();
-        if(PvaClient::debug) cout<< "after calling ClientFactory::stop()\n";
+        if(getDebug()) cout<< "after calling ClientFactory::stop()\n";
     }
     if(caStarted) {
-        if(PvaClient::debug) cout<< "calling CAClientFactory::stop()\n";
+        if(getDebug()) cout<< "calling CAClientFactory::stop()\n";
         CAClientFactory::stop();
-        if(PvaClient::debug) cout<< "after calling CAClientFactory::stop()\n";
+        if(getDebug()) cout<< "after calling CAClientFactory::stop()\n";
     }
 channelRegistry.reset();
 }

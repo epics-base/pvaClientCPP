@@ -95,6 +95,7 @@ typedef std::tr1::weak_ptr<PvaClientRPCRequester> PvaClientRPCRequesterWPtr;
 class PvaClientChannelCache;
 typedef std::tr1::shared_ptr<PvaClientChannelCache> PvaClientChannelCachePtr;
 
+
 /**
  * @brief  pvaClient is a synchronous wrapper for the pvAccess API, which is a callback based API.
  *
@@ -172,14 +173,13 @@ public:
      *
      * @param value true or false
      */
-    static void setDebug(bool value) {debug = value;}
+    static void setDebug(bool value);
     /** @brief Is debug set?
      *
      * @return true or false
      */
-    static bool getDebug() {return debug;}
+    static bool getDebug();
 private:
-    static bool debug;
     PvaClient(std::string const & providerNames);
     PvaClientChannelCachePtr pvaClientChannelCache;
     epics::pvData::Requester::weak_pointer requester;
