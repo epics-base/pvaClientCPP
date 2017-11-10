@@ -368,10 +368,6 @@ void PvaClientMonitor::start()
            << endl;
     }
     if(isStarted) {
-        cerr << "PvaClientMonitor::start"
-           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
-           << " why is this called twice "
-           << endl;
         return;
     }
     if(connectState==connectIdle) connect();
