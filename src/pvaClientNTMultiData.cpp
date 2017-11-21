@@ -145,7 +145,7 @@ void PvaClientNTMultiData::endDeltaTime()
         PVStructurePtr pvst = topPVStructure[i];
         if(!pvst) {
             unionValue[i] = PVUnionPtr();
-        } else {
+        } else if(unionValue[i]) {
             unionValue[i]->set(pvst->getSubField("value"));
             if(gotAlarm)
             {
