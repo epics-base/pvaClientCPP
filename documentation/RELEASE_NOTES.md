@@ -1,10 +1,10 @@
-EPICS V4 release 4.7
-====================
+pvaClientCPP Version 4.3.0
+==========================
 
-Works with release/7.0 of pvDataCPP and release/6.0 of pvAccessCPP
-------------------------------------------------------------------
+Works with pvDataCPP-7.0 and pvAccessCPP-6.0 versions
+-----------------------------------------------------
 
-Will not work with older versions.
+Will not work with older versions of these modules.
 
 destroy methods removed
 -----------------------
@@ -42,8 +42,8 @@ A new method is also implemented
     );
 
 
-EPICS V4 release 4.6
-====================
+pvaClientCPP Version 4.2
+========================
 
 * The examples are moved to exampleCPP.
 * Support for channelRPC is now available.
@@ -51,8 +51,8 @@ EPICS V4 release 4.6
 
 
 
-EPICS V4 release 4.5
-====================
+pvaClientCPP Version 4.1
+========================
 
 
 pvaClient is a synchronous API for pvAccess.
