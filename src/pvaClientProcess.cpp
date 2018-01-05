@@ -112,50 +112,6 @@ PvaClientProcess::~PvaClientProcess()
     }
 }
 
-void PvaClientProcess::channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected)
-{
-    if(PvaClient::getDebug()) {
-           cout<< "PvaClientProcess::channelStateChange"
-               << " channelName " << pvaClientChannel->getChannel()->getChannelName()
-               << " isConnected " << (isConnected ? "true" : "false")
-               << endl;
-    }
-    if(isConnected)
-    {
-        connectState = connectActive;
-        channelProcess = pvaClientChannel->getChannel()->createChannelProcess(channelProcessRequester,pvRequest);
-    }
-    PvaClientChannelStateChangeRequesterPtr req(pvaClientChannelStateChangeRequester.lock());
-    if(req) {
-          req->channelStateChange(pvaClientChannel,isConnected);
-    }
-}
-
-void PvaClientProcess::checkProcessState()
-{
-    if(PvaClient::getDebug()) {
-        cout << "PvaClientProcess::checkProcessState"
-           << " channelName " << pvaClientChannel->getChannel()->getChannelName()
-           << endl;
-    }
-    if(!pvaClientChannel->getChannel()->isConnected()) {
-        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " PvaClientProcess::checkProcessState channel not connected ";
-        throw std::runtime_error(message);
-    }
-    if(connectState==connectIdle) {
-        connect();
-    }
-    if(connectState==connectActive){
-        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " "
-            + channelProcessConnectStatus.getMessage();
-        throw std::runtime_error(message);
-    }
-    if(processState==processIdle) process();
-}
-
-
 // from ChannelProcessRequester
 string PvaClientProcess::getRequesterName()
 {
@@ -255,6 +211,7 @@ void PvaClientProcess::issueConnect()
         throw std::runtime_error(message);
     }
     connectState = connectActive;
+    channelProcessConnectStatus = Status(Status::STATUSTYPE_ERROR, "connect active");
     channelProcess = pvaClientChannel->getChannel()->createChannelProcess(channelProcessRequester,pvRequest);
 }
 
@@ -302,7 +259,7 @@ void PvaClientProcess::issueProcess()
            << endl;
     }
     if(connectState==connectIdle) connect();
-    if(processState!=processIdle) {
+    if(processState==processActive) {
         string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
             + " PvaClientProcess::issueProcess process aleady active ";
         throw std::runtime_error(message);
