@@ -31,8 +31,8 @@ LIBSRCS += pvaClientNTMultiGet.cpp
 LIBSRCS += pvaClientNTMultiMonitor.cpp
 LIBSRCS += pvaClientRPC.cpp
 
-pvaClient_LIBS += pvAccessCA pvAccess nt pvData Com
-pvaClient_LIBS +=  $(EPICS_BASE_IOC_LIBS)
+pvaClient_LIBS += nt
+pvaClient_LIBS += $(EPICS_BASE_PVA_CORE_LIBS)
+pvaClient_LIBS += $(EPICS_BASE_IOC_LIBS)
 
 include $(TOP)/configure/RULES
-
