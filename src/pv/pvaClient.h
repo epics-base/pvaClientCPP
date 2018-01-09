@@ -967,6 +967,7 @@ typedef std::tr1::shared_ptr<ChannelProcessRequesterImpl> ChannelProcessRequeste
  * <a href = "../htmldoxygen/pvaClientProcess.html">Overview of PvaClientProcess</a>
  */
 class epicsShareClass PvaClientProcess :
+    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientProcess>
 {
 public:
@@ -1053,11 +1054,13 @@ private:
 
     ProcessConnectState connectState;
 
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientProcessRequesterWPtr pvaClientProcessRequester;
     enum ProcessState {processIdle,processActive,processComplete};
     ProcessState processState;
     ChannelProcessRequesterImplPtr channelProcessRequester;
 public:
+    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelProcessRequesterImpl;
 };
 
@@ -1101,6 +1104,7 @@ public:
  * <a href = "../htmldoxygen/pvaClientGet.html">Overview of PvaClientGet</a>
  */
 class epicsShareClass PvaClientGet :
+    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientGet>
 {
 public:
@@ -1196,12 +1200,14 @@ private:
 
     GetConnectState connectState;
 
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientGetRequesterWPtr pvaClientGetRequester;
 
     enum GetState {getIdle,getActive,getComplete};
     GetState getState;
     ChannelGetRequesterImplPtr channelGetRequester;
 public:
+    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelGetRequesterImpl;
 };
 
@@ -1257,6 +1263,7 @@ public:
  * <a href = "../htmldoxygen/pvaClientPut.html">Overview of PvaClientPut</a>
  */
 class epicsShareClass PvaClientPut :
+    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientPut>
 {
 public:
@@ -1367,8 +1374,10 @@ private :
     enum PutState {putIdle,getActive,putActive,putComplete};
     PutState putState;
     ChannelPutRequesterImplPtr channelPutRequester;
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientPutRequesterWPtr pvaClientPutRequester;
 public:
+    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelPutRequesterImpl;
 };
 
@@ -1435,6 +1444,7 @@ public:
  * <a href = "../htmldoxygen/pvaClientPutGet.html">Overview of PvaClientPutGet</a>
  */
 class epicsShareClass PvaClientPutGet :
+    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientPutGet>
 {
 public:
@@ -1574,8 +1584,10 @@ private :
     enum PutGetState {putGetIdle,putGetActive,putGetComplete};
     PutGetState putGetState;
     ChannelPutGetRequesterImplPtr channelPutGetRequester;
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientPutGetRequesterWPtr pvaClientPutGetRequester;
 public:
+    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelPutGetRequesterImpl;
 };
 
@@ -1627,6 +1639,7 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
  *  <a href = "../htmldoxygen/pvaClientMonitor.html">Overview of PvaClientMonitor</a>
  */
 class epicsShareClass PvaClientMonitor :
+    public PvaClientChannelStateChangeRequester,
     public PvaClientMonitorRequester,
     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
@@ -1642,6 +1655,25 @@ public:
         PvaClientPtr const &pvaClient,
         PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest
+    );
+    /** @brief Create a PvaClientMonitor.
+     * @param pvaClient Interface to PvaClient
+     * @param channelName channel name
+     * @param providerName provider name
+     * @param request The request.
+     * @param stateChangeRequester The state change requester. Can be null.
+     * @param monitorRequester The monitor requester. Can be null;
+     * @return The new instance.
+     */
+    static PvaClientMonitorPtr create(
+        PvaClientPtr const &pvaClient,
+        std::string const & channelName,
+        std::string const & providerName,
+        std::string const & request,
+        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester
+            = PvaClientChannelStateChangeRequesterPtr(),
+        PvaClientMonitorRequesterPtr const & monitorRequester 
+            = PvaClientMonitorRequesterPtr()
     );
     /** @brief Destructor
      */
@@ -1735,6 +1767,7 @@ private:
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;
     
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientMonitorRequesterWPtr pvaClientMonitorRequester;
     MonitorConnectState connectState;
     bool userPoll;
@@ -1742,6 +1775,7 @@ private:
     MonitorRequesterImplPtr monitorRequester;
 
 public:
+    void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected);
     void event(PvaClientMonitorPtr const & monitor);
     friend class MonitorRequesterImpl;
 };

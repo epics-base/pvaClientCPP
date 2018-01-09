@@ -114,6 +114,24 @@ PvaClientGet::~PvaClientGet()
     }
 }
 
+void PvaClientGet::channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected)
+{
+    if(PvaClient::getDebug()) {
+           cout<< "PvaClientGet::channelStateChange"
+               << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+               << " isConnected " << (isConnected ? "true" : "false")
+               << endl;
+    }
+    if(isConnected&&!channelGet)
+    {
+        connectState = connectActive;
+        channelGet = pvaClientChannel->getChannel()->createChannelGet(channelGetRequester,pvRequest);
+    }
+    PvaClientChannelStateChangeRequesterPtr req(pvaClientChannelStateChangeRequester.lock());
+    if(req) {
+          req->channelStateChange(pvaClientChannel,isConnected);
+    }
+}
 
 void PvaClientGet::checkGetState()
 {

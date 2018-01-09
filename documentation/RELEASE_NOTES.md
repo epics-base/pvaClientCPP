@@ -1,16 +1,5 @@
-EPICS 7 release 4.7.1
-=====================
-
-API changes to PvaClientMonitor
--------------------------------
-
-The create method that had arguments for stateChangeRequester and monitorRequester no longer exists.
-
-API changes to PvaClientGet, ..., PvaClientMonitor
---------------------------------------------------
-
-pvaClientGet, ..., pvaClientMonitor all implemented PvaClientChannelStateChangeRequester.
-This was never called and has been removed.
+pvaClientCPP Version 4.3.0
+==========================
 
 Works with pvDataCPP-7.0 and pvAccessCPP-6.0 versions
 -----------------------------------------------------

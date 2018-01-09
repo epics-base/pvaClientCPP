@@ -118,6 +118,24 @@ PvaClientPut::~PvaClientPut()
     }
 }
 
+void PvaClientPut::channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected)
+{
+    if(PvaClient::getDebug()) {
+           cout<< "PvaClientPut::channelStateChange"
+               << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+               << " isConnected " << (isConnected ? "true" : "false")
+               << endl;
+    }
+    if(isConnected&&!channelPut)
+    {
+        connectState = connectActive;
+        channelPut = pvaClientChannel->getChannel()->createChannelPut(channelPutRequester,pvRequest);
+    }
+    PvaClientChannelStateChangeRequesterPtr req(pvaClientChannelStateChangeRequester.lock());
+    if(req) {
+          req->channelStateChange(pvaClientChannel,isConnected);
+    }
+}
 
 void PvaClientPut::checkPutState()
 {
@@ -199,17 +217,13 @@ void PvaClientPut::getDone(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    {
-        Lock xx(mutex);
-        channelGetPutStatus = status;
-        if(status.isOK()) {
-            PVStructurePtr pvs = pvaClientData->getPVStructure();
-            pvs->copyUnchecked(*pvStructure,*bitSet);
-            BitSetPtr bs = pvaClientData->getChangedBitSet();
-            bs->clear();
-            *bs |= *bitSet;
-            putState = putComplete;
-        }
+    channelGetPutStatus = status;
+    if(status.isOK()) {
+        PVStructurePtr pvs = pvaClientData->getPVStructure();
+        pvs->copyUnchecked(*pvStructure,*bitSet);
+        BitSetPtr bs = pvaClientData->getChangedBitSet();
+        bs->clear();
+        *bs |= *bitSet;
     }
     PvaClientPutRequesterPtr  req(pvaClientPutRequester.lock());
     if(req) {
@@ -228,11 +242,7 @@ void PvaClientPut::putDone(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    {
-        Lock xx(mutex);
-        channelGetPutStatus = status;
-        putState = putComplete;
-    }
+    channelGetPutStatus = status;
     PvaClientPutRequesterPtr  req(pvaClientPutRequester.lock());
     if(req) {
           req->putDone(status,shared_from_this());
@@ -341,17 +351,14 @@ Status PvaClientPut::waitGet()
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
-    {
-        Lock xx(mutex);
-        if(putState==putComplete) return channelGetPutStatus;
-        if(putState!=getActive){
-            string message = string("channel ")
-                + pvaClientChannel->getChannel()->getChannelName()
-                +  " PvaClientPut::waitGet illegal put state";
-            throw std::runtime_error(message);
-        }
+    if(putState!=getActive){
+        string message = string("channel ")
+            + pvaClientChannel->getChannel()->getChannelName()
+            +  " PvaClientPut::waitGet illegal put state";
+        throw std::runtime_error(message);
     }
     waitForGetPut.wait();
+    putState = putComplete;
     return channelGetPutStatus;
 }
 
@@ -399,17 +406,14 @@ Status PvaClientPut::waitPut()
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
-    {
-        Lock xx(mutex);
-        if(putState==putComplete) return channelGetPutStatus;
-        if(putState!=putActive){
-            string message = string("channel ")
-                + pvaClientChannel->getChannel()->getChannelName()
-                +  " PvaClientPut::waitPut illegal put state";
-            throw std::runtime_error(message);
-        }
+    if(putState!=putActive){
+         string message = string("channel ")
+            + pvaClientChannel->getChannel()->getChannelName()
+            +  " PvaClientPut::waitPut illegal put state";
+         throw std::runtime_error(message);
     }
     waitForGetPut.wait();
+    putState = putComplete;
     if(channelGetPutStatus.isOK()) pvaClientData->getChangedBitSet()->clear();
     return channelGetPutStatus;
 }
