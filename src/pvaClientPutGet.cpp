@@ -131,6 +131,25 @@ PvaClientPutGet::~PvaClientPutGet()
     }
 }
 
+void PvaClientPutGet::channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected)
+{
+    if(PvaClient::getDebug()) {
+           cout<< "PvaClientPutGet::channelStateChange"
+               << " channelName " << pvaClientChannel->getChannel()->getChannelName()
+               << " isConnected " << (isConnected ? "true" : "false")
+               << endl;
+    }
+    if(isConnected&&!channelPutGet)
+    {
+        connectState = connectActive;
+        channelPutGet = pvaClientChannel->getChannel()->createChannelPutGet(channelPutGetRequester,pvRequest);
+    }
+    PvaClientChannelStateChangeRequesterPtr req(pvaClientChannelStateChangeRequester.lock());
+    if(req) {
+          req->channelStateChange(pvaClientChannel,isConnected);
+    }
+}
+
 void PvaClientPutGet::checkPutGetState()
 {
     if(PvaClient::getDebug()) {
@@ -216,7 +235,6 @@ void PvaClientPutGet::putGetDone(
            << endl;
     }
     channelPutGetStatus = status;
-    putGetState = putGetComplete;
     if(status.isOK()) {
         PVStructurePtr pvs = pvaClientGetData->getPVStructure();
         pvs->copyUnchecked(*getPVStructure,*getChangedBitSet);
@@ -244,7 +262,6 @@ void PvaClientPutGet::getPutDone(
            << endl;
     }
     channelPutGetStatus = status;
-    putGetState = putGetComplete;
     if(status.isOK()) {
         PVStructurePtr pvs = pvaClientPutData->getPVStructure();
         pvs->copyUnchecked(*putPVStructure,*putBitSet);
@@ -272,7 +289,6 @@ void PvaClientPutGet::getGetDone(
            << endl;
     }
     channelPutGetStatus = status;
-    putGetState = putGetComplete;
     if(status.isOK()) {
         PVStructurePtr pvs = pvaClientGetData->getPVStructure();
         pvs->copyUnchecked(*getPVStructure,*getChangedBitSet);
@@ -391,7 +407,6 @@ Status PvaClientPutGet::waitPutGet()
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
-    if(putGetState==putGetComplete) return channelPutGetStatus;
     if(putGetState!=putGetActive){
         string message = string("channel ")
             + pvaClientChannel->getChannel()->getChannelName()
@@ -399,6 +414,7 @@ Status PvaClientPutGet::waitPutGet()
         throw std::runtime_error(message);
     }
     waitForPutGet.wait();
+    putGetState = putGetComplete;
     if(channelPutGetStatus.isOK()) pvaClientPutData->getChangedBitSet()->clear();
     return channelPutGetStatus;
 }
@@ -445,7 +461,6 @@ Status PvaClientPutGet::waitGetGet()
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
-    if(putGetState==putGetComplete) return channelPutGetStatus;
     if(putGetState!=putGetActive){
         string message = string("channel ")
             + pvaClientChannel->getChannel()->getChannelName()
@@ -453,6 +468,7 @@ Status PvaClientPutGet::waitGetGet()
         throw std::runtime_error(message);
     }
     waitForPutGet.wait();
+    putGetState = putGetComplete;
     return channelPutGetStatus;
 }
 
@@ -498,7 +514,6 @@ Status PvaClientPutGet::waitGetPut()
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
-    if(putGetState==putGetComplete) return channelPutGetStatus;
     if(putGetState!=putGetActive){
         string message = string("channel ")
             + pvaClientChannel->getChannel()->getChannelName()
@@ -506,6 +521,7 @@ Status PvaClientPutGet::waitGetPut()
         throw std::runtime_error(message);
     }
     waitForPutGet.wait();
+    putGetState = putGetComplete;
     return channelPutGetStatus;
 }
 
@@ -517,10 +533,7 @@ PvaClientGetDataPtr PvaClientPutGet::getGetData()
                << endl;
     }
     checkPutGetState();
-    if(putGetState==putGetIdle){
-       getGet();
-       getPut();
-    }
+    if(putGetState==putGetIdle) getGet();
     return pvaClientGetData;
 }
 
@@ -532,10 +545,7 @@ PvaClientPutDataPtr PvaClientPutGet::getPutData()
                << endl;
     }
     checkPutGetState();
-    if(putGetState==putGetIdle){
-       getGet();
-       getPut();
-    }
+   if(putGetState==putGetIdle) getPut();
     return pvaClientPutData;
 }
 
