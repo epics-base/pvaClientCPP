@@ -120,6 +120,12 @@ public:
     /** @brief Get the requester name.
      * @return The name.
      */
+     /** @brief Create an instance of PvaClient with providerName "pva ca".
+     * @return shared pointer to the single instance
+     * @deprecated This method will go away in future versions. Use get instead.
+     */
+    static PvaClientPtr create() EPICS_DEPRECATED;
+
     std::string getRequesterName();
     /** @brief A new message.
      *
@@ -972,8 +978,8 @@ class epicsShareClass PvaClientProcess :
 public:
     POINTER_DEFINITIONS(PvaClientProcess);
     /** @brief  Create a PvaClientProcess.
-     * @param &pvaClient Interface to PvaClient
-     * @param channel Interface to Channel
+     * @param pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to Channel
      * @param pvRequest The request structure.
      * @return The interface to the PvaClientProcess.
      */
@@ -1262,8 +1268,8 @@ class epicsShareClass PvaClientPut :
 public:
     POINTER_DEFINITIONS(PvaClientPut);
     /** @brief Create a PvaClientPut.
-     * @param &pvaClient Interface to PvaClient
-     * @param channel Interface to Channel
+     * @param pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to Channel
      * @param pvRequest The request structure.
      * @return The interface to the PvaClientPut.
      */
@@ -1440,8 +1446,8 @@ class epicsShareClass PvaClientPutGet :
 public:
     POINTER_DEFINITIONS(PvaClientPutGet);
     /** @brief Create a PvaClientPutGet.
-     * @param &pvaClient Interface to PvaClient
-     * @param channel Interface to Channel
+     * @param pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to Channel
      * @param pvRequest The request structure.
      * @return The interface to the PvaClientPutGet.
      */
@@ -1627,6 +1633,7 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
  *  <a href = "../htmldoxygen/pvaClientMonitor.html">Overview of PvaClientMonitor</a>
  */
 class epicsShareClass PvaClientMonitor :
+    public PvaClientChannelStateChangeRequester,   // remove when deprecated create removed
     public PvaClientMonitorRequester,
     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
@@ -1643,6 +1650,26 @@ public:
         PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest
     );
+    /** @brief Create a PvaClientMonitor.
+     * @param pvaClient Interface to PvaClient
+     * @param channelName channel name
+     * @param providerName provider name
+     * @param request The request.
+     * @param stateChangeRequester The state change requester. Can be null.
+     * @param monitorRequester The monitor requester. Can be null;
+     * @return The new instance.
+     * @deprecated client can create PvaClientMonitor on first channel connect.
+     */
+    static PvaClientMonitorPtr create(
+        PvaClientPtr const &pvaClient,
+        std::string const & channelName,
+        std::string const & providerName,
+        std::string const & request,
+        PvaClientChannelStateChangeRequesterPtr const & stateChangeRequester
+            = PvaClientChannelStateChangeRequesterPtr(),
+        PvaClientMonitorRequesterPtr const & monitorRequester 
+            = PvaClientMonitorRequesterPtr()
+    ) EPICS_DEPRECATED;
     /** @brief Destructor
      */
     ~PvaClientMonitor();
@@ -1740,8 +1767,9 @@ private:
     bool userPoll;
     bool userWait;
     MonitorRequesterImplPtr monitorRequester;
-
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester; //deprecate
 public:
+    void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected); //deprecate
     void event(PvaClientMonitorPtr const & monitor);
     friend class MonitorRequesterImpl;
 };

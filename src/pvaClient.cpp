@@ -111,6 +111,7 @@ PvaClientPtr PvaClient::get(std::string const & providerNames)
     return master;
 }
 
+PvaClientPtr PvaClient::create() {return get();}
 
 PvaClient::PvaClient(std::string const & providerNames)
 :  pvaClientChannelCache(new PvaClientChannelCache()),
