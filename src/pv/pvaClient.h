@@ -120,6 +120,12 @@ public:
     /** @brief Get the requester name.
      * @return The name.
      */
+     /** @brief Create an instance of PvaClient with providerName "pva ca".
+     * @return shared pointer to the single instance
+     * @deprecated This method will go away in future versions. Use get instead.
+     */
+    static PvaClientPtr create() EPICS_DEPRECATED;
+
     std::string getRequesterName();
     /** @brief A new message.
      *
@@ -967,14 +973,13 @@ typedef std::tr1::shared_ptr<ChannelProcessRequesterImpl> ChannelProcessRequeste
  * <a href = "../htmldoxygen/pvaClientProcess.html">Overview of PvaClientProcess</a>
  */
 class epicsShareClass PvaClientProcess :
-    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientProcess>
 {
 public:
     POINTER_DEFINITIONS(PvaClientProcess);
     /** @brief  Create a PvaClientProcess.
-     * @param &pvaClient Interface to PvaClient
-     * @param channel Interface to Channel
+     * @param pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to Channel
      * @param pvRequest The request structure.
      * @return The interface to the PvaClientProcess.
      */
@@ -1054,13 +1059,11 @@ private:
 
     ProcessConnectState connectState;
 
-    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientProcessRequesterWPtr pvaClientProcessRequester;
     enum ProcessState {processIdle,processActive,processComplete};
     ProcessState processState;
     ChannelProcessRequesterImplPtr channelProcessRequester;
 public:
-    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelProcessRequesterImpl;
 };
 
@@ -1104,7 +1107,6 @@ public:
  * <a href = "../htmldoxygen/pvaClientGet.html">Overview of PvaClientGet</a>
  */
 class epicsShareClass PvaClientGet :
-    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientGet>
 {
 public:
@@ -1200,14 +1202,12 @@ private:
 
     GetConnectState connectState;
 
-    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientGetRequesterWPtr pvaClientGetRequester;
 
     enum GetState {getIdle,getActive,getComplete};
     GetState getState;
     ChannelGetRequesterImplPtr channelGetRequester;
 public:
-    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelGetRequesterImpl;
 };
 
@@ -1263,14 +1263,13 @@ public:
  * <a href = "../htmldoxygen/pvaClientPut.html">Overview of PvaClientPut</a>
  */
 class epicsShareClass PvaClientPut :
-    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientPut>
 {
 public:
     POINTER_DEFINITIONS(PvaClientPut);
     /** @brief Create a PvaClientPut.
-     * @param &pvaClient Interface to PvaClient
-     * @param channel Interface to Channel
+     * @param pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to Channel
      * @param pvRequest The request structure.
      * @return The interface to the PvaClientPut.
      */
@@ -1374,10 +1373,8 @@ private :
     enum PutState {putIdle,getActive,putActive,putComplete};
     PutState putState;
     ChannelPutRequesterImplPtr channelPutRequester;
-    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientPutRequesterWPtr pvaClientPutRequester;
 public:
-    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelPutRequesterImpl;
 };
 
@@ -1444,14 +1441,13 @@ public:
  * <a href = "../htmldoxygen/pvaClientPutGet.html">Overview of PvaClientPutGet</a>
  */
 class epicsShareClass PvaClientPutGet :
-    public PvaClientChannelStateChangeRequester,
     public std::tr1::enable_shared_from_this<PvaClientPutGet>
 {
 public:
     POINTER_DEFINITIONS(PvaClientPutGet);
     /** @brief Create a PvaClientPutGet.
-     * @param &pvaClient Interface to PvaClient
-     * @param channel Interface to Channel
+     * @param pvaClient Interface to PvaClient
+     * @param pvaClientChannel Interface to Channel
      * @param pvRequest The request structure.
      * @return The interface to the PvaClientPutGet.
      */
@@ -1584,10 +1580,8 @@ private :
     enum PutGetState {putGetIdle,putGetActive,putGetComplete};
     PutGetState putGetState;
     ChannelPutGetRequesterImplPtr channelPutGetRequester;
-    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientPutGetRequesterWPtr pvaClientPutGetRequester;
 public:
-    void channelStateChange(PvaClientChannelPtr const & pvaClientChannel, bool isConnected);
     friend class ChannelPutGetRequesterImpl;
 };
 
@@ -1639,7 +1633,7 @@ typedef std::tr1::shared_ptr<MonitorRequesterImpl> MonitorRequesterImplPtr;
  *  <a href = "../htmldoxygen/pvaClientMonitor.html">Overview of PvaClientMonitor</a>
  */
 class epicsShareClass PvaClientMonitor :
-    public PvaClientChannelStateChangeRequester,
+    public PvaClientChannelStateChangeRequester,   // remove when deprecated create removed
     public PvaClientMonitorRequester,
     public std::tr1::enable_shared_from_this<PvaClientMonitor>
 {
@@ -1664,6 +1658,7 @@ public:
      * @param stateChangeRequester The state change requester. Can be null.
      * @param monitorRequester The monitor requester. Can be null;
      * @return The new instance.
+     * @deprecated client can create PvaClientMonitor on first channel connect.
      */
     static PvaClientMonitorPtr create(
         PvaClientPtr const &pvaClient,
@@ -1674,7 +1669,7 @@ public:
             = PvaClientChannelStateChangeRequesterPtr(),
         PvaClientMonitorRequesterPtr const & monitorRequester 
             = PvaClientMonitorRequesterPtr()
-    );
+    ) EPICS_DEPRECATED;
     /** @brief Destructor
      */
     ~PvaClientMonitor();
@@ -1767,15 +1762,14 @@ private:
     epics::pvData::MonitorPtr monitor;
     epics::pvData::MonitorElementPtr monitorElement;
     
-    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester;
     PvaClientMonitorRequesterWPtr pvaClientMonitorRequester;
     MonitorConnectState connectState;
     bool userPoll;
     bool userWait;
     MonitorRequesterImplPtr monitorRequester;
-
+    PvaClientChannelStateChangeRequesterWPtr pvaClientChannelStateChangeRequester; //deprecate
 public:
-    void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected);
+    void channelStateChange(PvaClientChannelPtr const & channel, bool isConnected); //deprecate
     void event(PvaClientMonitorPtr const & monitor);
     friend class MonitorRequesterImpl;
 };
