@@ -119,10 +119,10 @@ PvaClientPut::~PvaClientPut()
 }
 
 
-void PvaClientPut::checkPutState()
+void PvaClientPut::checkConnectState()
 {
     if(PvaClient::getDebug()) {
-        cout << "PvaClientPut::checkPutState"
+        cout << "PvaClientPut::checkConnectState"
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
@@ -385,7 +385,7 @@ void PvaClientPut::issuePut()
     if(putState==getActive || putState==putActive) {
          string message = string("channel ")
             + pvaClientChannel->getChannel()->getChannelName()
-            +  "PvaClientPut::issueGet get or put aleady active ";
+            +  "PvaClientPut::issuePut get or put aleady active ";
          throw std::runtime_error(message);
     }
     putState = putActive;
@@ -421,7 +421,7 @@ PvaClientPutDataPtr PvaClientPut::getData()
                << " channelName " << pvaClientChannel->getChannel()->getChannelName()
                << endl;
     }
-    checkPutState();
+    checkConnectState();
     if(putState==putIdle) get();
     return pvaClientData;
 }

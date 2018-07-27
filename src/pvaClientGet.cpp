@@ -115,16 +115,16 @@ PvaClientGet::~PvaClientGet()
 }
 
 
-void PvaClientGet::checkGetState()
+void PvaClientGet::checkConnectState()
 {
     if(PvaClient::getDebug()) {
-        cout << "PvaClientGet::checkGetState"
+        cout << "PvaClientGet::checkConnectState"
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
     if(!pvaClientChannel->getChannel()->isConnected()) {
         string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " PvaClientGet::checkGetState channel not connected ";
+            + " PvaClientGet::checkConnectState channel not connected ";
         throw std::runtime_error(message);
     }
     if(connectState==connectIdle) {
@@ -334,7 +334,7 @@ PvaClientGetDataPtr PvaClientGet::getData()
                << " channelName " << pvaClientChannel->getChannel()->getChannelName()
                << endl;
     }
-    checkGetState();
+    checkConnectState();
     if(getState==getIdle) get();
     return pvaClientData;
 }

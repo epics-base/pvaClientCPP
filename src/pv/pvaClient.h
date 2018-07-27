@@ -1185,7 +1185,7 @@ private:
         PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest);
 
-    void checkGetState();
+    void checkConnectState();
     enum GetConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
@@ -1354,7 +1354,7 @@ private :
         PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest);
     
-    void checkPutState();
+    void checkConnectState();
     enum PutConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
