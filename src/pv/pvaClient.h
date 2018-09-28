@@ -23,7 +23,6 @@
 #include <pv/event.h>
 #include <pv/lock.h>
 #include <pv/pvData.h>
-#include <pv/pvCopy.h>
 #include <pv/pvTimeStamp.h>
 #include <pv/timeStamp.h>
 #include <pv/pvAlarm.h>
@@ -1185,7 +1184,7 @@ private:
         PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest);
 
-    void checkGetState();
+    void checkConnectState();
     enum GetConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;
@@ -1354,7 +1353,7 @@ private :
         PvaClientChannelPtr const & pvaClientChannel,
         epics::pvData::PVStructurePtr const &pvRequest);
     
-    void checkPutState();
+    void checkConnectState();
     enum PutConnectState {connectIdle,connectActive,connected};
 
     PvaClient::weak_pointer pvaClient;

@@ -198,7 +198,6 @@ void PvaClientChannel::channelStateChange(
         << " " << Channel::ConnectionStateNames[connectionState]
         << endl;
     }
-    
     bool waitingForConnect = false;
     if(connectState==connectActive) waitingForConnect = true;
     if(connectionState!=Channel::CONNECTED) {

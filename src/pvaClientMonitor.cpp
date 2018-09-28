@@ -436,16 +436,6 @@ bool PvaClientMonitor::poll()
            << endl;
     }
     checkMonitorState();
-    if(!isStarted) {
-        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " PvaClientMonitor::poll illegal state ";
-         throw std::runtime_error(message);
-    }
-    if(userPoll) {
-        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " PvaClientMonitor::poll did not release last";
-        throw std::runtime_error(message);
-    }
     monitorElement = monitor->poll();
     if(!monitorElement) return false;
     userPoll = true;
@@ -482,11 +472,6 @@ void PvaClientMonitor::releaseEvent()
         cout << "PvaClientMonitor::releaseEvent"
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
-    }
-    if(!isStarted) {
-        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " PvaClientMonitor::releaseEvent monitor not started ";
-        throw std::runtime_error(message);
     }
     if(!userPoll) {
         string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
