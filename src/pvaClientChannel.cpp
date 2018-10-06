@@ -170,6 +170,7 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
            << endl;
     }
     Lock xx(mutex);
+    this->channel = channel;
     if(connectState==connected) return;
     if(connectState!=connectActive) {
          string message("PvaClientChannel::channelCreated");
@@ -201,11 +202,14 @@ void PvaClientChannel::channelStateChange(
     bool waitingForConnect = false;
     if(connectState==connectActive) waitingForConnect = true;
     if(connectionState!=Channel::CONNECTED) {
+        Lock xx(mutex);
         string mess(channelName +
                 " connection state " + Channel::ConnectionStateNames[connectionState]);
         message(mess,errorMessage);
         connectState = notConnected;
     } else {
+        Lock xx(mutex);
+        this->channel = channel;
         connectState = connected;
     }
     if(waitingForConnect) {
