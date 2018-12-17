@@ -1,29 +1,30 @@
-EPICS 7 release 4.7.1
-=====================
+# pvaClientCPP Module
 
-API changes to PvaClientMonitor
--------------------------------
+This document summarizes the changes to the module between releases.
+
+
+## Release 4.4 (EPICS 7.0.2, Dec 2018)
+
+### API changes to PvaClientMonitor
 
 The create method that had arguments for stateChangeRequester and monitorRequester no longer exists.
 
-API changes to PvaClientGet, ..., PvaClientMonitor
---------------------------------------------------
+### API changes to PvaClientGet, ..., PvaClientMonitor
 
-pvaClientGet, ..., pvaClientMonitor all implemented PvaClientChannelStateChangeRequester.
-This was never called and has been removed.
+Previously the pvaClientGet, ..., pvaClientMonitor classes all implemented PvaClientChannelStateChangeRequester(). This method was never called and has been removed.
 
-Works with pvDataCPP-7.0 and pvAccessCPP-6.0 versions
------------------------------------------------------
 
-Will not work with older versions of these modules.
+## Release 4.3 (EPICS 7.0.1, Dec 2017)
 
-destroy methods removed
------------------------
+### Requires pvDataCPP-7.0 and pvAccessCPP-6.0 versions
 
-All the destroy methods are removed since implementation is RAII compliant.
+This release will not work with older versions of these modules.
 
-API changes to PvaClientMonitor
--------------------------------
+### Destroy methods removed
+
+All the destroy() methods have been removed, implementation is RAII compliant.
+
+### API changes to PvaClientMonitor
 
 The second argument of method
 
@@ -33,7 +34,7 @@ The second argument of method
         epics::pvData::PVStructurePtr const &pvRequest
     );
 
-Is now changed to
+is now changed to
 
     static PvaClientMonitorPtr create(
         PvaClientPtr const &pvaClient,
@@ -53,22 +54,16 @@ A new method is also implemented
     );
 
 
-pvaClientCPP Version 4.2
-========================
+## Release 4.2 (EPICS V4.6, Aug 2016)
 
 * The examples are moved to exampleCPP.
 * Support for channelRPC is now available.
 * In PvaClientMultiChannel checkConnected() now throws an exception if connect fails.
 
 
-
-pvaClientCPP Version 4.1
-========================
-
+## Release 4.1 (EPICS V4.5, Oct 2015)
 
 pvaClient is a synchronous API for pvAccess.
 
-
 This is the first release of pvaClientCPP.
 It provides an API that is similar to pvaClientJava.
-
