@@ -1,23 +1,17 @@
-pvaClientCPP
-============
+# pvaClientCPP
 
-pvaClient is a synchronous client interface to pvAccess,
-which is callback based.
-pvaClient is thus easier to use than pvAccess itself.
+The **pvaClient** API provides a synchronous client interface that was designed to be easier to use than the original basic pvAccess client API.
 
-See documentation/pvaClientCPP.html for details.
+The pvaClientCPP module implements the pvaClient API for C++ client applications.
 
-Building
---------
+## Links
 
-If a proper RELEASE.local file exists one directory level above pvaClientCPP
-then just type:
+- General information about EPICS can be found at the
+  [EPICS Controls website](https://epics-controls.org).
+- API documentation for this module can be found in its
+  documentation directory, in particular the file
+  pvaClientCPP.html
 
-    make
+## Building
 
-It can also be built by:
-
-    cp configure/ExampleRELEASE.local configure/RELEASE.local
-    edit configure/RELEASE.local
-    make
-
+This module is included as a submodule of a full EPICS 7 release and will be compiled during builds of that software.
