@@ -218,11 +218,7 @@ void PvaClientPutGet::putGetDone(
     channelPutGetStatus = status;
     putGetState = putGetComplete;
     if(status.isOK()) {
-        PVStructurePtr pvs = pvaClientGetData->getPVStructure();
-        pvs->copyUnchecked(*getPVStructure,*getChangedBitSet);
-        BitSetPtr bs = pvaClientGetData->getChangedBitSet();
-        bs->clear();
-        *bs |= *getChangedBitSet;
+        pvaClientGetData->setData(getPVStructure,getChangedBitSet);
     }
     PvaClientPutGetRequesterPtr  req(pvaClientPutGetRequester.lock());
     if(req) {
@@ -274,11 +270,7 @@ void PvaClientPutGet::getGetDone(
     channelPutGetStatus = status;
     putGetState = putGetComplete;
     if(status.isOK()) {
-        PVStructurePtr pvs = pvaClientGetData->getPVStructure();
-        pvs->copyUnchecked(*getPVStructure,*getChangedBitSet);
-        BitSetPtr bs = pvaClientGetData->getChangedBitSet();
-        bs->clear();
-        *bs |= *getChangedBitSet;
+        pvaClientGetData->setData(getPVStructure,getChangedBitSet);
     }
     PvaClientPutGetRequesterPtr  req(pvaClientPutGetRequester.lock());
     if(req) {
@@ -554,7 +546,5 @@ PvaClientChannelPtr PvaClientPutGet::getPvaClientChannel()
 {
     return pvaClientChannel;
 }
-
-
 
 }}
