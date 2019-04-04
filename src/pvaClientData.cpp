@@ -125,7 +125,7 @@ void PvaClientData::setData(
            return;
        }
        if(pvField->getField()->getType()!=epics::pvData::structure) break;
-       PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvField);
+       pvStructure = static_pointer_cast<PVStructure>(pvField);
    }
    messagePrefix = "did not find a field named value or a field that is a scalar or scalar array";
 }
