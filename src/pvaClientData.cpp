@@ -42,10 +42,7 @@ static string noTimeStamp("no timeStamp");
 
 PvaClientDataPtr PvaClientData::create(StructureConstPtr const & structure)
 {
-    if(PvaClient::getDebug()) {
-        cout << "PvaClientData::create"
-           << endl;
-    }
+    if(PvaClient::getDebug()) cout << "PvaClientData::create\n";
     PvaClientDataPtr epv(new PvaClientData(structure));
     return epv;
 }
@@ -57,10 +54,7 @@ PvaClientData::PvaClientData(StructureConstPtr const & structure)
 
 void PvaClientData::checkValue()
 {
-    if(PvaClient::getDebug()) {
-        cout << "PvaClientData::checkValue"
-           << endl;
-    }
+    if(PvaClient::getDebug()) cout << "PvaClientData::checkValue\n";
     if(pvValue) return;
     throw std::runtime_error(messagePrefix + noValue);
 }
@@ -109,10 +103,7 @@ void PvaClientData::setData(
     PVStructurePtr const & pvStructureFrom,
     BitSetPtr const & bitSetFrom)
 {
-    if(PvaClient::getDebug()) {
-        cout << "PvaClientData::setData"
-           << endl;
-    }
+   if(PvaClient::getDebug()) cout << "PvaClientData::setData\n";
    pvStructure = pvStructureFrom;
    bitSet = bitSetFrom;
    pvValue = pvStructure->getSubField("value");
@@ -125,62 +116,73 @@ void PvaClientData::setData(
            pvValue = pvField;
            return;
        }
-       PVScalarPtr pvScalar = static_pointer_cast<PVScalar>(pvField);
-       if(pvScalar) {
+       if(pvField->getField()->getType()==scalar) {
            pvValue = pvField;
            return;
        }
-       PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
-       if(pvScalarArray) {
+       if(pvField->getField()->getType()==scalarArray) {
            pvValue = pvField;
            return;
        }
+       if(pvField->getField()->getType()!=epics::pvData::structure) break;
        PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvField);
-       if(!pvStructure) break;
    }
    messagePrefix = "did not find a field named value or a field that is a scalar or scalar array";
 }
 
 bool PvaClientData::hasValue()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::hasValue\n";
     if(!pvValue) return false;
     return true;
 }
 
 bool PvaClientData::isValueScalar()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::isValueScalar\n";
     if(!pvValue) return false;
     if(pvValue->getField()->getType()==scalar) return true;
-    if((pvValue->getFieldName().compare("value")) != 0) return false;
+    if(pvValue->getField()->getType()!=epics::pvData::structure) return false;
     PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvValue);
     while(true) {
         if(!pvStructure) break;
-        PVFieldPtr pvField(pvStructure->getPVFields()[0]);
-        PVScalarPtr pvScalar = static_pointer_cast<PVScalar>(pvField);
-        if(pvScalar) {
-           pvValue = pvField;
-           return true;
+        const PVFieldPtrArray fieldPtrArray(pvStructure->getPVFields());
+        if(fieldPtrArray.size()<1) {
+            throw std::logic_error("PvaClientData::isValueScalar() found empty structure");
         }
+        PVFieldPtr pvField(fieldPtrArray[0]);
+        if(!pvField) throw std::logic_error("PvaClientData::isValueScalar() found null field");
+        if(pvField->getField()->getType()==scalar) {
+            pvValue = pvField;
+            return true;
+        }
+        if(pvField->getField()->getType()!=epics::pvData::structure) break;
         PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvField);
     }
-    messagePrefix = "did not find a scalar field";
+    messagePrefix = "did not find a scalar field ";
     return false;
 }
 
 bool PvaClientData::isValueScalarArray()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::isValueScalarArray\n";
     if(!pvValue) return false;
     if(pvValue->getField()->getType()==scalarArray) return true;
-    if((pvValue->getFieldName().compare("value")) != 0) return false;
+    if(pvValue->getField()->getType()!=epics::pvData::structure) return false;
     PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvValue);
     while(true) {
         if(!pvStructure) break;
-        PVFieldPtr pvField(pvStructure->getPVFields()[0]);
-        PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
-        if(pvScalarArray) {
+        const PVFieldPtrArray fieldPtrArray(pvStructure->getPVFields());
+        if(fieldPtrArray.size()<1) {
+            throw std::logic_error("PvaClientData::isValueScalar() found empty structure");
+        }
+        PVFieldPtr pvField(fieldPtrArray[0]);
+        if(!pvField) throw std::logic_error("PvaClientData::isValueScalar() found null field");
+        if(pvField->getField()->getType()==scalarArray) {
            pvValue = pvField;
            return true;
         }
+        if(pvField->getField()->getType()!=epics::pvData::structure) break;
         PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvField);
     }
     messagePrefix = "did not find a scalarArray field";
@@ -189,12 +191,14 @@ bool PvaClientData::isValueScalarArray()
 
 PVFieldPtr  PvaClientData::getValue()
 {
+   if(PvaClient::getDebug()) cout << "PvaClientData::getValue\n";
    checkValue();
    return pvValue;
 }
 
 PVScalarPtr  PvaClientData::getScalarValue()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::getScalarValue\n";
     checkValue();
     if(!isValueScalar()) throw std::runtime_error(messagePrefix + noScalar);
     PVScalarPtr pv = static_pointer_cast<PVScalar>(pvValue);
@@ -204,6 +208,7 @@ PVScalarPtr  PvaClientData::getScalarValue()
 
 PVArrayPtr  PvaClientData::getArrayValue()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::getArrayValue\n";
     checkValue();
     PVArrayPtr pv = pvStructure->getSubField<PVArray>("value");
     if(!pv) throw std::runtime_error(messagePrefix + noArray);
@@ -212,6 +217,7 @@ PVArrayPtr  PvaClientData::getArrayValue()
 
 PVScalarArrayPtr  PvaClientData::getScalarArrayValue()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::getScalarArrayValue\n";
     checkValue();
     if(!isValueScalarArray()) throw std::runtime_error(messagePrefix + noScalarArray);
     PVScalarArrayPtr pv = static_pointer_cast<PVScalarArray>(pvValue);
@@ -221,6 +227,7 @@ PVScalarArrayPtr  PvaClientData::getScalarArrayValue()
 
 double PvaClientData::getDouble()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::getDouble\n";
     PVScalarPtr pvScalar = getScalarValue();
     ScalarType scalarType = pvScalar->getScalar()->getScalarType();
     if(scalarType==pvDouble) {
@@ -235,29 +242,37 @@ double PvaClientData::getDouble()
 
 string PvaClientData::getString()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::getString\n";
     PVScalarPtr pvScalar = getScalarValue();
     return convert->toString(pvScalar);
 }
 
 shared_vector<const double> PvaClientData::getDoubleArray()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::getDoubleArray\n";
     PVScalarArrayPtr pvScalarArray = getScalarArrayValue();
+    if(pvScalarArray->getScalarArray()->getElementType()!=pvDouble) {
+        throw std::runtime_error(messagePrefix + notDoubleArray);
+    }
     PVDoubleArrayPtr pv = static_pointer_cast<PVDoubleArray>(pvScalarArray);
-    if(!pv) throw std::runtime_error(messagePrefix + notDoubleArray);
     return pv->view();   
 }
 
 shared_vector<const string> PvaClientData::getStringArray()
 {
+    if(PvaClient::getDebug()) cout << "PvaClientData::getStringArray\n";
     PVScalarArrayPtr pvScalarArray = getScalarArrayValue();
+    if(pvScalarArray->getScalarArray()->getElementType()!=pvString) {
+        throw std::runtime_error(messagePrefix + notStringArray);
+    }
     PVStringArrayPtr pv = static_pointer_cast<PVStringArray>(pvScalarArray);
-    if(!pv) throw std::runtime_error(messagePrefix + notStringArray);
     return pv->view();   
 }
 
 
 Alarm PvaClientData::getAlarm()
 {
+   if(PvaClient::getDebug()) cout << "PvaClientData::getAlarm\n";
    if(!pvStructure) throw new std::runtime_error(messagePrefix + noStructure);
    PVStructurePtr pvs = pvStructure->getSubField<PVStructure>("alarm");
    if(!pvs) throw std::runtime_error(messagePrefix + noAlarm);
@@ -273,6 +288,7 @@ Alarm PvaClientData::getAlarm()
 
 TimeStamp PvaClientData::getTimeStamp()
 {
+   if(PvaClient::getDebug()) cout << "PvaClientData::getTimeStamp\n";
    if(!pvStructure) throw new std::runtime_error(messagePrefix + noStructure);
    PVStructurePtr pvs = pvStructure->getSubField<PVStructure>("timeStamp");
    if(!pvs) throw std::runtime_error(messagePrefix + noTimeStamp);

@@ -18,7 +18,6 @@
 
 #include <pv/pvaClient.h>
 
-using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace epics::pvAccess::ca;

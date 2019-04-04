@@ -14,7 +14,6 @@
 
 #include <pv/pvaClient.h>
 
-using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace std;
@@ -174,7 +173,7 @@ void PvaClientPutGet::channelPutGetConnect(
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
-    }
+    } 
     {
         Lock xx(mutex);
         this->channelPutGet = channelPutGet;
@@ -215,10 +214,13 @@ void PvaClientPutGet::putGetDone(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    channelPutGetStatus = status;
-    putGetState = putGetComplete;
-    if(status.isOK()) {
-        pvaClientGetData->setData(getPVStructure,getChangedBitSet);
+    {
+        Lock xx(mutex);
+        channelPutGetStatus = status;
+        putGetState = putGetComplete;
+        if(status.isOK()) {
+            pvaClientGetData->setData(getPVStructure,getChangedBitSet);
+        }
     }
     PvaClientPutGetRequesterPtr  req(pvaClientPutGetRequester.lock());
     if(req) {
@@ -239,14 +241,17 @@ void PvaClientPutGet::getPutDone(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    channelPutGetStatus = status;
-    putGetState = putGetComplete;
-    if(status.isOK()) {
-        PVStructurePtr pvs = pvaClientPutData->getPVStructure();
-        pvs->copyUnchecked(*putPVStructure,*putBitSet);
-        BitSetPtr bs = pvaClientPutData->getChangedBitSet();
-        bs->clear();
-        *bs |= *putBitSet;
+    {
+        Lock xx(mutex);
+        channelPutGetStatus = status;
+        putGetState = putGetComplete;
+        if(status.isOK()) {
+            PVStructurePtr pvs = pvaClientPutData->getPVStructure();
+            pvs->copyUnchecked(*putPVStructure,*putBitSet);
+            BitSetPtr bs = pvaClientPutData->getChangedBitSet();
+            bs->clear();
+            *bs |= *putBitSet;
+        }
     }
     PvaClientPutGetRequesterPtr  req(pvaClientPutGetRequester.lock());
     if(req) {
@@ -267,10 +272,13 @@ void PvaClientPutGet::getGetDone(
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
     }
-    channelPutGetStatus = status;
-    putGetState = putGetComplete;
-    if(status.isOK()) {
-        pvaClientGetData->setData(getPVStructure,getChangedBitSet);
+    {
+        Lock xx(mutex);
+        channelPutGetStatus = status;
+        putGetState = putGetComplete;
+        if(status.isOK()) {
+            pvaClientGetData->setData(getPVStructure,getChangedBitSet);
+        }
     }
     PvaClientPutGetRequesterPtr  req(pvaClientPutGetRequester.lock());
     if(req) {

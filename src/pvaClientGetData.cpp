@@ -19,7 +19,6 @@
 
 #include <pv/pvaClient.h>
 
-using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace std;
@@ -29,18 +28,13 @@ namespace epics { namespace pvaClient {
 
 PvaClientGetDataPtr PvaClientGetData::create(StructureConstPtr const & structure)
 {
-    if(PvaClient::getDebug()) {
-        cout << "PvaClientGetData::create"
-           << endl;
-    }
+    if(PvaClient::getDebug()) cout << "PvaClientGetData::create\n";
     PvaClientGetDataPtr epv(new PvaClientGetData(structure));
     return epv;
 }
 
 PvaClientGetData::PvaClientGetData(StructureConstPtr const & structure)
 : PvaClientData(structure)
-{
-//    PvaClientData::create(structure);
-}
+{}
 
 }}
