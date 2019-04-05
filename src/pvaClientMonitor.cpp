@@ -437,7 +437,7 @@ bool PvaClientMonitor::poll()
     monitorElement = monitor->poll();
     if(!monitorElement) return false;
     userPoll = true;
-    pvaClientData->setElementData(monitorElement);
+    pvaClientData->setData(monitorElement);
    return true;
 }
 

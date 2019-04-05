@@ -56,11 +56,11 @@ PvaClientMonitorData::PvaClientMonitorData(StructureConstPtr const & structure)
 {
 }
 
-void PvaClientMonitorData::setElementData(MonitorElementPtr const & monitorElement)
+void PvaClientMonitorData::setData(MonitorElementPtr const & monitorElement)
 {
    PVStructurePtr pvStructure = monitorElement->pvStructurePtr;
    BitSetPtr changedBitSet = monitorElement->changedBitSet;
-   setData(pvStructure,changedBitSet);
+   PvaClientData::setData(pvStructure,changedBitSet);
    overrunBitSet = monitorElement->overrunBitSet;
 }
 

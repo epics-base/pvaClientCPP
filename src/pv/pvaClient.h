@@ -743,7 +743,7 @@ public:
       *  NOTE: Not normally called by clients
       * @param monitorElement the monitorElement that has new data.
       */
-     void setElementData(epics::pvData::MonitorElementPtr const & monitorElement);
+     void setData(epics::pvData::MonitorElementPtr const & monitorElement);
     /** Factory method for creating an instance of PvaClientGetData.
      * NOTE: Not normally called by clients
      * @param structure Introspection interface
