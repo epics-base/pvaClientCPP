@@ -186,7 +186,7 @@ void PvaClientPutData::putDoubleArray(shared_vector<const double> const & value)
     }
     if(!pvDoubleArray) {
         throw std::logic_error(
-            "PvaClientData::putDoubleArray() did not find a scalar field");
+            "PvaClientData::putDoubleArray() did not find a scalarArray field");
     }
     pvDoubleArray->replace(value);
 }
@@ -228,7 +228,7 @@ void PvaClientPutData::putStringArray(shared_vector<const std::string> const & v
     }
     if(!pvStringArray) {
         throw std::logic_error(
-            "PvaClientData::getStringArray() did not find a scalar field");
+            "PvaClientData::getStringArray() did not find a scalarArray field");
     }
     pvStringArray->replace(value);
 }
@@ -262,7 +262,7 @@ void PvaClientPutData::putStringArray(std::vector<std::string> const & value)
     }
     if(!pvScalarArray) {
         throw std::logic_error(
-            "PvaClientData::getStringArray() did not find a scalar field");
+            "PvaClientData::getStringArray() did not find a scalarArray field");
     }
     convert->fromStringArray(pvScalarArray,0,value.size(),value,0);
 }

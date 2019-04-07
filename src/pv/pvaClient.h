@@ -313,11 +313,42 @@ public:
     PvaClientGetPtr createGet(std::string const & request = "field(value,alarm,timeStamp)");
     /** @brief Creates an PvaClientGet.
      *
-     * @param pvRequest The syntax of pvRequest is defined by the copy facility of pvData.
+     * @param pvRequest The syntax of request is defined by the copy facility of pvData.
+     * @return The interface.
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientGetPtr createGet(epics::pvData::PVStructurePtr const &  pvRequest);
+    /** @brief Get the value as a double.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    double getDouble(std::string const & request = "field(value)");
+    /** Get the value as a string.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    std::string getString(std::string const & request = "field(value)");
+    /** @brief Get the value as a double array.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    epics::pvData::shared_vector<const double>  getDoubleArray(
+        std::string const & request = "field(value)");
+    /** @brief Get the value as a string array.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    epics::pvData::shared_vector<const std::string>  getStringArray(
+        std::string const & request = "field(value)");
     /** @brief create a PvaClientPut.
      * 
      * Get a cached PvaClientPut or create and connect to a new PvaClientPut.
@@ -341,6 +372,43 @@ public:
      * @return The interface.
      */
     PvaClientPutPtr createPut(epics::pvData::PVStructurePtr const & pvRequest);
+    /** @brief Put the value as a double.
+     *
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putDouble(double value,std::string const & request = "field(value)");
+    /** @brief Put the value as a string.
+     *
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putString(std::string const & value,std::string const & request = "field(value)");
+    /** @brief Copy the array to the value field.
+     *
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putDoubleArray(
+        epics::pvData::shared_vector<const double> const & value,
+        std::string const & request = "field(value)");
+    /** @brief Copy array to the value field.
+     * 
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putStringArray(
+        epics::pvData::shared_vector<const std::string> const & value,
+        std::string const & request = "field(value)");
+    /** @brief Copy array to the value field.
+     * @param value data source
+     * @throw runtime_error if failure.
+     */
+    void putStringArray(std::vector<std::string> const & value,std::string const & request = "field(value)");
     /** @brief create a PvaClientPutGet.
      *
      * First call createRequest as implemented by pvDataJava and then calls the next method.

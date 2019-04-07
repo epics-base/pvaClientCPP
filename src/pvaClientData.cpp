@@ -282,7 +282,7 @@ shared_vector<const double> PvaClientData::getDoubleArray()
     }
     if(!pvDoubleArray) {
         throw std::logic_error(
-            "PvaClientData::getDoubleArray() did not find a scalar field");
+            "PvaClientData::getDoubleArray() did not find a scalarArray field");
     }
     return pvDoubleArray->view();  
 }
@@ -324,7 +324,7 @@ shared_vector<const string> PvaClientData::getStringArray()
     }
     if(!pvStringArray) {
         throw std::logic_error(
-            "PvaClientData::getStringArray() did not find a scalar field");
+            "PvaClientData::getStringArray() did not find a scalarArray field");
     }
     return pvStringArray->view();
 }
