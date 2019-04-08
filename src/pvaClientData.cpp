@@ -290,19 +290,16 @@ shared_vector<const double> PvaClientData::getDoubleArray()
 shared_vector<const string> PvaClientData::getStringArray()
 {
     if(PvaClient::getDebug()) cout << "PvaClientData::getStringArray\n";
-    PVStringArrayPtr pvStringArray;
+    PVScalarArrayPtr pvScalarArray;
     PVStructurePtr pvStructure = getPVStructure();
     PVFieldPtr pvValue  = pvStructure->getSubField("value");
     if(pvValue) {
        Type type = pvValue->getField()->getType();
         if(type==scalarArray) {
-             PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvValue);
-             if(pvScalarArray->getScalarArray()->getElementType()==pvString) {
-                 pvStringArray = static_pointer_cast<PVStringArray>(pvValue);
-             }
+             pvScalarArray = static_pointer_cast<PVScalarArray>(pvValue);
         }
     }
-    if(!pvStringArray) {
+    if(!pvScalarArray) {
         while(true) {
              const PVFieldPtrArray fieldPtrArray(pvStructure->getPVFields());
              if(fieldPtrArray.size()!=1) {
@@ -314,7 +311,7 @@ shared_vector<const string> PvaClientData::getStringArray()
              if(type==scalarArray) {
                  PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
                  if(pvScalarArray->getScalarArray()->getElementType()==pvString) {
-                     pvStringArray = static_pointer_cast<PVStringArray>(pvField);
+                     pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
                      break;
                  }
              }
@@ -322,13 +319,14 @@ shared_vector<const string> PvaClientData::getStringArray()
              pvStructure = static_pointer_cast<PVStructure>(pvField);
         }
     }
-    if(!pvStringArray) {
+    if(!pvScalarArray) {
         throw std::logic_error(
             "PvaClientData::getStringArray() did not find a scalarArray field");
     }
-    return pvStringArray->view();
+    shared_vector<const string> retValue;
+    pvScalarArray->getAs<const string>(retValue);
+    return retValue;
 }
-
 
 Alarm PvaClientData::getAlarm()
 {
