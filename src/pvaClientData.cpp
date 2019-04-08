@@ -309,11 +309,8 @@ shared_vector<const string> PvaClientData::getStringArray()
              PVFieldPtr pvField(fieldPtrArray[0]);
              Type type = pvField->getField()->getType();
              if(type==scalarArray) {
-                 PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
-                 if(pvScalarArray->getScalarArray()->getElementType()==pvString) {
-                     pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
-                     break;
-                 }
+                 pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
+                 break;
              }
              if(pvField->getField()->getType()!=epics::pvData::structure) break;
              pvStructure = static_pointer_cast<PVStructure>(pvField);
