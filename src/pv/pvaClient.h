@@ -405,7 +405,8 @@ public:
         epics::pvData::shared_vector<const std::string> const & value,
         std::string const & request = "field(value)");
     /** @brief Copy array to the value field.
-     * @param value data source
+     * @param value The data used to update the channel value.
+     * @param request The request as a string to pass to createRequest.
      * @throw runtime_error if failure.
      */
     void putStringArray(std::vector<std::string> const & value,std::string const & request = "field(value)");

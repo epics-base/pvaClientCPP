@@ -254,7 +254,7 @@ shared_vector<const double> PvaClientData::getDoubleArray()
     if(pvValue) {
         Type type = pvValue->getField()->getType();
         if(type==scalarArray) {
-             PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvValue);
+            pvScalarArray = static_pointer_cast<PVScalarArray>(pvValue);
         }
     }
     if(!pvScalarArray) {
