@@ -248,19 +248,16 @@ string PvaClientData::getString()
 shared_vector<const double> PvaClientData::getDoubleArray()
 {
     if(PvaClient::getDebug()) cout << "PvaClientData::getDoubleArray\n";
-    PVDoubleArrayPtr pvDoubleArray;
+    PVScalarArrayPtr pvScalarArray;
     PVStructurePtr pvStructure = getPVStructure();
     PVFieldPtr pvValue  = pvStructure->getSubField("value");
     if(pvValue) {
         Type type = pvValue->getField()->getType();
         if(type==scalarArray) {
              PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvValue);
-             if(pvScalarArray->getScalarArray()->getElementType()==pvDouble) {
-                 pvDoubleArray = static_pointer_cast<PVDoubleArray>(pvValue);
-             }
         }
     }
-    if(!pvDoubleArray) {
+    if(!pvScalarArray) {
         while(true) {
              const PVFieldPtrArray fieldPtrArray(pvStructure->getPVFields());
              if(fieldPtrArray.size()!=1) {
@@ -270,21 +267,25 @@ shared_vector<const double> PvaClientData::getDoubleArray()
              PVFieldPtr pvField(fieldPtrArray[0]);
              Type type = pvField->getField()->getType();
              if(type==scalarArray) {
-                 PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
-                 if(pvScalarArray->getScalarArray()->getElementType()==pvDouble) {
-                     pvDoubleArray = static_pointer_cast<PVDoubleArray>(pvField);
-                     break;
-                 }
+                 pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
+                 break;
              }
              if(pvField->getField()->getType()!=epics::pvData::structure) break;
              pvStructure = static_pointer_cast<PVStructure>(pvField);
         }
     }
-    if(!pvDoubleArray) {
+    if(!pvScalarArray) {
         throw std::logic_error(
             "PvaClientData::getDoubleArray() did not find a scalarArray field");
     }
-    return pvDoubleArray->view();  
+    ScalarType scalarType = pvScalarArray->getScalarArray()->getElementType();
+    if(!ScalarTypeFunc::isNumeric(scalarType)) {
+        throw std::logic_error(
+            "PvaClientData::getDoubleArray() did not find a numeric scalarArray field");
+    }
+    shared_vector<const double> retValue;
+    pvScalarArray->getAs<const double>(retValue);
+    return retValue;
 }
 
 shared_vector<const string> PvaClientData::getStringArray()
