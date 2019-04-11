@@ -12,6 +12,7 @@ INC += pv/pvaClient.h
 INC += pv/pvaClientMultiChannel.h
 
 LIBSRCS += pvaClient.cpp
+LIBSRCS += pvaClientData.cpp
 LIBSRCS += pvaClientPutData.cpp
 LIBSRCS += pvaClientGetData.cpp
 LIBSRCS += pvaClientMonitorData.cpp

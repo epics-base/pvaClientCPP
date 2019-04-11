@@ -44,6 +44,8 @@ namespace epics { namespace pvaClient {
 
 class PvaClient;
 typedef std::tr1::shared_ptr<PvaClient> PvaClientPtr;
+class PvaClientData;
+typedef std::tr1::shared_ptr<PvaClientData> PvaClientDataPtr;
 class PvaClientGetData;
 typedef std::tr1::shared_ptr<PvaClientGetData> PvaClientGetDataPtr;
 class PvaClientPutData;
@@ -311,11 +313,42 @@ public:
     PvaClientGetPtr createGet(std::string const & request = "field(value,alarm,timeStamp)");
     /** @brief Creates an PvaClientGet.
      *
-     * @param pvRequest The syntax of pvRequest is defined by the copy facility of pvData.
+     * @param pvRequest The syntax of request is defined by the copy facility of pvData.
+     * @return The interface.
      * @return The interface.
      * @throw runtime_error if failure.
      */
     PvaClientGetPtr createGet(epics::pvData::PVStructurePtr const &  pvRequest);
+    /** @brief Get the value as a double.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    double getDouble(std::string const & request = "field(value)");
+    /** Get the value as a string.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    std::string getString(std::string const & request = "field(value)");
+    /** @brief Get the value as a double array.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    epics::pvData::shared_vector<const double>  getDoubleArray(
+        std::string const & request = "field(value)");
+    /** @brief Get the value as a string array.
+     *
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @return The value.
+     * @throw runtime_error if failure.
+     */
+    epics::pvData::shared_vector<const std::string>  getStringArray(
+        std::string const & request = "field(value)");
     /** @brief create a PvaClientPut.
      * 
      * Get a cached PvaClientPut or create and connect to a new PvaClientPut.
@@ -339,6 +372,44 @@ public:
      * @return The interface.
      */
     PvaClientPutPtr createPut(epics::pvData::PVStructurePtr const & pvRequest);
+    /** @brief Put the value as a double.
+     *
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putDouble(double value,std::string const & request = "field(value)");
+    /** @brief Put the value as a string.
+     *
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putString(std::string const & value,std::string const & request = "field(value)");
+    /** @brief Copy the array to the value field.
+     *
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putDoubleArray(
+        epics::pvData::shared_vector<const double> const & value,
+        std::string const & request = "field(value)");
+    /** @brief Copy array to the value field.
+     * 
+     * @param value The new value.
+     * @param request The syntax of request is defined by the copy facility of pvData.
+     * @throw runtime_error if failure.
+     */
+    void putStringArray(
+        epics::pvData::shared_vector<const std::string> const & value,
+        std::string const & request = "field(value)");
+    /** @brief Copy array to the value field.
+     * @param value The data used to update the channel value.
+     * @param request The request as a string to pass to createRequest.
+     * @throw runtime_error if failure.
+     */
+    void putStringArray(std::vector<std::string> const & value,std::string const & request = "field(value)");
     /** @brief create a PvaClientPutGet.
      *
      * First call createRequest as implemented by pvDataJava and then calls the next method.
@@ -490,18 +561,18 @@ public:
 };
 
 /** 
- *  @brief A class that holds data returned by PvaClientGet or PvaClientPutGet
+ *  @brief A base class for PvaClientGetData, PvaClientPutData, and PvaClientMonitorData.
  *
- * <a href = "../htmldoxygen/pvaClientGetData.html">Overview of PvaClientGetData</a>
+ * <a href = "../htmldoxygen/pvaClientData.html">Overview of PvaClientData</a>
  */
-class epicsShareClass PvaClientGetData
+class epicsShareClass PvaClientData
 {
 public:
-    POINTER_DEFINITIONS(PvaClientGetData);
+    POINTER_DEFINITIONS(PvaClientData);
     /**
      * @brief Destructor
      */
-    ~PvaClientGetData() {}
+    ~PvaClientData() {}
     /** @brief Set a prefix for throw messages.
      *
      * This is called by other pvaClient classes.
@@ -608,6 +679,44 @@ public:
      * @return The timeStamp.
      */
     epics::pvData::TimeStamp getTimeStamp();
+    /** @brief Factory method for creating an instance of PvaClientData.
+     *
+     * NOTE: Not normally called by clients
+     * @param structure Introspection interface
+     * @throw runtime_error if failure.
+     */
+    static PvaClientDataPtr create(epics::pvData::StructureConstPtr const & structure);
+protected:
+    PvaClientData(epics::pvData::StructureConstPtr const & structure);
+    void checkValue();
+    std::string messagePrefix;
+private:
+
+    epics::pvData::StructureConstPtr structure;
+    epics::pvData::PVStructurePtr pvStructure;
+    epics::pvData::BitSetPtr bitSet;
+
+    
+    epics::pvData::PVFieldPtr pvValue;
+    epics::pvData::PVAlarm pvAlarm;
+    epics::pvData::PVTimeStamp pvTimeStamp;
+    friend class PvaClientGet;
+    friend class PvaClientPutGet;
+};
+
+/** 
+ *  @brief A class that holds data returned by PvaClientGet or PvaClientPutGet
+ *
+ * <a href = "../htmldoxygen/pvaClientGetData.html">Overview of PvaClientGetData</a>
+ */
+class epicsShareClass PvaClientGetData : public PvaClientData
+{
+public:
+    POINTER_DEFINITIONS(PvaClientGetData);
+    /**
+     * @brief Destructor
+     */
+    ~PvaClientGetData() {}
     /** @brief Factory method for creating an instance of PvaClientGetData.
      *
      * NOTE: Not normally called by clients
@@ -617,15 +726,6 @@ public:
     static PvaClientGetDataPtr create(epics::pvData::StructureConstPtr const & structure);
 private:
     PvaClientGetData(epics::pvData::StructureConstPtr const & structure);
-    void checkValue();
-    epics::pvData::StructureConstPtr structure;
-    epics::pvData::PVStructurePtr pvStructure;
-    epics::pvData::BitSetPtr bitSet;
-
-    std::string messagePrefix;
-    epics::pvData::PVFieldPtr pvValue;
-    epics::pvData::PVAlarm pvAlarm;
-    epics::pvData::PVTimeStamp pvTimeStamp;
     friend class PvaClientGet;
     friend class PvaClientPutGet;
 };
@@ -636,7 +736,7 @@ class PvaClientPostHandlerPvt; // private to PvaClientPutData
  *
  * <a href = "../htmldoxygen/pvaClientPutData.html">Overview of PvaClientPutData</a>
  */
-class epicsShareClass PvaClientPutData 
+class epicsShareClass PvaClientPutData : public PvaClientData
 {
 public:
     POINTER_DEFINITIONS(PvaClientPutData);
@@ -644,93 +744,6 @@ public:
      * @brief Destructor
      */    
     ~PvaClientPutData() {}
-    /** @brief Set a prefix for throw messages.
-     *
-     * @param value The prefix.
-     */
-    void setMessagePrefix(std::string const & value);
-    /** @brief Get the structure.
-     *
-     * @return The Structure
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::StructureConstPtr getStructure();
-   /** @brief Get the pvStructure.
-    *
-    * @return the pvStructure.
-    * @throw runtime_error if failure.
-    */
-   epics::pvData::PVStructurePtr getPVStructure();
-    /**  @brief Get the changed BitSet for the pvStructure
-     *
-     * This shows which fields have changed values.
-     * @return The bitSet
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::BitSetPtr getChangedBitSet();
-    /**  @brief Show the fields that have changed values.
-     *
-     * @param out The stream that shows the changed fields.
-     * @return The stream that was passed as out.
-     */
-    std::ostream & showChanged(std::ostream & out);
-    /**
-     * @brief Is there a top level field named value.
-     *
-     * @return The answer.
-     */
-    bool hasValue();
-    /** @brief Is the value field a scalar?
-     *
-     * @return The answer.
-     */
-    bool isValueScalar();
-    /** @brief Is the value field a scalar array?
-     * @return The answer.
-     */
-    bool isValueScalarArray();
-    /** Get the interface to the value field.
-     *
-     * @return The interface. an excetion is thrown if a value field does not exist.
-     */
-    epics::pvData::PVFieldPtr getValue();
-    /** @brief Get the interface to a scalar value field.
-     *
-     * @return The interface for a scalar value field.
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::PVScalarPtr getScalarValue();
-    /** @brief Get the interface to an array value field.
-     * @return The interface.
-     * An exception is thown if no array value field.
-     */
-    std::tr1::shared_ptr<epics::pvData::PVArray> getArrayValue();
-    /** @brief Get the interface to a scalar array value field.
-     * @return Return the interface.
-     * @throw runtime_error if failure.
-     */
-    std::tr1::shared_ptr<epics::pvData::PVScalarArray> getScalarArrayValue();
-    /** @brief Get the value as a double.
-     *
-     * If value is not a numeric scalar an exception is thrown.
-     * @return The value.
-     */
-    double getDouble();
-    /** @brief Get the value as a string.
-     * @return The value.
-     * @throw runtime_error if failure.
-     */
-    std::string getString();
-    /** @brief Get the value as a double array.
-     * If the value is not a numeric array an exception is thrown.
-     * @return The value.
-     */
-    epics::pvData::shared_vector<const double>  getDoubleArray();
-    /** @brief Get the value as a string array.
-     * @return The value.
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::shared_vector<const std::string>  getStringArray();
     /** @brief Put the value as a double.
      * @param value The new value.
      * An exception is also thrown if the actualy type can cause an overflow.
@@ -764,17 +777,9 @@ public:
      static PvaClientPutDataPtr create(epics::pvData::StructureConstPtr const & structure);
 private:
     PvaClientPutData(epics::pvData::StructureConstPtr const &structure);
-    void checkValue();
     void postPut(size_t fieldNumber);
-
     std::vector<epics::pvData::PostHandlerPtr> postHandler;
-    epics::pvData::StructureConstPtr structure;
-    epics::pvData::PVStructurePtr pvStructure;
-    epics::pvData::BitSetPtr bitSet;
     friend class PvaClientPostHandlerPvt;
-
-    std::string messagePrefix;
-    epics::pvData::PVFieldPtr pvValue;
     friend class PvaClientPut;
     friend class PvaClientPutGet;
 };
@@ -784,7 +789,7 @@ private:
  *
  * <a href = "../htmldoxygen/pvaClientMonitorData.html">Overview of PvaClientMonitorData</a>
  */
-class epicsShareClass PvaClientMonitorData
+class epicsShareClass PvaClientMonitorData : public PvaClientData
 {
 public:
     POINTER_DEFINITIONS(PvaClientMonitorData);
@@ -792,27 +797,6 @@ public:
      * @brief Destructor
      */    
     ~PvaClientMonitorData() {}
-    /** @brief Set a prefix for throw messages.
-     * @param value The prefix.
-     */
-    void setMessagePrefix(std::string const & value);
-    /** @brief Get the structure.
-     * @return The Structure
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::StructureConstPtr getStructure();
-    /** @brief Get the pvStructure.
-     * @return the pvStructure.
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::PVStructurePtr getPVStructure();
-    /**  @brief Get the changed BitSet for the pvStructure,
-     *
-     * This shows which fields have changed value.
-     * @return The bitSet
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::BitSetPtr getChangedBitSet();
     /** @brief Get the overrun BitSet for the pvStructure
      * This shows which fields have had more than one change.
      * @return The bitSet
@@ -823,111 +807,21 @@ public:
      * @param out The stream that shows the changed fields.
      * @return The stream that was passed as out.
      */
-    std::ostream & showChanged(std::ostream & out);
-    /** @brief Show the fields that have overrun.
-     * @param out The stream that shows the overrun fields.
-     * @return The stream that was  passed as out
-     */
     std::ostream & showOverrun(std::ostream & out);
-    /** @brief Is there a top level field named value.
-     * @return The answer.
-     */
-    bool hasValue();
-    /** @brief Is the value field a scalar?
-     * @return The answer.
-     */
-    bool isValueScalar();
-    /** @brief Is the value field a scalar array?
-     * @return The answer.
-     */
-    bool isValueScalarArray();
-    /** @brief Get the interface to the value field.
-     * @return The interface. an excetion is thrown if a value field does not exist.
-     */
-    epics::pvData::PVFieldPtr getValue();
-    /** @brief Get the interface to a scalar value field.
-     * @return The interface for a scalar value field.
-     * @throw runtime_error if failure.
-     * An exception is thown if no scalar value field.
-     */
-    epics::pvData::PVScalarPtr getScalarValue();
-    /** @brief Get the interface to an array value field.
-     * @return The interface.
-     * @throw runtime_error if failure.
-     * An exception is thown if no array value field.
-     */
-    std::tr1::shared_ptr<epics::pvData::PVArray> getArrayValue();
-    /** @brief Get the interface to a scalar array value field.
-     * @return Return the interface.
-     * @throw runtime_error if failure.
-     * An exception is thown if no scalar array value field.
-     */
-    std::tr1::shared_ptr<epics::pvData::PVScalarArray> getScalarArrayValue();
-    /** @brief Get the value as a double.
-     *
-     * If value is not a numeric scalar an exception is thrown.
-     * @return The value.
-     */
-    double getDouble();
-    /** @brief Get the value as a string.
-     *
-     * If value is not a scalar an exception is thrown
-     * @return The value.
-     * @throw runtime_error if failure.
-     */
-    std::string getString();
-    /** @brief Get the value as a double array.
-     *
-     * If the value is not a numeric array an exception is thrown.
-     * @return The value.
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::shared_vector<const double>  getDoubleArray();
-    /** @brief Get the value as a string array.
-     *
-     * If the value is not a string array an exception is thrown.
-     * @return The value.
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::shared_vector<const std::string>  getStringArray();
-    /** @brief Get the alarm.
-     *
-     * If the pvStructure as an alarm field it's values are returned.
-     * If no then alarm shows that not alarm defined.
-     * @return The alarm.
-     * @throw runtime_error if failure.
-     */
-    epics::pvData::Alarm getAlarm();
-    /** @brief Get the timeStamp.
-     *
-     * If the pvStructure has a timeStamp field, it's values are returned.
-     * If no then all fields are 0.
-     * @return The timeStamp.
-     */
-    epics::pvData::TimeStamp getTimeStamp();
-    /** Factory method for creating an instance of PvaClientGetData.
-     * NOTE: Not normally called by clients
-     * @param structure Introspection interface
-     */
-     static PvaClientMonitorDataPtr create(epics::pvData::StructureConstPtr const & structure);
      /** Put data into PVStructure from monitorElement
       *  NOTE: Not normally called by clients
       * @param monitorElement the monitorElement that has new data.
       */
      void setData(epics::pvData::MonitorElementPtr const & monitorElement);
+    /** Factory method for creating an instance of PvaClientGetData.
+     * NOTE: Not normally called by clients
+     * @param structure Introspection interface
+     */
+     static PvaClientMonitorDataPtr create(epics::pvData::StructureConstPtr const & structure);
 private:
     PvaClientMonitorData(epics::pvData::StructureConstPtr const & structure);
-    void checkValue();
-    
-    epics::pvData::StructureConstPtr structure;
-    epics::pvData::PVStructurePtr pvStructure;
-    epics::pvData::BitSetPtr changedBitSet;
     epics::pvData::BitSetPtr overrunBitSet;
 
-    std::string messagePrefix;
-    epics::pvData::PVFieldPtr pvValue;
-    epics::pvData::PVAlarm pvAlarm;
-    epics::pvData::PVTimeStamp pvTimeStamp;
     friend class PvaClientMonitor;
 };
 

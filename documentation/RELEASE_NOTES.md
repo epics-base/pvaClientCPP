@@ -2,6 +2,31 @@
 
 This document summarizes the changes to the module between releases.
 
+## release (EPICS 7.0.2.2 April 2019)
+
+Changes have been made for getDouble, putDouble, getDoubleArray, putDoubleArray, getString, putString, getStringArray, and putStringArray.
+
+1) Previously each only had support for a top level field named value.
+Each now allows access to a single sub field that has the correct type.
+Thus pvRequest must select a single field. For example
+
+    pva->channel("PVRdumbPowerSupply")->putDouble(1.0,"power.value" );
+
+2) PvaChannel now has a method for each of the above.
+For example instead of
+
+    PvaClientChannelPtr channel = pva->channel("PVRdouble");
+    PvaClientPutPtr clientPut = channel->put();
+    PvaClientPutDataPtr putData = clientPut->getData();
+    putData->putDouble(1.0); clientPut->put();
+
+now it can be
+
+    pva->channel("PVRdouble")->putDouble(1.0 );
+
+3) getDoubleArray and putDoubleArray work with any numeric scalar array
+
+4) getStringArray and putStringArray work with any scalar array.
 
 ## Release 4.4 (EPICS 7.0.2, Dec 2018)
 

@@ -18,7 +18,6 @@
 
 #include <pv/pvaClient.h>
 
-using std::tr1::static_pointer_cast;
 using namespace epics::pvData;
 using namespace epics::pvAccess;
 using namespace std;
@@ -381,6 +380,26 @@ PvaClientGetPtr PvaClientChannel::createGet(PVStructurePtr const &  pvRequest)
     return PvaClientGet::create(yyy,shared_from_this(),pvRequest);
 }
 
+double PvaClientChannel::getDouble(string const & request)
+{
+     return get(request)->getData()->getDouble();
+}
+
+string PvaClientChannel::getString(string const & request)
+{
+    return get(request)->getData()->getString();
+}
+
+shared_vector<const double>  PvaClientChannel::getDoubleArray(string const & request)
+{
+    return get(request)->getData()->getDoubleArray();
+}
+
+shared_vector<const std::string>  PvaClientChannel::getStringArray(string const & request)
+{
+    return get(request)->getData()->getStringArray();
+}
+
 
 PvaClientPutPtr PvaClientChannel::put(string const & request)
 {
@@ -414,6 +433,44 @@ PvaClientPutPtr PvaClientChannel::createPut(PVStructurePtr const & pvRequest)
     PvaClientPtr yyy = pvaClient.lock();
     if(!yyy) throw std::runtime_error("PvaClient was destroyed");
     return PvaClientPut::create(yyy,shared_from_this(),pvRequest);
+}
+
+void PvaClientChannel::putDouble(double value,string const & request)
+{
+    PvaClientPutPtr clientPut = put(request);
+    PvaClientPutDataPtr putData = clientPut->getData();
+    putData->putDouble(value); clientPut->put();
+}
+
+void PvaClientChannel::putString(std::string const & value,string const & request)
+{
+    PvaClientPutPtr clientPut = put(request);
+    PvaClientPutDataPtr putData = clientPut->getData();
+    putData->putString(value); clientPut->put();
+}
+
+void PvaClientChannel::putDoubleArray(
+    shared_vector<const double> const & value,
+    string const & request)
+{
+    PvaClientPutPtr clientPut = put(request);
+    PvaClientPutDataPtr putData = clientPut->getData();
+    size_t n = value.size();
+    shared_vector<double> valueArray(n);
+    for(size_t i=0; i<n; ++i) valueArray[i] = value[i];
+    putData->putDoubleArray(freeze(valueArray)); clientPut->put();
+}
+
+void PvaClientChannel::putStringArray(
+    shared_vector<const string> const & value,
+    string const & request)
+{
+    PvaClientPutPtr clientPut = put(request);
+    PvaClientPutDataPtr putData = clientPut->getData();
+    size_t n = value.size();
+    shared_vector<string> valueArray(n);
+    for(size_t i=0; i<n; ++i) valueArray[i] = value[i];
+    putData->putStringArray(freeze(valueArray)); clientPut->put();
 }
 
 PvaClientPutGetPtr PvaClientChannel::createPutGet(string const & request)
