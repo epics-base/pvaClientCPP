@@ -2,7 +2,7 @@
 
 This document summarizes the changes to the module between releases.
 
-## release (EPICS 7.0.2.2 April 2019)
+## Release 4.5.0 (EPICS 7.0.2.2, Apr 2019)
 
 Changes have been made for getDouble, putDouble, getDoubleArray, putDoubleArray, getString, putString, getStringArray, and putStringArray.
 
