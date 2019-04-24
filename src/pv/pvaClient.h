@@ -1813,6 +1813,7 @@ private:
 
     enum RPCState {rpcIdle,rpcActive,rpcComplete};
     RPCState rpcState;
+    epics::pvData::Status requestStatus;
     double responseTimeout;
     friend class RPCRequesterImpl;
 };

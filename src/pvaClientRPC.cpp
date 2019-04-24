@@ -12,6 +12,7 @@
 #include <sstream>
 #include <pv/event.h>
 #include <pv/bitSetUtil.h>
+#include <pv/rpcService.h>
 
 #define epicsExportSharedSymbols
 
@@ -180,6 +181,7 @@ void PvaClientRPC::requestDone(
     PvaClientRPCRequesterPtr req = pvaClientRPCRequester.lock();
     {
         Lock xx(mutex);
+        requestStatus = status;
         if(PvaClient::getDebug()) {
              string channelName("disconnected");
              Channel::shared_pointer chan(channel.lock());
@@ -224,7 +226,7 @@ void PvaClientRPC::connect()
         + channelName
         + " PvaClientRPC::connect "
         + status.getMessage();
-    throw std::runtime_error(message);
+    throw RPCRequestException(Status::STATUSTYPE_ERROR,message);
 }
 
 void PvaClientRPC::issueConnect()
@@ -305,10 +307,18 @@ PVStructure::shared_pointer PvaClientRPC::request(PVStructure::shared_pointer co
         string message = "channel "
             + channelName
             + " PvaClientRPC::request request timeout ";
-        throw std::runtime_error(message);
+        throw RPCRequestException(Status::STATUSTYPE_ERROR,message);
     }
     rpcState = rpcIdle;
-    return pvResponse;
+    if(requestStatus.isOK()) return pvResponse;
+    Channel::shared_pointer chan(channel.lock());
+    string channelName("disconnected");
+    if(chan) channelName = chan->getChannelName();
+    string message = "channel "
+            + channelName
+            + " PvaClientRPC::request status ";
+    message += requestStatus.getMessage();
+    throw RPCRequestException(Status::STATUSTYPE_ERROR,message);
 }
 
 
