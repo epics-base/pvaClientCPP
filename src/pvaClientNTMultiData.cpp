@@ -148,15 +148,29 @@ void PvaClientNTMultiData::endDeltaTime()
             unionValue[i]->set(pvst->getSubField("value"));
             if(gotAlarm)
             {
-                severity[i] = pvst->getSubField<PVInt>("alarm.severity")->get();
-                status[i] = pvst->getSubField<PVInt>("alarm.status")->get();
-                message[i] = pvst->getSubField<PVString>("alarm.message")->get();
+                PVIntPtr pvSeverity = pvst->getSubField<PVInt>("alarm.severity");
+                PVIntPtr pvStatus = pvst->getSubField<PVInt>("alarm.status");
+                PVStringPtr pvMessage = pvst->getSubField<PVString>("alarm.message");
+                if(pvSeverity&&pvStatus&&pvMessage) {
+                    severity[i] = pvSeverity->get();
+                    status[i] = pvStatus->get();
+                    message[i] = pvMessage->get();
+                } else {
+                    severity[i] = undefinedAlarm;
+                    status[i] = undefinedStatus;
+                    message[i] = "no alarm field";
+                }
             }
             if(gotTimeStamp)
             {
-                secondsPastEpoch[i] = pvst->getSubField<PVLong>("timeStamp.secondsPastEpoch")->get();
-                nanoseconds[i] = pvst->getSubField<PVInt>("timeStamp.nanoseconds")->get();
-                userTag[i] = pvst->getSubField<PVInt>("timeStamp.userTag")->get();
+                PVLongPtr pvEpoch = pvst->getSubField<PVLong>("timeStamp.secondsPastEpoch");
+                PVIntPtr pvNano = pvst->getSubField<PVInt>("timeStamp.nanoseconds");
+                PVIntPtr pvTag = pvst->getSubField<PVInt>("timeStamp.userTag");
+                if(pvEpoch&&pvNano&&pvTag) {
+                    secondsPastEpoch[i] = pvEpoch->get();
+                    nanoseconds[i] = pvNano->get();
+                    userTag[i] = pvTag->get();
+                }
             }
         } 
     }
