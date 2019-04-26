@@ -360,8 +360,10 @@ public:
     void connect();
     /**
      * @brief Get each channel.
+     *
+     * @param valueOnly use only value for union.
      */
-    void get();
+    void get(bool valueOnly = true);
     /**
      * @brief Get the data from the last get.
      * @return the pvaClientNTMultiData.
@@ -476,10 +478,11 @@ public:
      /**
      * @brief Poll each channel.
      *
+     * @param valueOnly use only value for union.
      * If any has new data it is used to update the double[].
      * @return (false,true) if (no, at least one) value was updated.
      */
-    bool poll();
+    bool poll(bool valueOnly = true);
     /**
      * @brief Wait until poll returns true.
      * @param secondsToWait The time to keep trying.
@@ -551,11 +554,12 @@ public:
      * @brief Set the timeStamp base for computing deltaTimes. 
      */
     void startDeltaTime();
-   
     /**
      * @brief Update NTMultiChannel fields.
+     *
+     * @param valueOnly use only value for union.
      */
-    void endDeltaTime();
+    void endDeltaTime(bool valueOnly = true);
     /**
      * @brief Get the time when the last get was made.
      * @return The timeStamp.
@@ -579,7 +583,6 @@ private:
          PvaClientMultiChannelPtr const &pvaNTMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
-    void setStructure(epics::pvData::StructureConstPtr const & structure,size_t index);
     void setPVStructure(
         epics::pvData::PVStructurePtr const &pvStructure,size_t index);
 
