@@ -63,13 +63,10 @@ void PvaClientNTMultiGet::connect()
 {
     pvaClientGet.resize(nchannel);
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
-    string request = "value";
-    if(pvRequest->getSubField("field.alarm")) request += ",alarm";
-    if(pvRequest->getSubField("field.timeStamp")) request += ",timeStamp";
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
-               pvaClientGet[i] = pvaClientChannelArray[i]->createGet(request);
+               pvaClientGet[i] = pvaClientChannelArray[i]->createGet(pvRequest);
                pvaClientGet[i]->issueConnect();
          }
     }
@@ -86,7 +83,7 @@ void PvaClientNTMultiGet::connect()
     this->isConnected = true;
 }
 
-void PvaClientNTMultiGet::get()
+void PvaClientNTMultiGet::get(bool valueOnly)
 {
     if(!isConnected) connect();
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
@@ -114,7 +111,7 @@ void PvaClientNTMultiGet::get()
               pvaClientNTMultiData->setPVStructure(pvaClientGet[i]->getData()->getPVStructure(),i);
          }
     }
-    pvaClientNTMultiData->endDeltaTime();
+    pvaClientNTMultiData->endDeltaTime(valueOnly);
 }
 
 PvaClientNTMultiDataPtr PvaClientNTMultiGet::getData()

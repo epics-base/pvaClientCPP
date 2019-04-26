@@ -67,13 +67,10 @@ void PvaClientNTMultiMonitor::connect()
 {
     pvaClientMonitor.resize(nchannel);
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
-    string request = "value";
-    if(pvRequest->getSubField("field.alarm")) request += ",alarm";
-    if(pvRequest->getSubField("field.timeStamp")) request += ",timeStamp";
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
-               pvaClientMonitor[i] = pvaClientChannelArray[i]->createMonitor(request);
+               pvaClientMonitor[i] = pvaClientChannelArray[i]->createMonitor(pvRequest);
                pvaClientMonitor[i]->issueConnect();
          }
     }
@@ -94,7 +91,7 @@ void PvaClientNTMultiMonitor::connect()
     this->isConnected = true;
 }
 
-bool PvaClientNTMultiMonitor::poll()
+bool PvaClientNTMultiMonitor::poll(bool valueOnly)
 {
     if(!isConnected) connect();
     bool result = false;
@@ -111,7 +108,7 @@ bool PvaClientNTMultiMonitor::poll()
               }
          }
     }
-    if(result) pvaClientNTMultiData->endDeltaTime();
+    if(result) pvaClientNTMultiData->endDeltaTime(valueOnly);
     return result;
 }
 

@@ -44,10 +44,6 @@ PvaClientNTMultiData::PvaClientNTMultiData(
   gotTimeStamp(false)
 {
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiData::PvaClientNTMultiData()\n";
-    PVFieldPtr pvValue = pvRequest->getSubField("field.value");
-    if(!pvValue) {
-        throw std::runtime_error("pvRequest did not specify value");
-    }
     topPVStructure.resize(nchannel);
     unionValue.resize(nchannel);
     PVDataCreatePtr pvDataCreate = getPVDataCreate();
@@ -88,18 +84,6 @@ PvaClientNTMultiData::~PvaClientNTMultiData()
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiData::~PvaClientNTMultiData()\n";
 }
 
-
-void PvaClientNTMultiData::setStructure(StructureConstPtr const & structure,size_t index)
-{
-    FieldConstPtr field = structure->getField("value");
-    if(!field) {
-        string message = "channel "
-           + pvaClientChannelArray[index]->getChannel()->getChannelName()
-           + " does not have top level value field";
-        throw std::runtime_error(message);
-    }
-}
-
 void PvaClientNTMultiData::setPVStructure(
         PVStructurePtr const &pvStructure,size_t index)
 {
@@ -137,7 +121,7 @@ void PvaClientNTMultiData::startDeltaTime()
 }
 
 
-void PvaClientNTMultiData::endDeltaTime()
+void PvaClientNTMultiData::endDeltaTime(bool valueOnly)
 {
     for(size_t i=0; i<nchannel; ++i)
     {
@@ -145,7 +129,16 @@ void PvaClientNTMultiData::endDeltaTime()
         if(!pvst) {
             unionValue[i] = PVUnionPtr();
         } else if(unionValue[i]) {
-            unionValue[i]->set(pvst->getSubField("value"));
+            if(valueOnly) {
+                PVFieldPtr pvValue = pvst->getSubField("value");
+                if(pvValue) {
+                    unionValue[i]->set(pvst->getSubField("value"));
+                } else {
+                    unionValue[i] = PVUnionPtr();
+                }
+            } else {
+                unionValue[i]->set(pvst);
+            }
             if(gotAlarm)
             {
                 PVIntPtr pvSeverity = pvst->getSubField<PVInt>("alarm.severity");
