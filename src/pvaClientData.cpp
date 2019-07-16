@@ -155,7 +155,6 @@ void PvaClientData::parse(const std::vector<std::string> &args)
 {
     if(!pvStructure) throw std::runtime_error(messagePrefix + noStructure);
     if(!bitSet) throw std::runtime_error(messagePrefix + noStructure);
-    bitSet->clear();
     size_t num = args.size();
     for(size_t i=0; i<num; ++i)
     {
@@ -191,8 +190,6 @@ void PvaClientData::parse(const std::vector<std::string> &args)
             bitSet->set(pvUnion->getFieldOffset());
             return;
         }
-        PVScalarArrayPtr pvScalarArray(pvStructure->getSubField<PVScalarArray>(field));
-        if(pvScalarArray) pvScalarArray->setLength(0);
         parse(rest,pvField,bitSet);
     }
 }
@@ -448,5 +445,43 @@ TimeStamp PvaClientData::getTimeStamp()
    }
    throw std::runtime_error(messagePrefix + noTimeStamp);
 }
+
+void PvaClientData::zeroArrayLength()
+{
+    if(!pvStructure) throw new std::runtime_error(messagePrefix + noStructure);
+    zeroArrayLength(pvStructure);
+}
+
+void PvaClientData::zeroArrayLength(const epics::pvData::PVStructurePtr &pvStructure)
+{
+const PVFieldPtrArray pvFields(pvStructure->getPVFields());
+    for(size_t i=0; i<pvFields.size(); ++i) {
+        PVFieldPtr pvField = pvFields[i];
+        Type type(pvField->getField()->getType());
+        switch(type) {
+        case epics::pvData::scalarArray:
+            {
+                PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
+                pvScalarArray->setLength(0);
+            }
+            break;
+        case epics::pvData::structureArray:
+            {
+                PVStructureArrayPtr pvStructureArray = static_pointer_cast<PVStructureArray>(pvField);
+                pvStructureArray->setLength(0);
+            }
+            break;
+        case epics::pvData::structure:
+            {
+                PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvField);
+                zeroArrayLength(pvStructure);
+            } 
+            break;
+        default:
+               break;
+        }
+    }
+}
+
 
 }}

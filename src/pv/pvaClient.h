@@ -687,6 +687,9 @@ public:
      * @return The timeStamp.
      */
     epics::pvData::TimeStamp getTimeStamp();
+     /** @brief set length of all array fields to 0
+     */
+    void zeroArrayLength();
     /** @brief Factory method for creating an instance of PvaClientData.
      *
      * NOTE: Not normally called by clients
@@ -706,6 +709,7 @@ private:
     void parse(
         const std::string &arg,
         const epics::pvData::PVUnionPtr &dest);
+    void zeroArrayLength(const epics::pvData::PVStructurePtr &pvStructure);
 
     epics::pvData::StructureConstPtr structure;
     epics::pvData::PVStructurePtr pvStructure;
