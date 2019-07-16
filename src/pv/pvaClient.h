@@ -613,6 +613,14 @@ public:
     void setData(
         epics::pvData::PVStructurePtr const & pvStructureFrom,
         epics::pvData::BitSetPtr const & bitSetFrom);
+    /** @brief parse from input stream
+     *
+     * Accepts arguments of the form field='value' where value is json syntax.
+     * field is name.name...
+     * @parm args The arguments
+     * @throw runtime_error if failure.
+     */
+    void parse(const std::vector<std::string> &args);
     /** @brief Is there a top level field named value.
      * @return The answer.
      */
@@ -691,12 +699,18 @@ protected:
     void checkValue();
     std::string messagePrefix;
 private:
+    void parse(
+        const std::string &arg,
+        const epics::pvData::PVFieldPtr &dest,
+        epics::pvData::BitSetPtr &bitSet);
+    void parse(
+        const std::string &arg,
+        const epics::pvData::PVUnionPtr &dest);
 
     epics::pvData::StructureConstPtr structure;
     epics::pvData::PVStructurePtr pvStructure;
     epics::pvData::BitSetPtr bitSet;
 
-    
     epics::pvData::PVFieldPtr pvValue;
     epics::pvData::PVAlarm pvAlarm;
     epics::pvData::PVTimeStamp pvTimeStamp;
