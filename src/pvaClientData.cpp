@@ -156,19 +156,22 @@ void PvaClientData::parse(const std::vector<std::string> &args)
     if(!pvStructure) throw std::runtime_error(messagePrefix + noStructure);
     if(!bitSet) throw std::runtime_error(messagePrefix + noStructure);
     size_t num = args.size();
+    if(num<1) throw std::runtime_error(messagePrefix + " no arguments");
     for(size_t i=0; i<num; ++i)
     {
         string val = args[i];
         size_t iequals = val.find_first_of('=');
         string field;
         string rest(val);
-        if(iequals!=std::string::npos) {
-            field = val.substr(0,iequals);
-            rest = val.substr(iequals+1);
+        if(iequals==std::string::npos) {
+           parse(rest,pvStructure,bitSet);
+           continue;
         }
+        field = val.substr(0,iequals);
+        rest = val.substr(iequals+1);
         if(field.size()==std::string::npos) {
            parse(rest,pvStructure,bitSet);
-           return;
+           continue;
         } 
         PVFieldPtr pvField(pvStructure->getSubField(field));
         // look for enumerated structure

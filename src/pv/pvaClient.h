@@ -617,7 +617,7 @@ public:
      *
      * Accepts arguments of the form field='value' where value is json syntax.
      * field is name.name...
-     * @parm args The arguments
+     * @param args The arguments
      * @throw runtime_error if failure.
      */
     void parse(const std::vector<std::string> &args);
