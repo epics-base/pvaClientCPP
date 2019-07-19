@@ -17,6 +17,7 @@
 
 #include <list>
 #include <iostream>
+#include <ostream>
 #include <sstream>  
 #include <pv/requester.h>
 #include <pv/status.h>
@@ -613,14 +614,7 @@ public:
     void setData(
         epics::pvData::PVStructurePtr const & pvStructureFrom,
         epics::pvData::BitSetPtr const & bitSetFrom);
-    /** @brief parse from input stream
-     *
-     * Accepts arguments of the form field='value' where value is json syntax.
-     * field is name.name...
-     * @param args The arguments
-     * @throw runtime_error if failure.
-     */
-    void parse(const std::vector<std::string> &args);
+
     /** @brief Is there a top level field named value.
      * @return The answer.
      */
@@ -687,6 +681,26 @@ public:
      * @return The timeStamp.
      */
     epics::pvData::TimeStamp getTimeStamp();
+    /** @brief parse from args
+     *
+     * Accepts arguments of the form json or field='value' where value is json syntax.
+     * field is name.name...
+     * @param args The arguments
+     * @throw runtime_error if failure.
+     */
+    void parse(const std::vector<std::string> &args);
+    /** @brief generate JSON output from the current PVStructure
+     *
+     * @param strm output stream
+     * @param ignoreUnprintable false or true; default is true.
+     * @param multiline false or true; default is false
+     *
+     * @throw runtime_error if failure.
+     */
+    void streamJSON(
+               std::ostream& strm,
+               bool ignoreUnprintable = true,
+               bool multiLine = false);
      /** @brief set length of all array fields to 0
      */
     void zeroArrayLength();

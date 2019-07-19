@@ -12,6 +12,7 @@
 #include <typeinfo>
 #include <sstream>
 #include <istream>
+#include <ostream>
 
 #include <pv/createRequest.h>
 #include <pv/convert.h>
@@ -113,89 +114,6 @@ void PvaClientData::setData(
    pvValue = pvStructure->getSubField("value");
 }
 
-void PvaClientData::parse(
-    const std::string &arg,const PVFieldPtr &dest,BitSetPtr & bitSet)
-{
-#ifdef USE_JSON
-    std::istringstream strm(arg);
-    parseJSON(strm, dest,&(*bitSet));
-#else
-    throw std::runtime_error("JSON support not built");
-#endif
-}
-
-void PvaClientData::parse(
-    const std::string &arg,const PVUnionPtr &pvUnion)
-{
-    if(pvUnion->getUnion()->isVariant()) {
-          throw std::runtime_error(messagePrefix + "varient union not implemented");
-    }
-    size_t iequals = arg.find_first_of('=');
-    string field;
-    string rest;
-    if(iequals==std::string::npos) {
-        string mess(arg);
-        mess += " was expected to start with field=";
-          throw std::runtime_error(messagePrefix + mess);
-    }
-    field = arg.substr(0,iequals);
-    rest = arg.substr(iequals+1);
-    PVFieldPtr pvField(pvUnion->select(field));
-    if(pvField->getField()->getType()==epics::pvData::union_) {
-        PVUnionPtr pvu = static_pointer_cast<PVUnion>(pvField);
-        parse(rest,pvu);
-        return;
-    }
-    BitSetPtr bs;
-    parse(rest,pvField,bs);
-    return;
-}
-
-void PvaClientData::parse(const std::vector<std::string> &args)
-{
-    if(!pvStructure) throw std::runtime_error(messagePrefix + noStructure);
-    if(!bitSet) throw std::runtime_error(messagePrefix + noStructure);
-    size_t num = args.size();
-    if(num<1) throw std::runtime_error(messagePrefix + " no arguments");
-    for(size_t i=0; i<num; ++i)
-    {
-        string val = args[i];
-        size_t iequals = val.find_first_of('=');
-        string field;
-        string rest(val);
-        if(iequals==std::string::npos) {
-           parse(rest,pvStructure,bitSet);
-           continue;
-        }
-        field = val.substr(0,iequals);
-        rest = val.substr(iequals+1);
-        if(field.size()==std::string::npos) {
-           parse(rest,pvStructure,bitSet);
-           continue;
-        } 
-        PVFieldPtr pvField(pvStructure->getSubField(field));
-        // look for enumerated structure
-        PVEnumerated pvEnumerated;
-        bool result = pvEnumerated.attach(pvField);
-        if(result) {
-             PVStringArray::const_svector choices(pvEnumerated.getChoices());
-             for(size_t i=0; i<choices.size(); ++i) {
-                  if(choices[i]==rest) {
-                     pvEnumerated.setIndex(i);
-                     return;
-                  }
-             }
-        }
-        // look for union
-        PVUnionPtr pvUnion(pvStructure->getSubField<PVUnion>(field));
-        if(pvUnion) {
-            parse(rest,pvUnion);
-            bitSet->set(pvUnion->getFieldOffset());
-            return;
-        }
-        parse(rest,pvField,bitSet);
-    }
-}
 
 bool PvaClientData::hasValue()
 {
@@ -454,6 +372,105 @@ void PvaClientData::zeroArrayLength()
     if(!pvStructure) throw new std::runtime_error(messagePrefix + noStructure);
     zeroArrayLength(pvStructure);
 }
+void PvaClientData::parse(
+    const std::string &arg,const PVFieldPtr &dest,BitSetPtr & bitSet)
+{
+#ifdef USE_JSON
+    std::istringstream strm(arg);
+    parseJSON(strm, dest,&(*bitSet));
+#else
+    throw std::runtime_error("JSON support not built");
+#endif
+}
+
+void PvaClientData::parse(
+    const std::string &arg,const PVUnionPtr &pvUnion)
+{
+    if(pvUnion->getUnion()->isVariant()) {
+          throw std::runtime_error(messagePrefix + "varient union not implemented");
+    }
+    size_t iequals = arg.find_first_of('=');
+    string field;
+    string rest;
+    if(iequals==std::string::npos) {
+        string mess(arg);
+        mess += " was expected to start with field=";
+          throw std::runtime_error(messagePrefix + mess);
+    }
+    field = arg.substr(0,iequals);
+    rest = arg.substr(iequals+1);
+    PVFieldPtr pvField(pvUnion->select(field));
+    if(pvField->getField()->getType()==epics::pvData::union_) {
+        PVUnionPtr pvu = static_pointer_cast<PVUnion>(pvField);
+        parse(rest,pvu);
+        return;
+    }
+    BitSetPtr bs;
+    parse(rest,pvField,bs);
+    return;
+}
+
+void PvaClientData::parse(const std::vector<std::string> &args)
+{
+    if(!pvStructure) throw std::runtime_error(messagePrefix + noStructure);
+    if(!bitSet) throw std::runtime_error(messagePrefix + noStructure);
+    size_t num = args.size();
+    if(num<1) throw std::runtime_error(messagePrefix + " no arguments");
+    for(size_t i=0; i<num; ++i)
+    {
+        string val = args[i];
+        size_t iequals = val.find_first_of('=');
+        string field;
+        string rest(val);
+        if(iequals==std::string::npos) {
+           parse(rest,pvStructure,bitSet);
+           continue;
+        }
+        field = val.substr(0,iequals);
+        rest = val.substr(iequals+1);
+        if(field.size()==std::string::npos) {
+           parse(rest,pvStructure,bitSet);
+           continue;
+        } 
+        PVFieldPtr pvField(pvStructure->getSubField(field));
+        // look for enumerated structure
+        PVEnumerated pvEnumerated;
+        bool result = pvEnumerated.attach(pvField);
+        if(result) {
+             PVStringArray::const_svector choices(pvEnumerated.getChoices());
+             for(size_t i=0; i<choices.size(); ++i) {
+                  if(choices[i]==rest) {
+                     pvEnumerated.setIndex(i);
+                     return;
+                  }
+             }
+        }
+        // look for union
+        PVUnionPtr pvUnion(pvStructure->getSubField<PVUnion>(field));
+        if(pvUnion) {
+            parse(rest,pvUnion);
+            bitSet->set(pvUnion->getFieldOffset());
+            return;
+        }
+        parse(rest,pvField,bitSet);
+    }
+}
+
+void PvaClientData::streamJSON(
+               std::ostream& strm,
+               bool ignoreUnprintable,
+               bool multiLine)
+{
+#ifdef USE_JSON
+    JSONPrintOptions opts;
+    opts.ignoreUnprintable = ignoreUnprintable;
+    opts.multiLine = multiLine;
+    printJSON(strm,*pvStructure,*bitSet,opts);
+#else
+    throw std::runtime_error("JSON support not built");
+#endif
+}
+
 
 void PvaClientData::zeroArrayLength(const epics::pvData::PVStructurePtr &pvStructure)
 {
