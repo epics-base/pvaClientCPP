@@ -2,6 +2,12 @@
 
 This document summarizes the changes to the module between releases.
 
+## Release 4.6.0 (EPICS 7.0.3, Jul 2019)
+
+* pvaClient now handles exceptions from the server properly (issue #54).
+* MultiChannel classes now properly handle PV structures that don't have a top-level `value` field (issue #56), and are more tolerant of other missing fields (issue #57).
+
+
 ## Release 4.5.0 (EPICS 7.0.2.2, Apr 2019)
 
 Changes have been made for getDouble, putDouble, getDoubleArray, putDoubleArray, getString, putString, getStringArray, and putStringArray.
