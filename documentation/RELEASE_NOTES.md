@@ -2,6 +2,10 @@
 
 This document summarizes the changes to the module between releases.
 
+## Since last release
+
+* added JSON support for put and putGet
+
 ## Release 4.6.0 (EPICS 7.0.3, Jul 2019)
 
 * pvaClient now handles exceptions from the server properly (issue #54).
