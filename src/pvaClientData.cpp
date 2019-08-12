@@ -433,6 +433,7 @@ void PvaClientData::parse(const std::vector<std::string> &args)
            continue;
         } 
         PVFieldPtr pvField(pvStructure->getSubField(field));
+        if(!pvField) throw std::runtime_error(messagePrefix + field +" does not exist");
         // look for enumerated structure
         PVEnumerated pvEnumerated;
         bool result = pvEnumerated.attach(pvField);
