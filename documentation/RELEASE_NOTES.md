@@ -2,9 +2,13 @@
 
 This document summarizes the changes to the module between releases.
 
-## Release 4.7.0 (In Development)
+## Release 4.7.0 (EPICS 7.0.3.1, Nov 2019)
 
 * added JSON support for put and putGet
+* Fix for
+  [GitHub issue #62](https://github.com/epics-base/pvaClientCPP/issues/62)
+* Doxygen updates and read-the-docs integration.
+
 
 ## Release 4.6.0 (EPICS 7.0.3, Jul 2019)
 
