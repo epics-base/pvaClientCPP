@@ -140,7 +140,7 @@ PvaClientPtr PvaClientMultiChannel::getPvaClient()
     return pvaClient;
 }
 
- 
+
 
 PvaClientMultiGetDoublePtr PvaClientMultiChannel::createGet()
 {

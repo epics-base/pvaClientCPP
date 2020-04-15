@@ -22,7 +22,7 @@ using namespace epics::pvAccess;
 using namespace epics::nt;
 using namespace std;
 
-namespace epics { namespace pvaClient { 
+namespace epics { namespace pvaClient {
 
 PvaClientNTMultiPutPtr PvaClientNTMultiPut::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
@@ -67,7 +67,7 @@ void PvaClientNTMultiPut::connect()
          if(isConnected[i]) {
                Status status = pvaClientPut[i]->waitConnect();
                if(status.isOK()) continue;
-               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName()
                     + " PvaChannelPut::waitConnect " + status.getMessage();
                throw std::runtime_error(message);
          }
@@ -83,7 +83,7 @@ void PvaClientNTMultiPut::connect()
          if(isConnected[i]) {
                Status status = pvaClientPut[i]->waitGet();
                if(status.isOK()) continue;
-               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName()
                     + " PvaChannelPut::waitGet " + status.getMessage();
                throw std::runtime_error(message);
          }
@@ -121,9 +121,9 @@ void PvaClientNTMultiPut::put()
          if(isConnected[i]) {
               Status status = pvaClientPut[i]->waitPut();
               if(status.isOK())  continue;
-              string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+              string message = string("channel ") +pvaClientChannelArray[i]->getChannelName()
                     + " PvaChannelPut::waitPut " + status.getMessage();
-              throw std::runtime_error(message); 
+              throw std::runtime_error(message);
          }
     }
 }

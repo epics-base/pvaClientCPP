@@ -57,21 +57,21 @@ public:
     {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
-        clientMonitor->monitorConnect(status,monitor,structure);  
+        clientMonitor->monitorConnect(status,monitor,structure);
     }
 
     virtual void unlisten(epics::pvData::MonitorPtr const & monitor)
     {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
-        clientMonitor->unlisten(monitor);  
+        clientMonitor->unlisten(monitor);
     }
 
     virtual void monitorEvent(epics::pvData::MonitorPtr const & monitor)
     {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
-        clientMonitor->monitorEvent(monitor);  
+        clientMonitor->monitorEvent(monitor);
     }
 };
 
@@ -131,7 +131,7 @@ PvaClientMonitor::PvaClientMonitor(
 {
     if(PvaClient::getDebug()) {
          cout<< "PvaClientMonitor::PvaClientMonitor\n"
-             << " channelName " << pvaClientChannel->getChannel()->getChannelName() 
+             << " channelName " << pvaClientChannel->getChannel()->getChannelName()
              << endl;
     }
 }
@@ -276,7 +276,7 @@ void PvaClientMonitor::monitorEvent(MonitorPtr const & monitor)
         cout << "PvaClientMonitor::monitorEvent"
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
-    }    
+    }
     PvaClientMonitorRequesterPtr req = pvaClientMonitorRequester.lock();
     if(req) req->event(shared_from_this());
     if(userWait) waitForEvent.signal();
@@ -300,7 +300,7 @@ void PvaClientMonitor::connect()
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    string message = string("channel ") 
+    string message = string("channel ")
         + pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientMonitor::connect "
         + status.getMessage();

@@ -183,7 +183,7 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
         throw std::runtime_error(message);
     }
     if(channel->isConnected()) {
-        connectState = connected; 
+        connectState = connected;
         waitForConnect.signal();
     }
 }
@@ -267,7 +267,7 @@ void PvaClientChannel::connect(double timeout)
     Status status = waitConnect(timeout);
     if(status.isOK()) return;
     if(PvaClient::getDebug()) cout << "PvaClientChannel::connect  waitConnect failed\n";
-    string message = string("channel ") + channelName 
+    string message = string("channel ") + channelName
                     + " PvaClientChannel::connect " + status.getMessage();
     throw std::runtime_error(message);
 }
@@ -330,7 +330,7 @@ PvaClientProcessPtr PvaClientChannel::createProcess(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        string message = string("channel ") + channelName 
+        string message = string("channel ") + channelName
             + " PvaClientChannel::createProcess invalid pvRequest: "
             + createRequest->getMessage();
         throw std::runtime_error(message);
@@ -364,7 +364,7 @@ PvaClientGetPtr PvaClientChannel::createGet(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        string message = string("channel ") + channelName 
+        string message = string("channel ") + channelName
             + " PvaClientChannel::createGet invalid pvRequest: "
             + createRequest->getMessage();
         throw std::runtime_error(message);
@@ -419,7 +419,7 @@ PvaClientPutPtr PvaClientChannel::createPut(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        string message = string("channel ") + channelName 
+        string message = string("channel ") + channelName
             + " PvaClientChannel::createPut invalid pvRequest: "
             + createRequest->getMessage();
         throw std::runtime_error(message);
@@ -477,7 +477,7 @@ PvaClientPutGetPtr PvaClientChannel::createPutGet(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        string message = string("channel ") + channelName 
+        string message = string("channel ") + channelName
             + " PvaClientChannel::createPutGet invalid pvRequest: "
             + createRequest->getMessage();
         throw std::runtime_error(message);
@@ -499,7 +499,7 @@ PvaClientArrayPtr PvaClientChannel::createArray(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        string message = string("channel ") + channelName 
+        string message = string("channel ") + channelName
             + " PvaClientChannel::createArray invalid pvRequest: "
             + createRequest->getMessage();
         throw std::runtime_error(message);
@@ -541,7 +541,7 @@ PvaClientMonitorPtr PvaClientChannel::createMonitor(string const & request)
 {
     PVStructurePtr pvRequest = createRequest->createRequest(request);
     if(!pvRequest) {
-        string message = string("channel ") + channelName 
+        string message = string("channel ") + channelName
             + " PvaClientChannel::createMonitor invalid pvRequest: "
             + createRequest->getMessage();
         throw std::runtime_error(message);
@@ -561,7 +561,7 @@ PVStructurePtr PvaClientChannel::rpc(
     PVStructurePtr const &  pvRequest,
     PVStructurePtr const & pvArgument)
 {
-    
+
     PvaClientRPCPtr rpc = createRPC(pvRequest);
     return rpc->request(pvArgument);
 }

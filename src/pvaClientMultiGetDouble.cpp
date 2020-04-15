@@ -21,7 +21,7 @@ using namespace epics::pvAccess;
 using namespace epics::nt;
 using namespace std;
 
-namespace epics { namespace pvaClient { 
+namespace epics { namespace pvaClient {
 
 
 PvaClientMultiGetDoublePtr PvaClientMultiGetDouble::create(
@@ -79,7 +79,7 @@ epics::pvData::shared_vector<double> PvaClientMultiGetDouble::get()
 {
     if(!isGetConnected) connect();
     shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
-    
+
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -96,7 +96,7 @@ epics::pvData::shared_vector<double> PvaClientMultiGetDouble::get()
                throw std::runtime_error(message);
          }
     }
-    
+
     for(size_t i=0; i<nchannel; ++i)
     {
         if(isConnected[i])

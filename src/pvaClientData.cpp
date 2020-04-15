@@ -363,7 +363,7 @@ void PvaClientData::parse(const std::vector<std::string> &args)
         if(field.size()==std::string::npos) {
            parse(rest,pvStructure,bitSet);
            continue;
-        } 
+        }
         PVFieldPtr pvField(pvStructure->getSubField(field));
         if(!pvField) throw std::runtime_error(messagePrefix + field +" does not exist");
         // look for enumerated structure
@@ -428,7 +428,7 @@ const PVFieldPtrArray pvFields(pvStructure->getPVFields());
             {
                 PVStructurePtr pvStructure = static_pointer_cast<PVStructure>(pvField);
                 zeroArrayLength(pvStructure);
-            } 
+            }
             break;
         default:
                break;

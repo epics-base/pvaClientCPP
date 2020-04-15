@@ -23,7 +23,7 @@ using namespace epics::pvAccess;
 using namespace epics::nt;
 using namespace std;
 
-namespace epics { namespace pvaClient { 
+namespace epics { namespace pvaClient {
 
 PvaClientNTMultiMonitorPtr PvaClientNTMultiMonitor::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
@@ -79,7 +79,7 @@ void PvaClientNTMultiMonitor::connect()
          if(isConnected[i]) {
                Status status = pvaClientMonitor[i]->waitConnect();
                if(status.isOK()) continue;
-               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName() 
+               string message = string("channel ") +pvaClientChannelArray[i]->getChannelName()
                     + " PvaChannelMonitor::waitConnect " + status.getMessage();
                throw std::runtime_error(message);
          }
