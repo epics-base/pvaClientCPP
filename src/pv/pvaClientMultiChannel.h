@@ -615,4 +615,3 @@ private:
 }}
 
 #endif  /* PVACLIENTMULTICHANNEL_H */
-
