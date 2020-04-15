@@ -36,7 +36,7 @@
 
 #ifdef pvaClientEpicsExportSharedSymbols
 #   define epicsExportSharedSymbols
-#	undef pvaClientEpicsExportSharedSymbols
+#   undef pvaClientEpicsExportSharedSymbols
 #endif
 
 #include <shareLib.h>

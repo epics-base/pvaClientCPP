@@ -21,7 +21,7 @@
 
 #ifdef pvaClientMultiChannelEpicsExportSharedSymbols
 #   define epicsExportSharedSymbols
-#	undef pvaClientMultiChannelEpicsExportSharedSymbols
+#   undef pvaClientMultiChannelEpicsExportSharedSymbols
 #endif
 
 
