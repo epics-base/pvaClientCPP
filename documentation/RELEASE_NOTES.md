@@ -1,6 +1,11 @@
-# pvaClientCPP Module
+pwd# pvaClientCPP Module
 
 This document summarizes the changes to the module between releases.
+
+## Release 4.7.1 (EPICS 7.0.3.2 May 2020)
+
+* support access to a union field that is a scalar or scalarArray
+* fixed issues #62 and #63
 
 ## Release 4.7.0 (EPICS 7.0.3.1, Nov 2019)
 
