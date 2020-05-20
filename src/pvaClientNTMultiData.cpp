@@ -20,7 +20,7 @@ using namespace epics::pvAccess;
 using namespace epics::nt;
 using namespace std;
 
-namespace epics { namespace pvaClient { 
+namespace epics { namespace pvaClient {
 
 PvaClientNTMultiDataPtr PvaClientNTMultiData::create(
     epics::pvData::UnionConstPtr const & u,
@@ -63,7 +63,7 @@ PvaClientNTMultiData::PvaClientNTMultiData(
          severity.resize(nchannel);
          status.resize(nchannel);
          message.resize(nchannel);
-         
+
     }
     if(pvRequest->getSubField("field.timeStamp")) {
         gotTimeStamp = true;
@@ -165,7 +165,7 @@ void PvaClientNTMultiData::endDeltaTime(bool valueOnly)
                     userTag[i] = pvTag->get();
                 }
             }
-        } 
+        }
     }
 }
 

@@ -55,7 +55,7 @@ public:
     {
         PvaClientGetPtr clientGet(pvaClientGet.lock());
         if(!clientGet) return;
-        clientGet->channelGetConnect(status,channelGet,structure);  
+        clientGet->channelGetConnect(status,channelGet,structure);
     }
 
     virtual void getDone(
@@ -182,7 +182,7 @@ void PvaClientGet::channelGetConnect(
           req->channelGetConnect(status,shared_from_this());
     }
     waitForConnect.signal();
-    
+
 }
 
 void PvaClientGet::getDone(

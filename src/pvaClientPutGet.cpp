@@ -55,7 +55,7 @@ public:
     {
         PvaClientPutGetPtr clientPutGet(pvaClientPutGet.lock());
         if(!clientPutGet) return;
-        clientPutGet->channelPutGetConnect(status,channelPutGet,putStructure,getStructure);  
+        clientPutGet->channelPutGetConnect(status,channelPutGet,putStructure,getStructure);
     }
 
     virtual void putGetDone(
@@ -173,7 +173,7 @@ void PvaClientPutGet::channelPutGetConnect(
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << " status.isOK " << (status.isOK() ? "true" : "false")
            << endl;
-    } 
+    }
     {
         Lock xx(mutex);
         this->channelPutGet = channelPutGet;
@@ -184,7 +184,7 @@ void PvaClientPutGet::channelPutGetConnect(
             pvaClientPutData->setMessagePrefix(channelPutGet->getChannel()->getChannelName());
             pvaClientGetData = PvaClientGetData::create(getStructure);
             pvaClientGetData->setMessagePrefix(channelPutGet->getChannel()->getChannelName());
-           
+
         } else {
              stringstream ss;
              ss << pvRequest;
@@ -199,7 +199,7 @@ void PvaClientPutGet::channelPutGetConnect(
           req->channelPutGetConnect(status,shared_from_this());
     }
     waitForConnect.signal();
-    
+
 }
 
 void PvaClientPutGet::putGetDone(
@@ -297,7 +297,7 @@ void PvaClientPutGet::connect()
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    string message = string("channel ") 
+    string message = string("channel ")
         + pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientPutGet::connect "
         + status.getMessage();
@@ -358,7 +358,7 @@ void PvaClientPutGet::putGet()
     issuePutGet();
     Status status = waitPutGet();
     if(status.isOK()) return;
-    string message = string("channel ") 
+    string message = string("channel ")
         + pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientPut::putGet "
         + status.getMessage();
@@ -413,7 +413,7 @@ void PvaClientPutGet::getGet()
     issueGetGet();
     Status status = waitGetGet();
     if(status.isOK()) return;
-    string message = string("channel ") 
+    string message = string("channel ")
         + pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientPut::getGet "
         + status.getMessage();
@@ -466,7 +466,7 @@ void PvaClientPutGet::getPut()
     issueGetPut();
     Status status = waitGetPut();
     if(status.isOK()) return;
-    string message = string("channel ") 
+    string message = string("channel ")
         + pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientPut::getPut "
         + status.getMessage();

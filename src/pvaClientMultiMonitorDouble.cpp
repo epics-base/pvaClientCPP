@@ -21,7 +21,7 @@ using namespace epics::pvAccess;
 using namespace epics::nt;
 using namespace std;
 
-namespace epics { namespace pvaClient { 
+namespace epics { namespace pvaClient {
 
 
 PvaClientMultiMonitorDoublePtr PvaClientMultiMonitorDouble::create(

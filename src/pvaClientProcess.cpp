@@ -54,7 +54,7 @@ public:
     {
         PvaClientProcessPtr clientProcess(pvaClientProcess.lock());
         if(!clientProcess) return;
-        clientProcess->channelProcessConnect(status,channelProcess);  
+        clientProcess->channelProcessConnect(status,channelProcess);
     }
 
     virtual void processDone(
@@ -156,7 +156,7 @@ void PvaClientProcess::channelProcessConnect(
           req->channelProcessConnect(status,shared_from_this());
     }
     waitForConnect.signal();
-    
+
 }
 
 void PvaClientProcess::processDone(
@@ -174,7 +174,7 @@ void PvaClientProcess::processDone(
         channelProcessStatus = status;
         processState = processComplete;
     }
-    
+
     PvaClientProcessRequesterPtr  req(pvaClientProcessRequester.lock());
     if(req) {
           req->processDone(status,shared_from_this());

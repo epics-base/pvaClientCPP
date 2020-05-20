@@ -21,14 +21,14 @@
 
 #ifdef pvaClientMultiChannelEpicsExportSharedSymbols
 #   define epicsExportSharedSymbols
-#	undef pvaClientMultiChannelEpicsExportSharedSymbols
+#   undef pvaClientMultiChannelEpicsExportSharedSymbols
 #endif
 
 
 #include <pv/pvaClient.h>
 
 
-namespace epics { namespace pvaClient { 
+namespace epics { namespace pvaClient {
 
 
 class PvaClientMultiChannel;
@@ -115,7 +115,7 @@ public:
      * @brief create a pvaClientMultiGetDouble
      * @return The interface.
      */
-    PvaClientMultiGetDoublePtr createGet();   
+    PvaClientMultiGetDoublePtr createGet();
     /**
      * @brief Create a pvaClientMultiPutDouble.
      * @return The interface.
@@ -152,7 +152,7 @@ private:
         std::string const & providerName,
         size_t maxNotConnected);
     void checkConnected();
-    
+
     PvaClientPtr pvaClient;
     epics::pvData::shared_vector<const std::string> channelName;
     std::string providerName;
@@ -176,7 +176,7 @@ class epicsShareClass PvaClientMultiGetDouble :
 
 public:
     POINTER_DEFINITIONS(PvaClientMultiGetDouble);
-    
+
     /**
      * @brief Create a PvaClientMultiGetDouble.
      * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
@@ -214,7 +214,7 @@ private:
     PvaClientChannelArray pvaClientChannelArray;
     size_t nchannel;
     epics::pvData::Mutex mutex;
-    
+
     epics::pvData::shared_vector<double> doubleValue;
     std::vector<PvaClientGetPtr> pvaClientGet;
     bool isGetConnected;
@@ -229,7 +229,7 @@ class epicsShareClass PvaClientMultiPutDouble :
 
 public:
     POINTER_DEFINITIONS(PvaClientMultiPutDouble);
-   
+
     /** @brief Create a PvaClientMultiPutDouble.
      * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
      * @param pvaClientChannelArray The PvaClientChannel array.
@@ -277,7 +277,7 @@ class epicsShareClass PvaClientMultiMonitorDouble :
 
 public:
     POINTER_DEFINITIONS(PvaClientMultiMonitorDouble);
-    
+
     /** @brief Create a PvaClientMultiMonitorDouble.
      * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
      * @param pvaClientChannelArray The PvaClientChannel array.
@@ -388,8 +388,8 @@ private:
     epics::pvData::PVStructurePtr pvRequest;
     size_t nchannel;
     epics::pvData::Mutex mutex;
-    
-    
+
+
     PvaClientNTMultiDataPtr pvaClientNTMultiData;
     std::vector<PvaClientGetPtr> pvaClientGet;
     bool isConnected;
@@ -413,7 +413,7 @@ public:
     static PvaClientNTMultiPutPtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
-     
+
     ~PvaClientNTMultiPut();
      /**
      * @brief Connect a channelPut for each channel.
@@ -543,15 +543,15 @@ public:
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
     ~PvaClientNTMultiData();
-    
+
     /**
      * @brief Get the number of channels.
      * @return The number of channels.
      */
     size_t getNumber();
-   
+
     /**
-     * @brief Set the timeStamp base for computing deltaTimes. 
+     * @brief Set the timeStamp base for computing deltaTimes.
      */
     void startDeltaTime();
     /**
@@ -564,7 +564,7 @@ public:
      * @brief Get the time when the last get was made.
      * @return The timeStamp.
      */
-    epics::pvData::TimeStamp getTimeStamp(); 
+    epics::pvData::TimeStamp getTimeStamp();
     /**
      * @brief Get the  NTMultiChannel.
      * @return The value.
@@ -594,7 +594,7 @@ private:
     std::vector<epics::pvData::PVStructurePtr> topPVStructure;
     bool gotAlarm;
     bool gotTimeStamp;
-    
+
     epics::pvData::StructureConstPtr ntMultiChannelStructure;
     epics::pvData::shared_vector<epics::pvData::PVUnionPtr> unionValue;
     epics::pvData::shared_vector<epics::pvData::int32> severity;
@@ -615,4 +615,3 @@ private:
 }}
 
 #endif  /* PVACLIENTMULTICHANNEL_H */
-

@@ -80,7 +80,7 @@ Status PvaClientMultiChannel::connect(double timeout)
     Status status = Status::Ok;
     size_t numBad = 0;
     for(size_t i=0; i< numChannel; ++i) {
-	if(numBad==0) {
+        if(numBad==0) {
             status = pvaClientChannelArray[i]->waitConnect(timeout);
         } else {
             status = pvaClientChannelArray[i]->waitConnect(.001);
@@ -140,7 +140,7 @@ PvaClientPtr PvaClientMultiChannel::getPvaClient()
     return pvaClient;
 }
 
- 
+
 
 PvaClientMultiGetDoublePtr PvaClientMultiChannel::createGet()
 {

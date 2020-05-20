@@ -55,7 +55,7 @@ public:
     {
         PvaClientPutPtr clientPut(pvaClientPut.lock());
         if(!clientPut) return;
-        clientPut->channelPutConnect(status,channelPut,structure);  
+        clientPut->channelPutConnect(status,channelPut,structure);
     }
 
     virtual void getDone(
@@ -183,7 +183,7 @@ void PvaClientPut::channelPutConnect(
           req->channelPutConnect(status,shared_from_this());
     }
     waitForConnect.signal();
-    
+
 }
 
 void PvaClientPut::getDone(
@@ -249,7 +249,7 @@ void PvaClientPut::connect()
     issueConnect();
     Status status = waitConnect();
     if(status.isOK()) return;
-    string message = string("channel ") 
+    string message = string("channel ")
         + pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientPut::connect "
         + status.getMessage();
@@ -271,7 +271,7 @@ void PvaClientPut::issueConnect()
     connectState = connectActive;
     channelPutConnectStatus = Status(Status::STATUSTYPE_ERROR, "connect active");
     channelPut = pvaClientChannel->getChannel()->createChannelPut(channelPutRequester,pvRequest);
-       
+
 }
 
 Status PvaClientPut::waitConnect()
@@ -308,7 +308,7 @@ void PvaClientPut::get()
     issueGet();
     Status status = waitGet();
     if(status.isOK()) return;
-    string message = string("channel ") 
+    string message = string("channel ")
         +  pvaClientChannel->getChannel()->getChannelName()
         + " PvaClientPut::get "
         + status.getMessage();
@@ -376,7 +376,7 @@ void PvaClientPut::issuePut()
     if(PvaClient::getDebug()) {
         cout << "PvaClientPut::issuePut"
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
-           << " pvStructure\n" << pvaClientData->getPVStructure() 
+           << " pvStructure\n" << pvaClientData->getPVStructure()
            << " bitSet " << *pvaClientData->getChangedBitSet() << endl
            << endl;
     }
