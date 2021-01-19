@@ -127,7 +127,7 @@ void PvaClientNTMultiData::endDeltaTime(bool valueOnly)
     {
         PVStructurePtr pvst = topPVStructure[i];
         if(!pvst) {
-            unionValue[i] = PVUnionPtr();
+            // This channel has not changed value.
         } else if(unionValue[i]) {
             if(valueOnly) {
                 PVFieldPtr pvValue = pvst->getSubField("value");
