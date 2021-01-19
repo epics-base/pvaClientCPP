@@ -214,4 +214,13 @@ NTMultiChannelPtr PvaClientNTMultiData::getNTMultiChannel()
     return ntMultiChannel;
 }
 
+std::vector<bool> PvaClientNTMultiData::getChannelChangeFlags() const
+{
+    std::vector<bool> changeFlags(nchannel);
+    for(size_t i=0; i<nchannel; ++i) {
+        changeFlags[i] = (secondsPastEpoch[i] > 0);
+    }
+    return changeFlags;
+}
+
 }}

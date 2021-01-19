@@ -577,6 +577,11 @@ public:
     {
         return shared_from_this();
     }
+    /**
+     * @brief Get channel change flags.
+     * @return Array of boolean fields that are set to true if corresponding channel changed
+     */
+    std::vector<bool> getChannelChangeFlags() const;
 private:
     PvaClientNTMultiData(
          epics::pvData::UnionConstPtr const & u,
