@@ -23,7 +23,7 @@ using namespace std;
 namespace epics { namespace pvaClient {
 
 PvaClientNTMultiDataPtr PvaClientNTMultiData::create(
-    epics::pvData::UnionConstPtr const & u,
+    UnionConstPtr const & u,
     PvaClientMultiChannelPtr const &pvaMultiChannel,
     PvaClientChannelArray const &pvaClientChannelArray,
     PVStructurePtr const &  pvRequest)
@@ -33,18 +33,21 @@ PvaClientNTMultiDataPtr PvaClientNTMultiData::create(
 }
 
 PvaClientNTMultiData::PvaClientNTMultiData(
-         epics::pvData::UnionConstPtr const & u,
+         UnionConstPtr const & u,
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
-         epics::pvData::PVStructurePtr const &  pvRequest)
+         PVStructurePtr const &  pvRequest)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
   nchannel(pvaClientChannelArray.size()),
   gotAlarm(false),
   gotTimeStamp(false)
+  
 {
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiData::PvaClientNTMultiData()\n";
+    changeFlags =  shared_vector<boolean>(nchannel);
     topPVStructure.resize(nchannel);
+    
     unionValue.resize(nchannel);
     PVDataCreatePtr pvDataCreate = getPVDataCreate();
     for(size_t i=0; i< nchannel; ++i) {
@@ -90,11 +93,17 @@ void PvaClientNTMultiData::setPVStructure(
     topPVStructure[index] = pvStructure;
 }
 
+shared_vector<boolean> PvaClientNTMultiData::getChannelChangeFlags()
+{
+    return changeFlags;
+}
 
 size_t PvaClientNTMultiData::getNumber()
 {
     return nchannel;
 }
+
+
 
 void PvaClientNTMultiData::startDeltaTime()
 {
@@ -126,9 +135,9 @@ void PvaClientNTMultiData::endDeltaTime(bool valueOnly)
     for(size_t i=0; i<nchannel; ++i)
     {
         PVStructurePtr pvst = topPVStructure[i];
-        if(!pvst) {
-            unionValue[i] = PVUnionPtr();
-        } else if(unionValue[i]) {
+        changeFlags[i] = false;
+        if(pvst&&unionValue[i]) {
+            changeFlags[i] = true;
             if(valueOnly) {
                 PVFieldPtr pvValue = pvst->getSubField("value");
                 if(pvValue) {
@@ -180,11 +189,11 @@ NTMultiChannelPtr PvaClientNTMultiData::getNTMultiChannel()
     PVStructurePtr pvStructure = getPVDataCreate()->createPVStructure(ntMultiChannelStructure);
     NTMultiChannelPtr ntMultiChannel = NTMultiChannel::wrap(pvStructure);
     ntMultiChannel->getChannelName()->replace(pvaClientMultiChannel->getChannelNames());
-    shared_vector<epics::pvData::PVUnionPtr> val(nchannel);
+    shared_vector<PVUnionPtr> val(nchannel);
     for(size_t i=0; i<nchannel; ++i) val[i] = unionValue[i];
     ntMultiChannel->getValue()->replace(freeze(val));
-    shared_vector<epics::pvData::boolean> connected = pvaClientMultiChannel->getIsConnected();
-    shared_vector<epics::pvData::boolean> isConnected(nchannel);
+    shared_vector<boolean> connected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<boolean> isConnected(nchannel);
     for(size_t i=0; i<nchannel; ++i) isConnected[i] = connected[i];
     ntMultiChannel->getIsConnected()->replace(freeze(isConnected));
     if(gotAlarm)

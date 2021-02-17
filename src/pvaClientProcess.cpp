@@ -42,7 +42,7 @@ public:
         return clientProcess->getRequesterName();
     }
 
-    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
+    virtual void message(std::string const & message, MessageType messageType) {
         PvaClientProcessPtr clientProcess(pvaClientProcess.lock());
         if(!clientProcess) return;
         clientProcess->message(message,messageType);

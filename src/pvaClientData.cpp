@@ -405,20 +405,20 @@ void PvaClientData::streamJSON(
 }
 
 
-void PvaClientData::zeroArrayLength(const epics::pvData::PVStructurePtr &pvStructure)
+void PvaClientData::zeroArrayLength(const PVStructurePtr &pvStructure)
 {
 const PVFieldPtrArray pvFields(pvStructure->getPVFields());
     for(size_t i=0; i<pvFields.size(); ++i) {
         PVFieldPtr pvField = pvFields[i];
         Type type(pvField->getField()->getType());
         switch(type) {
-        case epics::pvData::scalarArray:
+        case scalarArray:
             {
                 PVScalarArrayPtr pvScalarArray = static_pointer_cast<PVScalarArray>(pvField);
                 pvScalarArray->setLength(0);
             }
             break;
-        case epics::pvData::structureArray:
+        case structureArray:
             {
                 PVStructureArrayPtr pvStructureArray = static_pointer_cast<PVStructureArray>(pvField);
                 pvStructureArray->setLength(0);

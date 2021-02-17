@@ -28,7 +28,7 @@ namespace epics { namespace pvaClient {
 PvaClientNTMultiMonitorPtr PvaClientNTMultiMonitor::create(
     PvaClientMultiChannelPtr const &pvaMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
-         epics::pvData::PVStructurePtr const &  pvRequest)
+         PVStructurePtr const &  pvRequest)
 {
     UnionConstPtr u = getFieldCreate()->createVariantUnion();
     PvaClientNTMultiMonitorPtr pvaClientNTMultiMonitor(
@@ -66,7 +66,7 @@ PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor()
 void PvaClientNTMultiMonitor::connect()
 {
     pvaClientMonitor.resize(nchannel);
-    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -95,20 +95,25 @@ bool PvaClientNTMultiMonitor::poll(bool valueOnly)
 {
     if(!isConnected) connect();
     bool result = false;
-    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
-    pvaClientNTMultiData->startDeltaTime();
+    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected(); 
+    pvaClientNTMultiData->startDeltaTime();  
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
-              if(pvaClientMonitor[i]->poll()) {
+             if(!pvaClientMonitor[i]){
+                  pvaClientMonitor[i]=pvaClientChannelArray[i]->createMonitor(pvRequest);
+                  pvaClientMonitor[i]->connect();
+                  pvaClientMonitor[i]->start();
+              }    
+              if(pvaClientMonitor[i]->poll()) {  
                    pvaClientNTMultiData->setPVStructure(
-                       pvaClientMonitor[i]->getData()->getPVStructure(),i);
+                       pvaClientMonitor[i]->getData()->getPVStructure(),i);    
                    pvaClientMonitor[i]->releaseEvent();
                    result = true;
               }
          }
-    }
-    if(result) pvaClientNTMultiData->endDeltaTime(valueOnly);
+    } 
+    if(result) pvaClientNTMultiData->endDeltaTime(valueOnly);  
     return result;
 }
 

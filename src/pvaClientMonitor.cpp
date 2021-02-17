@@ -44,7 +44,7 @@ public:
         return clientMonitor->getRequesterName();
     }
 
-    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
+    virtual void message(std::string const & message, MessageType messageType) {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
         clientMonitor->message(message,messageType);
@@ -60,14 +60,14 @@ public:
         clientMonitor->monitorConnect(status,monitor,structure);
     }
 
-    virtual void unlisten(epics::pvData::MonitorPtr const & monitor)
+    virtual void unlisten(MonitorPtr const & monitor)
     {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
         clientMonitor->unlisten(monitor);
     }
 
-    virtual void monitorEvent(epics::pvData::MonitorPtr const & monitor)
+    virtual void monitorEvent(MonitorPtr const & monitor)
     {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
@@ -231,9 +231,11 @@ void PvaClientMonitor::monitorConnect(
              stringstream ss;
              ss << pvRequest;
              string message = string("\nPvaClientMonitor::monitorConnect)")
+               + "\nchannelName=" + pvaClientChannel->getChannel()->getChannelName()
                + "\npvRequest\n" + ss.str()
                + "\nerror\n" + status.getMessage();
              monitorConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
+             waitForConnect.signal();
              return;
         }
     }
@@ -438,7 +440,7 @@ bool PvaClientMonitor::poll()
     if(!monitorElement) return false;
     userPoll = true;
     pvaClientData->setData(monitorElement);
-   return true;
+    return true;
 }
 
 bool PvaClientMonitor::waitEvent(double secondsToWait)

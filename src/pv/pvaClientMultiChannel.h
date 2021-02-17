@@ -148,13 +148,13 @@ public:
 private:
     PvaClientMultiChannel(
         PvaClientPtr const &pvaClient,
-        epics::pvData::shared_vector<const std::string> const & channelName,
+        epics::pvData::shared_vector<const std::string> const & channelNames,
         std::string const & providerName,
         size_t maxNotConnected);
     void checkConnected();
 
     PvaClientPtr pvaClient;
-    epics::pvData::shared_vector<const std::string> channelName;
+    epics::pvData::shared_vector<const std::string> channelNames;
     std::string providerName;
     size_t maxNotConnected;
 
@@ -162,6 +162,7 @@ private:
     epics::pvData::Mutex mutex;
 
     size_t numConnected;
+    bool firstConnect;
     PvaClientChannelArray pvaClientChannelArray;
     epics::pvData::shared_vector<epics::pvData::boolean> isConnected;
     epics::pvData::CreateRequest::shared_pointer createRequest;
@@ -176,19 +177,16 @@ class epicsShareClass PvaClientMultiGetDouble :
 
 public:
     POINTER_DEFINITIONS(PvaClientMultiGetDouble);
-
-    /**
-     * @brief Create a PvaClientMultiGetDouble.
-     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
-     * @param pvaClientChannelArray The PvaClientChannel array.
-     * @return The interface.
-     */
+protected:
     static PvaClientMultiGetDoublePtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
-
+    friend class PvaClientMultiChannel;
+public:
+    /**
+     * @brief Destructor
+     */
     ~PvaClientMultiGetDouble();
-
      /**
       * @brief Create a channelGet for each channel.
       */
@@ -198,13 +196,6 @@ public:
      * @return The double[] where each element is the value field of the corresponding channel.
      */
     epics::pvData::shared_vector<double> get();
-    /** @brief Get the shared pointer to self.
-     * @return The shared pointer.
-     */
-    PvaClientMultiGetDoublePtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
 private:
     PvaClientMultiGetDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -229,15 +220,15 @@ class epicsShareClass PvaClientMultiPutDouble :
 
 public:
     POINTER_DEFINITIONS(PvaClientMultiPutDouble);
-
-    /** @brief Create a PvaClientMultiPutDouble.
-     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
-     * @param pvaClientChannelArray The PvaClientChannel array.
-     * @return The interface.
-     */
+protected:
     static PvaClientMultiPutDoublePtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
+    friend class PvaClientMultiChannel;
+public:
+   /**
+     * @brief Destructor
+     */
     ~PvaClientMultiPutDouble();
      /**
      * @brief Create a channelPut for each channel.
@@ -247,13 +238,7 @@ public:
      * @param data The array of data for each channel.
      */
     void put(epics::pvData::shared_vector<double> const &data);
-    /** @brief Get the shared pointer to self.
-     * @return The shared pointer.
-     */
-    PvaClientMultiPutDoublePtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
+
 private:
     PvaClientMultiPutDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -277,15 +262,15 @@ class epicsShareClass PvaClientMultiMonitorDouble :
 
 public:
     POINTER_DEFINITIONS(PvaClientMultiMonitorDouble);
-
-    /** @brief Create a PvaClientMultiMonitorDouble.
-     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
-     * @param pvaClientChannelArray The PvaClientChannel array.
-     * @return The interface.
-     */
+protected:
     static PvaClientMultiMonitorDoublePtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
+    friend class PvaClientMultiChannel;
+public:
+   /**
+     * @brief Destructor
+     */
     ~PvaClientMultiMonitorDouble();
      /**
       * @brief Connect a channel monitor for each channel.
@@ -310,13 +295,7 @@ public:
      *  @return The double[] where each element is the value field of the corresponding channel.
      */
     epics::pvData::shared_vector<double> get();
-    /** @brief Monitor the shared pointer to self.
-     * @return The shared pointer.
-     */
-    PvaClientMultiMonitorDoublePtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
+
 private:
     PvaClientMultiMonitorDouble(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -341,18 +320,16 @@ class epicsShareClass PvaClientNTMultiGet :
 
 public:
     POINTER_DEFINITIONS(PvaClientNTMultiGet);
-     /**
-     * @brief Create a PvaClientNTMultiGet.
-     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
-     * @param pvaClientChannelArray The PvaClientChannel array.
-     * @param pvRequest The pvRequest for each channel.
-     * @return The interface.
-     */
+protected:
     static PvaClientNTMultiGetPtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
-
+    friend class PvaClientMultiChannel;
+public:
+   /**
+     * @brief Destructor
+     */
     ~PvaClientNTMultiGet();
      /**
       * @brief Connect a channelGet for each channel.
@@ -369,13 +346,7 @@ public:
      * @return the pvaClientNTMultiData.
      */
     PvaClientNTMultiDataPtr getData();
-    /** @brief Get the shared pointer to self.
-     * @return The shared pointer.
-     */
-    PvaClientNTMultiGetPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
+
 private:
     PvaClientNTMultiGet(
          epics::pvData::UnionConstPtr const & u,
@@ -388,7 +359,6 @@ private:
     epics::pvData::PVStructurePtr pvRequest;
     size_t nchannel;
     epics::pvData::Mutex mutex;
-
 
     PvaClientNTMultiDataPtr pvaClientNTMultiData;
     std::vector<PvaClientGetPtr> pvaClientGet;
@@ -404,16 +374,15 @@ class epicsShareClass PvaClientNTMultiPut :
 
 public:
     POINTER_DEFINITIONS(PvaClientNTMultiPut);
-    /**
-     * @brief Create a PvaClientNTMultiPut.
-     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
-     * @param pvaClientChannelArray The PvaClientChannel array.
-     * @return The interface.
-     */
+protected:
     static PvaClientNTMultiPutPtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray);
-
+    friend class PvaClientMultiChannel;
+public:
+   /**
+     * @brief Destructor
+     */
     ~PvaClientNTMultiPut();
      /**
      * @brief Connect a channelPut for each channel.
@@ -426,15 +395,9 @@ public:
     epics::pvData::shared_vector<epics::pvData::PVUnionPtr> getValues();
     /**
      * @brief Issue a put for each channel.
-'    */
-    void put();
-    /** @brief Get the shared pointer to self.
-     * @return The shared pointer.
      */
-    PvaClientNTMultiPutPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
+    void put();
+
 private:
     PvaClientNTMultiPut(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
@@ -460,16 +423,16 @@ class epicsShareClass PvaClientNTMultiMonitor :
 
 public:
     POINTER_DEFINITIONS(PvaClientNTMultiMonitor);
-    /** @brief Create a PvaClientNTMultiMonitor.
-     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
-     * @param pvaClientChannelArray The PvaClientChannel array.
-     * @param pvRequest The pvRequest for each channel.
-     * @return The interface.
-     */
+protected:    
     static PvaClientNTMultiMonitorPtr create(
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
          epics::pvData::PVStructurePtr const &  pvRequest);
+    friend class PvaClientMultiChannel;
+public:
+   /**
+     * @brief Destructor
+     */         
     ~PvaClientNTMultiMonitor();
      /**
      * @brief Connect to a channel monitor for each channel.
@@ -495,13 +458,7 @@ public:
      * @return the pvaClientNTMultiData.
      */
     PvaClientNTMultiDataPtr getData();
-    /** Monitor the shared pointer to self.
-     * @return The shared pointer.
-     */
-    PvaClientNTMultiMonitorPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
+
 private:
     PvaClientNTMultiMonitor(
          epics::pvData::UnionConstPtr const & u,
@@ -528,39 +485,13 @@ class epicsShareClass PvaClientNTMultiData :
 
 public:
     POINTER_DEFINITIONS(PvaClientNTMultiData);
-    /**
-     * @brief Create a PvaClientNTMultiData.
-     *
-     * Normally only called by PvaClientNTMultiGet and PvaClientNTMultiMonitor.
-     * @param u The union interface for the value field of each channel.
-     * @param pvaClientMultiChannel The interface to PvaClientMultiChannel.
-     * @param pvaClientChannelArray The PvaClientChannel array.
-     * @param pvRequest The pvRequest for each channel.
-     */
-    static PvaClientNTMultiDataPtr create(
-         epics::pvData::UnionConstPtr const & u,
-         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
-         PvaClientChannelArray const &pvaClientChannelArray,
-         epics::pvData::PVStructurePtr const &  pvRequest);
     ~PvaClientNTMultiData();
-
-    /**
+        /**
      * @brief Get the number of channels.
      * @return The number of channels.
      */
     size_t getNumber();
-
-    /**
-     * @brief Set the timeStamp base for computing deltaTimes.
-     */
-    void startDeltaTime();
-    /**
-     * @brief Update NTMultiChannel fields.
-     *
-     * @param valueOnly use only value for union.
-     */
-    void endDeltaTime(bool valueOnly = true);
-    /**
+        /**
      * @brief Get the time when the last get was made.
      * @return The timeStamp.
      */
@@ -570,13 +501,21 @@ public:
      * @return The value.
      */
     epics::nt::NTMultiChannelPtr getNTMultiChannel();
-    /** @brief Get the shared pointer to self.
-     * @return The shared pointer.
+     /**
+     * @brief Get channel change flags.
+     * @return Array of boolean fields that are set to true if corresponding channel changed
      */
-    PvaClientNTMultiDataPtr getPtrSelf()
-    {
-        return shared_from_this();
-    }
+    epics::pvData::shared_vector<epics::pvData::boolean> getChannelChangeFlags();
+protected: 
+    static PvaClientNTMultiDataPtr create(
+         epics::pvData::UnionConstPtr const & u,
+         PvaClientMultiChannelPtr const &pvaClientMultiChannel,
+         PvaClientChannelArray const &pvaClientChannelArray,
+         epics::pvData::PVStructurePtr const &  pvRequest);
+    void startDeltaTime();
+    void endDeltaTime(bool valueOnly = true);
+    friend class PvaClientNTMultiGet;
+    friend class PvaClientNTMultiMonitor;
 private:
     PvaClientNTMultiData(
          epics::pvData::UnionConstPtr const & u,
@@ -594,7 +533,8 @@ private:
     std::vector<epics::pvData::PVStructurePtr> topPVStructure;
     bool gotAlarm;
     bool gotTimeStamp;
-
+    
+    epics::pvData::shared_vector<epics::pvData::boolean> changeFlags;
     epics::pvData::StructureConstPtr ntMultiChannelStructure;
     epics::pvData::shared_vector<epics::pvData::PVUnionPtr> unionValue;
     epics::pvData::shared_vector<epics::pvData::int32> severity;
@@ -606,9 +546,6 @@ private:
     epics::pvData::Alarm alarm;
     epics::pvData::TimeStamp timeStamp;;
     epics::pvData::PVTimeStamp pvTimeStamp;
-    friend class PvaClientNTMultiGet;
-    friend class PvaClientNTMultiPut;
-    friend class PvaClientNTMultiMonitor;
 };
 
 

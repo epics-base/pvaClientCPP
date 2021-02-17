@@ -42,7 +42,7 @@ public:
         return clientGet->getRequesterName();
     }
 
-    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
+    virtual void message(std::string const & message, MessageType messageType) {
         PvaClientGetPtr clientGet(pvaClientGet.lock());
         if(!clientGet) return;
         clientGet->message(message,messageType);
@@ -172,7 +172,8 @@ void PvaClientGet::channelGetConnect(
              stringstream ss;
              ss << pvRequest;
              string message = string("\nPvaClientGet::channelGetConnect)")
-               + "\npvRequest\n" + ss.str()
+               + "\nchannelName=" + pvaClientChannel->getChannel()->getChannelName()
+               + "\npvRequest=" + ss.str()
                + "\nerror\n" + status.getMessage();
              channelGetConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
         }
