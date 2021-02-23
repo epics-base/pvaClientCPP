@@ -182,10 +182,6 @@ void PvaClientChannel::channelCreated(const Status& status, Channel::shared_poin
             + " status " +  status.getMessage() + " why??";
         throw std::runtime_error(message);
     }
-    if(channel->isConnected()) {
-        connectState = connected;
-        waitForConnect.signal();
-    }
 }
 
 void PvaClientChannel::channelStateChange(
