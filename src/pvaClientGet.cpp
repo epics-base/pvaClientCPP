@@ -162,28 +162,19 @@ void PvaClientGet::channelGetConnect(
     }
     {
         Lock xx(mutex);
-        this->channelGet = channelGet;
+        channelGetConnectStatus = status;
         if(status.isOK()) {
-            channelGetConnectStatus = status;
+            this->channelGet = channelGet;
             connectState = connected;
             pvaClientData = PvaClientGetData::create(structure);
             pvaClientData->setMessagePrefix(channelGet->getChannel()->getChannelName());
-        } else {
-             stringstream ss;
-             ss << pvRequest;
-             string message = string("\nPvaClientGet::channelGetConnect)")
-               + "\nchannelName=" + pvaClientChannel->getChannel()->getChannelName()
-               + "\npvRequest=" + ss.str()
-               + "\nerror\n" + status.getMessage();
-             channelGetConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
-        }
+        }    
+        waitForConnect.signal();
     }
     PvaClientGetRequesterPtr  req(pvaClientGetRequester.lock());
     if(req) {
           req->channelGetConnect(status,shared_from_this());
-    }
-    waitForConnect.signal();
-
+    }    
 }
 
 void PvaClientGet::getDone(
@@ -201,16 +192,16 @@ void PvaClientGet::getDone(
     {
         Lock xx(mutex);
         channelGetStatus = status;
-        getState = getComplete;
         if(status.isOK()) {
             pvaClientData->setData(pvStructure,bitSet);
         }
+        getState = getComplete;
+        waitForGet.signal();
     }
     PvaClientGetRequesterPtr  req(pvaClientGetRequester.lock());
     if(req) {
           req->getDone(status,shared_from_this());
     }
-    waitForGet.signal();
 }
 
 void PvaClientGet::connect()
@@ -249,20 +240,7 @@ Status PvaClientGet::waitConnect()
         cout << "PvaClientGet::waitConnect channelName "
            << pvaClientChannel->getChannel()->getChannelName() << "\n";
     }
-    {
-        Lock xx(mutex);
-        if(connectState==connected) {
-             if(!channelGetConnectStatus.isOK()) connectState = connectIdle;
-             return channelGetConnectStatus;
-        }
-        if(connectState!=connectActive) {
-            string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-                + " PvaClientGet::waitConnect illegal connect state ";
-            throw std::runtime_error(message);
-        }
-    }
     waitForConnect.wait();
-    if(!channelGetConnectStatus.isOK()) connectState = connectIdle;
     return channelGetConnectStatus;
 }
 
@@ -302,20 +280,7 @@ Status PvaClientGet::waitGet()
         cout << "PvaClientGet::waitGet channelName "
            << pvaClientChannel->getChannel()->getChannelName() << "\n";
     }
-    {
-        Lock xx(mutex);
-        if(getState==getComplete) {
-            getState = getIdle;
-            return channelGetStatus;
-        }
-        if(getState!=getActive){
-            string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-                + " PvaClientGet::waitGet llegal get state";
-            throw std::runtime_error(message);
-        }
-    }
     waitForGet.wait();
-    getState = getComplete;
     return channelGetStatus;
 }
 PvaClientGetDataPtr PvaClientGet::getData()

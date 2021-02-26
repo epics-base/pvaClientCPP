@@ -226,8 +226,10 @@ void PvaClientMonitor::monitorConnect(
     }
     {
         Lock xx(mutex);
-        this->monitor = monitor;
-        if(!status.isOK()) {
+        monitorConnectStatus = status;
+        if(status.isOK()) {
+            this->monitor = monitor;
+        } else {
              stringstream ss;
              ss << pvRequest;
              string message = string("\nPvaClientMonitor::monitorConnect)")
@@ -236,11 +238,12 @@ void PvaClientMonitor::monitorConnect(
                + "\nerror\n" + status.getMessage();
              monitorConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
              waitForConnect.signal();
+             PvaClientMonitorRequesterPtr req(pvaClientMonitorRequester.lock());
+             if(req) req->monitorConnect(status,shared_from_this(),structure);
              return;
         }
     }
     bool signal = (connectState==connectWait) ? true : false;
-    monitorConnectStatus = status;
     connectState = connected;
     if(isStarted) {
         if(PvaClient::getDebug()) {
@@ -249,6 +252,9 @@ void PvaClientMonitor::monitorConnect(
                << " is already started "
                << endl;
         }
+        waitForConnect.signal();
+        PvaClientMonitorRequesterPtr req(pvaClientMonitorRequester.lock());
+        if(req) req->monitorConnect(status,shared_from_this(),structure);
         return;
     }
     pvaClientData = PvaClientMonitorData::create(structure);
@@ -329,20 +335,7 @@ Status PvaClientMonitor::waitConnect()
          << pvaClientChannel->getChannel()->getChannelName()
          << endl;
     }
-    {
-        Lock xx(mutex);
-        if(connectState==connected) {
-             if(!monitorConnectStatus.isOK()) connectState = connectIdle;
-             return monitorConnectStatus;
-        }
-        if(connectState!=connectWait) {
-            string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-                + " PvaClientMonitor::waitConnect illegal connect state ";
-            throw std::runtime_error(message);
-        }
-    }
     waitForConnect.wait();
-    connectState = monitorConnectStatus.isOK() ? connected : connectIdle;
     if(PvaClient::getDebug()) {
         cout << "PvaClientMonitor::waitConnect"
              << " monitorConnectStatus " << (monitorConnectStatus.isOK() ? "connected" : "not connected")

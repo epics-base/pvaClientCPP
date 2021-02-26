@@ -138,25 +138,17 @@ void PvaClientProcess::channelProcessConnect(
     }
     {
         Lock xx(mutex);
-        this->channelProcess = channelProcess;
+        channelProcessConnectStatus = status;
         if(status.isOK()) {
-            channelProcessConnectStatus = status;
+            this->channelProcess = channelProcess;
             connectState = connected;
-        } else {
-             stringstream ss;
-             ss << pvRequest;
-             string message = string("PvaClientProcess::channelProcessConnect")
-               + "\npvRequest\n" + ss.str()
-               + "\nerror\n" + status.getMessage();
-             channelProcessConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
-        }
+        }    
+        waitForConnect.signal();
     }
     PvaClientProcessRequesterPtr  req(pvaClientProcessRequester.lock());
     if(req) {
           req->channelProcessConnect(status,shared_from_this());
     }
-    waitForConnect.signal();
-
 }
 
 void PvaClientProcess::processDone(
@@ -173,13 +165,12 @@ void PvaClientProcess::processDone(
         Lock xx(mutex);
         channelProcessStatus = status;
         processState = processComplete;
+        waitForProcess.signal();
     }
-
     PvaClientProcessRequesterPtr  req(pvaClientProcessRequester.lock());
     if(req) {
           req->processDone(status,shared_from_this());
     }
-    waitForProcess.signal();
 }
 
 void PvaClientProcess::connect()
@@ -221,17 +212,7 @@ Status PvaClientProcess::waitConnect()
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
     }
-    if(connectState==connected) {
-         if(!channelProcessConnectStatus.isOK()) connectState = connectIdle;
-         return channelProcessConnectStatus;
-    }
-    if(connectState!=connectActive) {
-        string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-            + " pvaClientProcess illegal connect state ";
-        throw std::runtime_error(message);
-    }
     waitForConnect.wait();
-    if(!channelProcessConnectStatus.isOK()) connectState = connectIdle;
     return channelProcessConnectStatus;
 }
 
@@ -273,18 +254,6 @@ Status PvaClientProcess::waitProcess()
         cout << "PvaClientProcess::waitProcess"
            << " channelName " << pvaClientChannel->getChannel()->getChannelName()
            << endl;
-    }
-    {
-        Lock xx(mutex);
-        if(processState==processComplete) {
-            processState = processIdle;
-            return channelProcessStatus;
-        }
-        if(processState!=processActive){
-            string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-                 + " PvaClientProcess::waitProcess llegal process state";
-            throw std::runtime_error(message);
-        }
     }
     waitForProcess.wait();
     processState = processComplete;
