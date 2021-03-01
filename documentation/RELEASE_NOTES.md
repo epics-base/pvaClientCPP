@@ -1,4 +1,4 @@
-pwd# pvaClientCPP Module
+# pvaClientCPP Module
 
 This document summarizes the changes to the module between releases.
 
