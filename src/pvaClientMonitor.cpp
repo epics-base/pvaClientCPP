@@ -296,9 +296,7 @@ void PvaClientMonitor::unlisten(MonitorPtr const & monitor)
     PvaClientMonitorRequesterPtr req = pvaClientMonitorRequester.lock();
     if(req) {
         req->unlisten();
-        return;
     }
-    cerr << pvaClientChannel->getChannel()->getChannelName() + "pvaClientMonitor::unlisten called but no PvaClientMonitorRequester\n";
 }
 
 

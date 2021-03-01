@@ -149,7 +149,6 @@ PvaClientPtr PvaClientMultiChannel::getPvaClient()
 
 PvaClientMultiGetDoublePtr PvaClientMultiChannel::createGet()
 {
-cout << "PvaClientMultiChannel::createGet\n";
     checkConnected();
     return PvaClientMultiGetDouble::create(shared_from_this(),pvaClientChannelArray);
 }
@@ -157,7 +156,6 @@ cout << "PvaClientMultiChannel::createGet\n";
 
 PvaClientMultiPutDoublePtr PvaClientMultiChannel::createPut()
 {
-cout << "PvaClientMultiChannel::createPut\n";
     checkConnected();
     return PvaClientMultiPutDouble::create(shared_from_this(),pvaClientChannelArray);
 }
@@ -165,7 +163,6 @@ cout << "PvaClientMultiChannel::createPut\n";
 
 PvaClientMultiMonitorDoublePtr PvaClientMultiChannel::createMonitor()
 {
-cout << "PvaClientMultiChannel::createMonitor\n";
     checkConnected();
      return PvaClientMultiMonitorDouble::create(shared_from_this(), pvaClientChannelArray);
 }

@@ -146,12 +146,15 @@ void PvaClientNTMultiPut::put()
                value[i]->copy(*unionValue[i]->get());
                pvaClientPut[i]->issuePut();
          }
-         if(isConnected[i]) {
-              Status status = pvaClientPut[i]->waitPut();
-              if(status.isOK())  continue;
-              string message = string("channel ") +pvaClientChannelArray[i]->getChannelName()
-                    + " PvaChannelPut::waitPut " + status.getMessage();
-              throw std::runtime_error(message);
+    }
+    for(size_t i=0; i<nchannel; ++i)
+    {
+        if(isConnected[i]) {
+            Status status = pvaClientPut[i]->waitPut();
+            if(status.isOK())  continue;
+            string message = string("channel ") +pvaClientChannelArray[i]->getChannelName()
+                + " PvaChannelPut::waitPut " + status.getMessage();
+            throw std::runtime_error(message);
          }
     }
 }
