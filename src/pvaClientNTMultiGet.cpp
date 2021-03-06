@@ -38,7 +38,7 @@ PvaClientNTMultiGet::PvaClientNTMultiGet(
          UnionConstPtr const & u,
          PvaClientMultiChannelPtr const &pvaClientMultiChannel,
          PvaClientChannelArray const &pvaClientChannelArray,
-         epics::pvData::PVStructurePtr const &  pvRequest)
+         PVStructurePtr const &  pvRequest)
 : pvaClientMultiChannel(pvaClientMultiChannel),
   pvaClientChannelArray(pvaClientChannelArray),
   pvRequest(pvRequest),
@@ -62,7 +62,7 @@ PvaClientNTMultiGet::~PvaClientNTMultiGet()
 void PvaClientNTMultiGet::connect()
 {
     pvaClientGet.resize(nchannel);
-    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -86,11 +86,15 @@ void PvaClientNTMultiGet::connect()
 void PvaClientNTMultiGet::get(bool valueOnly)
 {
     if(!isConnected) connect();
-    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
 
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
+               if(!pvaClientGet[i]){
+                   pvaClientGet[i]=pvaClientChannelArray[i]->createGet(pvRequest);
+                   pvaClientGet[i]->connect();
+               }    
                pvaClientGet[i]->issueGet();
          }
     }

@@ -44,7 +44,7 @@ public:
         return clientMonitor->getRequesterName();
     }
 
-    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
+    virtual void message(std::string const & message, MessageType messageType) {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
         clientMonitor->message(message,messageType);
@@ -60,14 +60,14 @@ public:
         clientMonitor->monitorConnect(status,monitor,structure);
     }
 
-    virtual void unlisten(epics::pvData::MonitorPtr const & monitor)
+    virtual void unlisten(MonitorPtr const & monitor)
     {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
         clientMonitor->unlisten(monitor);
     }
 
-    virtual void monitorEvent(epics::pvData::MonitorPtr const & monitor)
+    virtual void monitorEvent(MonitorPtr const & monitor)
     {
         PvaClientMonitorPtr clientMonitor(pvaClientMonitor.lock());
         if(!clientMonitor) return;
@@ -226,19 +226,24 @@ void PvaClientMonitor::monitorConnect(
     }
     {
         Lock xx(mutex);
-        this->monitor = monitor;
-        if(!status.isOK()) {
+        monitorConnectStatus = status;
+        if(status.isOK()) {
+            this->monitor = monitor;
+        } else {
              stringstream ss;
              ss << pvRequest;
              string message = string("\nPvaClientMonitor::monitorConnect)")
+               + "\nchannelName=" + pvaClientChannel->getChannel()->getChannelName()
                + "\npvRequest\n" + ss.str()
                + "\nerror\n" + status.getMessage();
              monitorConnectStatus = Status(Status::STATUSTYPE_ERROR,message);
+             waitForConnect.signal();
+             PvaClientMonitorRequesterPtr req(pvaClientMonitorRequester.lock());
+             if(req) req->monitorConnect(status,shared_from_this(),structure);
              return;
         }
     }
     bool signal = (connectState==connectWait) ? true : false;
-    monitorConnectStatus = status;
     connectState = connected;
     if(isStarted) {
         if(PvaClient::getDebug()) {
@@ -247,6 +252,9 @@ void PvaClientMonitor::monitorConnect(
                << " is already started "
                << endl;
         }
+        waitForConnect.signal();
+        PvaClientMonitorRequesterPtr req(pvaClientMonitorRequester.lock());
+        if(req) req->monitorConnect(status,shared_from_this(),structure);
         return;
     }
     pvaClientData = PvaClientMonitorData::create(structure);
@@ -288,9 +296,7 @@ void PvaClientMonitor::unlisten(MonitorPtr const & monitor)
     PvaClientMonitorRequesterPtr req = pvaClientMonitorRequester.lock();
     if(req) {
         req->unlisten();
-        return;
     }
-    cerr << pvaClientChannel->getChannel()->getChannelName() + "pvaClientMonitor::unlisten called but no PvaClientMonitorRequester\n";
 }
 
 
@@ -327,20 +333,7 @@ Status PvaClientMonitor::waitConnect()
          << pvaClientChannel->getChannel()->getChannelName()
          << endl;
     }
-    {
-        Lock xx(mutex);
-        if(connectState==connected) {
-             if(!monitorConnectStatus.isOK()) connectState = connectIdle;
-             return monitorConnectStatus;
-        }
-        if(connectState!=connectWait) {
-            string message = string("channel ") + pvaClientChannel->getChannel()->getChannelName()
-                + " PvaClientMonitor::waitConnect illegal connect state ";
-            throw std::runtime_error(message);
-        }
-    }
     waitForConnect.wait();
-    connectState = monitorConnectStatus.isOK() ? connected : connectIdle;
     if(PvaClient::getDebug()) {
         cout << "PvaClientMonitor::waitConnect"
              << " monitorConnectStatus " << (monitorConnectStatus.isOK() ? "connected" : "not connected")
@@ -438,7 +431,7 @@ bool PvaClientMonitor::poll()
     if(!monitorElement) return false;
     userPoll = true;
     pvaClientData->setData(monitorElement);
-   return true;
+    return true;
 }
 
 bool PvaClientMonitor::waitEvent(double secondsToWait)

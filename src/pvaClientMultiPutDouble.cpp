@@ -55,7 +55,7 @@ PvaClientMultiPutDouble::~PvaClientMultiPutDouble()
 
 void PvaClientMultiPutDouble::connect()
 {
-    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -76,20 +76,28 @@ void PvaClientMultiPutDouble::connect()
     isPutConnected = true;
 }
 
-void PvaClientMultiPutDouble::put(epics::pvData::shared_vector<double> const &data)
+void PvaClientMultiPutDouble::put(shared_vector<double> const &data)
 {
     if(!isPutConnected) connect();
     if(data.size()!=nchannel) {
          throw std::runtime_error("data has wrong size");
     }
-    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
+               if(!pvaClientPut[i]) pvaClientPut[i]=pvaClientChannelArray[i]->createPut("value");
                PVStructurePtr pvTop = pvaClientPut[i]->getData()->getPVStructure();
-               PVScalarPtr pvValue = pvTop->getSubField<PVScalar>("value");
-               getConvert()->fromDouble(pvValue,data[i]);
-               pvaClientPut[i]->issuePut();
+               PVScalarPtr pvScalar= pvTop->getSubField<PVScalar>("value");
+               if(pvScalar && ScalarTypeFunc::isNumeric(pvScalar->getScalar()->getScalarType())) {
+                   getConvert()->fromDouble(pvScalar,data[i]);
+                   pvaClientPut[i]->issuePut();
+               } else {
+                   string message = string("channel ")
+                       + pvaClientChannelArray[i]->getChannelName()
+                       + " is not a numeric scalar";
+                   throw std::runtime_error(message);
+               }
          }
          if(isConnected[i]) {
               Status status = pvaClientPut[i]->waitPut();

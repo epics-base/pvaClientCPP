@@ -28,7 +28,7 @@ static CreateRequest::shared_pointer  createRequestPvt = CreateRequest::create()
 
 PvaClientMultiChannelPtr PvaClientMultiChannel::create(
    PvaClientPtr const &pvaClient,
-   epics::pvData::shared_vector<const string> const & channelNames,
+   shared_vector<const string> const & channelNames,
    string const & providerName,
    size_t maxNotConnected)
 {
@@ -39,17 +39,18 @@ PvaClientMultiChannelPtr PvaClientMultiChannel::create(
 
 PvaClientMultiChannel::PvaClientMultiChannel(
     PvaClientPtr const &pvaClient,
-    epics::pvData::shared_vector<const string> const & channelName,
+    shared_vector<const string> const & channelNames,
     string const & providerName,
     size_t maxNotConnected)
 : pvaClient(pvaClient),
-  channelName(channelName),
+  channelNames(channelNames),
   providerName(providerName),
   maxNotConnected(maxNotConnected),
-  numChannel(channelName.size()),
+  numChannel(channelNames.size()),
   numConnected(0),
+  firstConnect(true),
   pvaClientChannelArray(PvaClientChannelArray(numChannel,PvaClientChannelPtr())),
-  isConnected(shared_vector<epics::pvData::boolean>(numChannel,false)),
+  isConnected(shared_vector<boolean>(numChannel,false)),
   createRequest(CreateRequest::create())
 {
     if(PvaClient::getDebug()) cout<< "PvaClientMultiChannel::PvaClientMultiChannel()\n";
@@ -62,18 +63,23 @@ PvaClientMultiChannel::~PvaClientMultiChannel()
 
 void PvaClientMultiChannel::checkConnected()
 {
-    if(numConnected==0) connect();
+    if(firstConnect) {
+        connect();
+        firstConnect = false;
+    }
 }
 
-epics::pvData::shared_vector<const string> PvaClientMultiChannel::getChannelNames()
+shared_vector<const string> PvaClientMultiChannel::getChannelNames()
 {
-    return channelName;
+    return channelNames;
 }
 
 Status PvaClientMultiChannel::connect(double timeout)
 {
+    if(!firstConnect) return Status::Ok;
+    firstConnect = false;
     for(size_t i=0; i< numChannel; ++i) {
-        pvaClientChannelArray[i] = pvaClient->createChannel(channelName[i],providerName);
+        pvaClientChannelArray[i] = pvaClient->createChannel(channelNames[i],providerName);
         pvaClientChannelArray[i]->issueConnect();
     }
     Status returnStatus = Status::Ok;
@@ -88,11 +94,10 @@ Status PvaClientMultiChannel::connect(double timeout)
         if(status.isOK()) {
             ++numConnected;
             isConnected[i] = true;
-            continue;
+        } else {
+            if(returnStatus.isOK()) returnStatus = status;
+            ++numBad;
         }
-        if(returnStatus.isOK()) returnStatus = status;
-        ++numBad;
-        if(numBad>maxNotConnected) break;
     }
     return numBad>maxNotConnected ? returnStatus : Status::Ok;
 }
@@ -115,7 +120,7 @@ bool PvaClientMultiChannel::connectionChange()
     return false;
 }
 
-epics::pvData::shared_vector<epics::pvData::boolean>  PvaClientMultiChannel::getIsConnected()
+shared_vector<boolean>  PvaClientMultiChannel::getIsConnected()
 {
     for(size_t i=0; i<numChannel; ++i) {
          PvaClientChannelPtr pvaClientChannel = pvaClientChannelArray[i];

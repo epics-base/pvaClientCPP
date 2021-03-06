@@ -45,14 +45,14 @@ public:
         return clientRPC->getRequesterName();
     }
 
-    virtual void message(std::string const & message, epics::pvData::MessageType messageType) {
+    virtual void message(std::string const & message, MessageType messageType) {
         PvaClientRPCPtr clientRPC(pvaClientRPC.lock());
         if(!clientRPC) return;
         clientRPC->message(message,messageType);
     }
 
     virtual void channelRPCConnect(
-        const epics::pvData::Status& status,
+        const Status& status,
         ChannelRPC::shared_pointer const & channelRPC)
     {
         PvaClientRPCPtr clientRPC(pvaClientRPC.lock());
