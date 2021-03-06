@@ -45,7 +45,7 @@ PvaClientNTMultiData::PvaClientNTMultiData(
   
 {
     if(PvaClient::getDebug()) cout<< "PvaClientNTMultiData::PvaClientNTMultiData()\n";
-    changeFlags =  shared_vector<boolean>(nchannel);
+    changeFlags =  shared_vector<epics::pvData::boolean>(nchannel);
     topPVStructure.resize(nchannel);
     
     unionValue.resize(nchannel);
@@ -93,7 +93,7 @@ void PvaClientNTMultiData::setPVStructure(
     topPVStructure[index] = pvStructure;
 }
 
-shared_vector<boolean> PvaClientNTMultiData::getChannelChangeFlags()
+shared_vector<epics::pvData::boolean> PvaClientNTMultiData::getChannelChangeFlags()
 {
     return changeFlags;
 }
@@ -190,8 +190,8 @@ NTMultiChannelPtr PvaClientNTMultiData::getNTMultiChannel()
     shared_vector<PVUnionPtr> val(nchannel);
     for(size_t i=0; i<nchannel; ++i) val[i] = unionValue[i];
     ntMultiChannel->getValue()->replace(freeze(val));
-    shared_vector<boolean> connected = pvaClientMultiChannel->getIsConnected();
-    shared_vector<boolean> isConnected(nchannel);
+    shared_vector<epics::pvData::boolean> connected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected(nchannel);
     for(size_t i=0; i<nchannel; ++i) isConnected[i] = connected[i];
     ntMultiChannel->getIsConnected()->replace(freeze(isConnected));
     if(gotAlarm)

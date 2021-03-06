@@ -55,7 +55,7 @@ PvaClientMultiPutDouble::~PvaClientMultiPutDouble()
 
 void PvaClientMultiPutDouble::connect()
 {
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -82,7 +82,7 @@ void PvaClientMultiPutDouble::put(shared_vector<double> const &data)
     if(data.size()!=nchannel) {
          throw std::runtime_error("data has wrong size");
     }
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {

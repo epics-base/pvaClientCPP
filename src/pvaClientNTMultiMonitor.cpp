@@ -66,7 +66,7 @@ PvaClientNTMultiMonitor::~PvaClientNTMultiMonitor()
 void PvaClientNTMultiMonitor::connect()
 {
     pvaClientMonitor.resize(nchannel);
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -95,7 +95,7 @@ bool PvaClientNTMultiMonitor::poll(bool valueOnly)
 {
     if(!isConnected) connect();
     bool result = false;
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected(); 
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected(); 
     pvaClientNTMultiData->startDeltaTime();  
     for(size_t i=0; i<nchannel; ++i)
     {

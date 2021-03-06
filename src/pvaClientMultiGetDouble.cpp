@@ -53,7 +53,7 @@ PvaClientMultiGetDouble::~PvaClientMultiGetDouble()
 
 void PvaClientMultiGetDouble::connect()
 {
-    shared_vector<boolean>isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean>isConnected = pvaClientMultiChannel->getIsConnected();
     string request = "value";
     for(size_t i=0; i<nchannel; ++i)
     {
@@ -78,7 +78,7 @@ void PvaClientMultiGetDouble::connect()
 shared_vector<double> PvaClientMultiGetDouble::get()
 {
     if(!isGetConnected) connect();
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {

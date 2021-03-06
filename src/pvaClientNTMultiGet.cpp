@@ -62,7 +62,7 @@ PvaClientNTMultiGet::~PvaClientNTMultiGet()
 void PvaClientNTMultiGet::connect()
 {
     pvaClientGet.resize(nchannel);
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -86,7 +86,7 @@ void PvaClientNTMultiGet::connect()
 void PvaClientNTMultiGet::get(bool valueOnly)
 {
     if(!isConnected) connect();
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
 
     for(size_t i=0; i<nchannel; ++i)
     {

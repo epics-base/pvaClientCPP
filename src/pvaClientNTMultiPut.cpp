@@ -54,7 +54,7 @@ PvaClientNTMultiPut::~PvaClientNTMultiPut()
 void PvaClientNTMultiPut::connect()
 {
     pvaClientPut.resize(nchannel);
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -105,7 +105,7 @@ void PvaClientNTMultiPut::connect()
 shared_vector<PVUnionPtr> PvaClientNTMultiPut::getValues()
 {
     if(!isConnected) connect();
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {
@@ -128,7 +128,7 @@ shared_vector<PVUnionPtr> PvaClientNTMultiPut::getValues()
 void PvaClientNTMultiPut::put()
 {
     if(!isConnected) connect();
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {

@@ -53,7 +53,7 @@ PvaClientMultiMonitorDouble::~PvaClientMultiMonitorDouble()
 
 void PvaClientMultiMonitorDouble::connect()
 {
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     string request = "value";
     for(size_t i=0; i<nchannel; ++i)
     {
@@ -86,7 +86,7 @@ bool PvaClientMultiMonitorDouble::poll()
          epicsThreadSleep(.1);
     }
     bool result = false;
-    shared_vector<boolean> isConnected = pvaClientMultiChannel->getIsConnected();
+    shared_vector<epics::pvData::boolean> isConnected = pvaClientMultiChannel->getIsConnected();
     for(size_t i=0; i<nchannel; ++i)
     {
          if(isConnected[i]) {

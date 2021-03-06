@@ -50,7 +50,7 @@ PvaClientMultiChannel::PvaClientMultiChannel(
   numConnected(0),
   firstConnect(true),
   pvaClientChannelArray(PvaClientChannelArray(numChannel,PvaClientChannelPtr())),
-  isConnected(shared_vector<boolean>(numChannel,false)),
+  isConnected(shared_vector<epics::pvData::boolean>(numChannel,false)),
   createRequest(CreateRequest::create())
 {
     if(PvaClient::getDebug()) cout<< "PvaClientMultiChannel::PvaClientMultiChannel()\n";
@@ -120,7 +120,7 @@ bool PvaClientMultiChannel::connectionChange()
     return false;
 }
 
-shared_vector<boolean>  PvaClientMultiChannel::getIsConnected()
+shared_vector<epics::pvData::boolean>  PvaClientMultiChannel::getIsConnected()
 {
     for(size_t i=0; i<numChannel; ++i) {
          PvaClientChannelPtr pvaClientChannel = pvaClientChannelArray[i];
