@@ -134,19 +134,14 @@ void PvaClientGet::checkConnectState()
     }
 }
 
-// from ChannelGetRequester
 string PvaClientGet::getRequesterName()
 {
-    PvaClientPtr yyy = pvaClient.lock();
-    if(!yyy) return string("PvaClientGet::getRequesterName PvaClient isDestroyed");
-    return yyy->getRequesterName();
+    return pvaClientChannel->getRequesterName();
 }
 
 void PvaClientGet::message(string const & message,MessageType messageType)
 {
-    PvaClientPtr yyy = pvaClient.lock();
-    if(!yyy) return;
-    yyy->message(message, messageType);
+    pvaClientChannel->message(message,messageType);
 }
 
 void PvaClientGet::channelGetConnect(

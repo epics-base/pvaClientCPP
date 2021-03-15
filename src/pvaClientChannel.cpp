@@ -198,9 +198,6 @@ void PvaClientChannel::channelStateChange(
     if(connectState==connectActive) waitingForConnect = true;
     if(connectionState!=Channel::CONNECTED) {
         Lock xx(mutex);
-        string mess(channelName +
-                " connection state " + Channel::ConnectionStateNames[connectionState]);
-        message(mess,errorMessage);
         connectState = notConnected;
     } else {
         Lock xx(mutex);

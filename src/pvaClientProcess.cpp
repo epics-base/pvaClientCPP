@@ -111,19 +111,14 @@ PvaClientProcess::~PvaClientProcess()
     }
 }
 
-// from ChannelProcessRequester
 string PvaClientProcess::getRequesterName()
 {
-     PvaClientPtr yyy = pvaClient.lock();
-     if(!yyy) throw std::runtime_error("pvaClient was destroyed");
-     return yyy->getRequesterName();
+     return pvaClientChannel->getRequesterName();
 }
 
 void PvaClientProcess::message(string const & message,MessageType messageType)
 {
-    PvaClientPtr yyy = pvaClient.lock();
-    if(!yyy) throw std::runtime_error("pvaClient was destroyed");
-    yyy->message(message, messageType);
+    pvaClientChannel->message(message,messageType);
 }
 
 void PvaClientProcess::channelProcessConnect(

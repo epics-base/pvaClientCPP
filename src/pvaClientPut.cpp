@@ -138,16 +138,12 @@ void PvaClientPut::checkConnectState()
 
 string PvaClientPut::getRequesterName()
 {
-     PvaClientPtr yyy = pvaClient.lock();
-     if(!yyy) return string("PvaClientPut::getRequesterName() PvaClient isDestroyed");
-     return yyy->getRequesterName();
+     return pvaClientChannel->getRequesterName();
 }
 
 void PvaClientPut::message(string const & message,MessageType messageType)
 {
-    PvaClientPtr yyy = pvaClient.lock();
-    if(!yyy) return;
-    yyy->message(message, messageType);
+    pvaClientChannel->message(message,messageType);
 }
 
 void PvaClientPut::channelPutConnect(

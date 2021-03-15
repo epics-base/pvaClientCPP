@@ -201,16 +201,12 @@ void PvaClientMonitor::checkMonitorState()
 
 string PvaClientMonitor::getRequesterName()
 {
-     PvaClientPtr yyy = pvaClient.lock();
-     if(!yyy) return string("PvaClientMonitor::getRequesterName() PvaClient isDestroyed");
-     return yyy->getRequesterName();
+     return pvaClientChannel->getRequesterName();
 }
 
 void PvaClientMonitor::message(string const & message,MessageType messageType)
 {
-    PvaClientPtr yyy = pvaClient.lock();
-    if(!yyy) return;
-    yyy->message(message, messageType);
+    pvaClientChannel->message(message,messageType);
 }
 
 void PvaClientMonitor::monitorConnect(
