@@ -66,14 +66,19 @@ public:
      * @param pvaClient The interface to pvaClient.
      * @param channelNames The names of the channel..
      * @param providerName The name of the provider.
+     * This is also used for the provider for all channels
+     * with providerNames.size less than channelNames.size()
      * @param maxNotConnected The maximum number of channels that can be disconnected.
+     * @param providerNames The providerName for each Channells
      * @return The interface to the PvaClientMultiChannel
      */
     static PvaClientMultiChannelPtr create(
          PvaClientPtr const &pvaClient,
          epics::pvData::shared_vector<const std::string> const & channelNames,
          std::string const & providerName = "pva",
-         size_t maxNotConnected=0
+         size_t maxNotConnected=0,
+         epics::pvData::shared_vector<const std::string> const & providerNames
+             = epics::pvData::shared_vector<const std::string>()
      );
      /**
      * @brief Destructor
@@ -150,15 +155,18 @@ private:
         PvaClientPtr const &pvaClient,
         epics::pvData::shared_vector<const std::string> const & channelNames,
         std::string const & providerName,
-        size_t maxNotConnected);
+        size_t maxNotConnected,
+        epics::pvData::shared_vector<const std::string> const & providerNames);
     void checkConnected();
 
     PvaClientPtr pvaClient;
     epics::pvData::shared_vector<const std::string> channelNames;
     std::string providerName;
     size_t maxNotConnected;
+    epics::pvData::shared_vector<const std::string> const & providerNames;
 
     size_t numChannel;
+    size_t numProviderNames;
     epics::pvData::Mutex mutex;
 
     size_t numConnected;

@@ -30,10 +30,12 @@ PvaClientMultiChannelPtr PvaClientMultiChannel::create(
    PvaClientPtr const &pvaClient,
    shared_vector<const string> const & channelNames,
    string const & providerName,
-   size_t maxNotConnected)
+   size_t maxNotConnected,
+   shared_vector<const string> const & providerNames)
 {
     return PvaClientMultiChannelPtr(
-        new PvaClientMultiChannel(pvaClient,channelNames,providerName,maxNotConnected));
+        new PvaClientMultiChannel(
+        pvaClient,channelNames,providerName,maxNotConnected,providerNames));
 }
 
 
@@ -41,12 +43,15 @@ PvaClientMultiChannel::PvaClientMultiChannel(
     PvaClientPtr const &pvaClient,
     shared_vector<const string> const & channelNames,
     string const & providerName,
-    size_t maxNotConnected)
+    size_t maxNotConnected,
+    shared_vector<const string> const & providerNames)
 : pvaClient(pvaClient),
   channelNames(channelNames),
   providerName(providerName),
   maxNotConnected(maxNotConnected),
+  providerNames(providerNames),
   numChannel(channelNames.size()),
+  numProviderNames(providerNames.size()),
   numConnected(0),
   firstConnect(true),
   pvaClientChannelArray(PvaClientChannelArray(numChannel,PvaClientChannelPtr())),
@@ -79,7 +84,11 @@ Status PvaClientMultiChannel::connect(double timeout)
     if(!firstConnect) return Status::Ok;
     firstConnect = false;
     for(size_t i=0; i< numChannel; ++i) {
-        pvaClientChannelArray[i] = pvaClient->createChannel(channelNames[i],providerName);
+        if(numProviderNames<=i) {
+            pvaClientChannelArray[i] = pvaClient->createChannel(channelNames[i],providerName);
+        } else {
+            pvaClientChannelArray[i] = pvaClient->createChannel(channelNames[i],providerNames[i]);
+        }    
         pvaClientChannelArray[i]->issueConnect();
     }
     Status returnStatus = Status::Ok;
